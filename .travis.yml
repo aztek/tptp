@@ -22,9 +22,13 @@ install:
   - ghc --version
   - cabal --version
   - cabal new-update
-  - cabal new-build -fWerror --enable-tests --enable-benchmarks
+  - cabal new-build -fWerror --enable-tests --enable-library-coverage --enable-benchmarks
 
 script:
   - cabal new-test
   - wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
   - cabal check
+
+after_script:
+  - cabal new-install codecov-haskell
+  - codecov-haskell quickcheck-spec
