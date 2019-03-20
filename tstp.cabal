@@ -32,12 +32,11 @@ library
   default-language: Haskell2010
   exposed-modules:
     Data.TSTP
+    Data.TSTP.Internal
+    Data.TSTP.Parse.Combinators
     Data.TSTP.Parse.Text
     Data.TSTP.Parse.Text.Lazy
     Data.TSTP.Pretty
-  other-modules:
-    Data.TSTP.Internal
-    Data.TSTP.Parse.Combinators
   ghc-options:
     -Wall
   if flag(Werror)
@@ -52,14 +51,10 @@ library
 
 test-suite quickcheck-spec
   type: exitcode-stdio-1.0
-  hs-source-dirs: src, test/QuickCheckSpec
+  hs-source-dirs: test/QuickCheckSpec
   default-language: Haskell2010
   main-is: Main.hs
   other-modules:
-    Data.TSTP
-    Data.TSTP.Pretty
-    Data.TSTP.Internal
-    Data.TSTP.Parse.Combinators
     Generators
   ghc-options:
     -Wall
@@ -70,5 +65,6 @@ test-suite quickcheck-spec
     text,
     attoparsec,
     prettyprinter,
+    tstp,
     generic-random,
     QuickCheck
