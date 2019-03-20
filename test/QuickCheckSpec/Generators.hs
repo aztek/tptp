@@ -9,30 +9,34 @@ import GHC.Generics
 import Generic.Random
 import Test.QuickCheck hiding (Sorted, Function)
 
+import Data.Char (chr)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Text (pack)
 
 import Data.TSTP
-import Data.TSTP.Internal
 
 -- * Helpers
 
 instance Arbitrary s => Arbitrary (NonEmpty s) where
   arbitrary = genericArbitraryRec (1 % ())
 
+alphaNumeric :: String
+alphaNumeric = '_' : ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9']
+
 -- * Names
 
 instance Arbitrary Atom where
   arbitrary = Atom . pack <$> oneof [lowerWord, singleQuoted]
     where
-      lowerWord = (:) <$> elements lowerAlpha
+      lowerWord = (:) <$> elements ['a'..'z']
                       <*> listOf (elements alphaNumeric)
       singleQuoted = listOf1 (elements sg)
+      sg = [chr 0o40..chr 0o46] ++ [chr 0o50..chr 0o176]
 
 instance Arbitrary Var where
   arbitrary = Var . pack <$> upperWord
     where
-      upperWord = (:) <$> elements upperAlpha
+      upperWord = (:) <$> elements ['A'..'Z']
                       <*> listOf (elements alphaNumeric)
 
 deriving instance Generic StandardFunction
