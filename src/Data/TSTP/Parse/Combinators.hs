@@ -136,7 +136,7 @@ unsorted :: Parser Unsorted
 unsorted = pure (Unsorted ())
 
 sorted :: Parser Sorted
-sorted = Sorted <$> option Nothing (Just <$> (op ':' *> sort))
+sorted = Sorted <$> optional (op ':' *> sort)
 
 -- ** Formula annotations
 
