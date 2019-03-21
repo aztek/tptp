@@ -31,4 +31,4 @@ script:
 
 after_script:
   - cabal new-install hpc-coveralls
-  - hpc-coveralls --display-report quickcheck-spec
+  - ~/.cabal/bin/hpc-coveralls --display-report quickcheck-spec
