@@ -22,13 +22,9 @@ install:
   - ghc --version
   - cabal --version
   - cabal new-update
-  - cabal new-build -fWerror --enable-tests --enable-library-coverage --enable-benchmarks
+  - cabal new-build -fWerror --enable-tests
 
 script:
   - cabal new-test
   - wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
   - cabal check
-
-after_script:
-  - cabal new-install hpc-coveralls
-  - ~/.cabal/bin/hpc-coveralls --display-report quickcheck-spec
