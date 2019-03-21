@@ -1,5 +1,4 @@
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
@@ -21,7 +20,7 @@ import Generators ()
 ipp :: (Show a, Eq a, Pretty a) => Parser a -> a -> Property
 ipp p a =
   whenFail (print t) $ case parseOnly p t of
-    Left err -> whenFail (putStrLn $ "Parsing error: " <> err) False
+    Left err -> whenFail (putStrLn $ "Parsing error: " ++ err) False
     Right a' -> a' === a
   where
     t = renderStrict $ layoutPretty defaultLayoutOptions (pretty a)
