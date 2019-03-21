@@ -4,7 +4,7 @@
 
 module Data.TSTP.Parse.Combinators where
 
-import Control.Applicative ((<|>), many)
+import Control.Applicative ((<|>), many, optional)
 
 import Data.Attoparsec.Text as A
 import Data.Functor (($>))
@@ -163,10 +163,7 @@ info :: Parser Info
 info = Info <$> generalList
 
 maybeP :: Parser a -> Parser (Maybe a)
-maybeP = option Nothing . fmap Just
-
-optional :: Parser a -> Parser (Maybe a)
-optional p = maybeP (op ',' *> p)
+maybeP p = optional (op ',' *> p)
 
 generalData :: Parser GeneralData
 generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
@@ -179,7 +176,7 @@ generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
     form = char '$' >> do { l <- lang; parens (formula l) }
 
 generalTerm :: Parser GeneralTerm
-generalTerm =  GeneralData <$> generalData <*> maybeP (op ':' *> generalTerm)
+generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
            <|> GeneralList <$> generalList
 
 generalList :: Parser [GeneralTerm]
@@ -189,10 +186,10 @@ parent :: Parser Parent
 parent = Parent <$> source <*> option [] (op ':' *> generalList)
 
 source :: Parser Source
-source =  string "file"       *> parens (File       <$> atom  <*> optional atom)
-      <|> string "theory"     *> parens (Theory     <$> atom  <*> optional info)
-      <|> string "creator"    *> parens (Creator    <$> atom  <*> optional info)
-      <|> string "introduced" *> parens (Introduced <$> intro <*> optional info)
+source =  string "file"       *> parens (File       <$> atom  <*> maybeP atom)
+      <|> string "theory"     *> parens (Theory     <$> atom  <*> maybeP info)
+      <|> string "creator"    *> parens (Creator    <$> atom  <*> maybeP info)
+      <|> string "introduced" *> parens (Introduced <$> intro <*> maybeP info)
       <|> string "inference"  *> parens (Inference  <$> atom <* op ','
                                                     <*> info <* op ',' <*> ps)
       <|> string "unknown"    $> UnknownSource
@@ -207,7 +204,7 @@ unit :: Parser Unit
 unit = do
   l <- lang
   let n = eitherP atom numeral
-  let ann = optional $ (,) <$> source <*> optional info
+  let ann = maybeP $ (,) <$> source <*> maybeP info
   let u = Unit <$> n <* op ',' <*> role <* op ',' <*> formula l <*> ann
   parens u <* op '.'
 
