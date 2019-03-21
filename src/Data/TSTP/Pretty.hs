@@ -18,6 +18,7 @@ module Data.TSTP.Pretty (
   Pretty(..)
 ) where
 
+import Data.Char (isAsciiLower, isAlphaNum)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL
 import Data.Text (Text)
@@ -47,8 +48,8 @@ instance Pretty Atom where
     | otherwise = pretty (quoted s)
     where
       quoted = T.cons '\'' . flip T.snoc '\'' . T.replace "'" "\\'"
-      isLowerWord w = T.head w `elem` lowerAlpha &&
-                      T.all (`elem` alphaNumeric) (T.tail w)
+      isLowerWord w = isAsciiLower (T.head w) && T.all isAlphaNumeric (T.tail w)
+      isAlphaNumeric c = isAlphaNum c || c == '_'
 
 instance Pretty Var where
   pretty (Var s) = pretty s

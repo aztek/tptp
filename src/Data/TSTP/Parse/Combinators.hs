@@ -7,6 +7,7 @@ module Data.TSTP.Parse.Combinators where
 import Control.Applicative ((<|>), many, optional)
 
 import Data.Attoparsec.Text as A
+import Data.Char (isAsciiLower, isAsciiUpper, isAlphaNum)
 import Data.Functor (($>))
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NEL
@@ -49,6 +50,9 @@ enum = lexem
      $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
      $ fmap (\c -> (name c, c)) [minBound..]
 
+isAlphaNumeric :: Char -> Bool
+isAlphaNumeric c = isAlphaNum c || c == '_'
+
 -- * Parser combinators
 
 -- ** Names
@@ -57,15 +61,14 @@ atom :: Parser Atom
 atom = Atom <$> lexem (singleQuoted <|> lowerWord)
   where
     singleQuoted = T.pack <$> (char '\'' *> many sq <* char '\'')
-    sq = A.satisfy (`elem` sg) <|> string "\\'" $> '\''
-    lowerWord = T.cons <$> A.satisfy (`elem` lowerAlpha)
-                       <*> A.takeWhile (`elem` alphaNumeric)
+    sq = A.satisfy isSg <|> string "\\'" $> '\''
+    isSg c = (c >= ' ' && c <= '&') || (c >= '(' && c <= '~')
+    lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
 
 var :: Parser Var
 var = Var <$> lexem upperWord
   where
-    upperWord = T.cons <$> A.satisfy (`elem` upperAlpha)
-                       <*> A.takeWhile (`elem` alphaNumeric)
+    upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
 standardFunction :: Parser StandardFunction
 standardFunction = enum

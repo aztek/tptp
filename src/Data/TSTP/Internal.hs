@@ -3,7 +3,6 @@
 
 module Data.TSTP.Internal where
 
-import Data.Char (chr)
 import Data.Text (Text)
 
 import Data.TSTP
@@ -94,23 +93,6 @@ instance Named Intro where
     AxiomOfChoice -> "axiom_of_choice"
     ByTautology   -> "tautology"
     ByAssumption  -> "assumption"
-
--- * Lexem classes in TPTP
-
-lowerAlpha :: String
-lowerAlpha = ['a'..'z']
-
-upperAlpha :: String
-upperAlpha = ['A'..'Z']
-
-numeric :: String
-numeric    = ['0'..'9']
-
-alphaNumeric :: String
-alphaNumeric = '_' : lowerAlpha ++ upperAlpha ++ numeric
-
-sg :: String
-sg = [chr 0o40..chr 0o46] ++ [chr 0o50..chr 0o176]
 
 -- * TSTP languages
 
