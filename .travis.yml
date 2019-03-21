@@ -30,5 +30,5 @@ script:
   - cabal check
 
 after_script:
-  - cabal new-install codecov-haskell
-  - codecov-haskell --display-report --print-response --token=0ce0eb21-88ee-4e69-bf8f-f54549d7d462 quickcheck-spec
+  - cabal new-install hpc-coveralls
+  - hpc-coveralls --display-report quickcheck-spec
