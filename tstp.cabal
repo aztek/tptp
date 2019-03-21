@@ -48,6 +48,9 @@ library
     text,
     attoparsec,
     prettyprinter
+  if impl(ghc < 8)
+    build-depends:
+      semigroups
 
 test-suite quickcheck-spec
   type: exitcode-stdio-1.0
@@ -68,3 +71,6 @@ test-suite quickcheck-spec
     tstp,
     generic-random,
     QuickCheck
+  if impl(ghc < 8)
+    build-depends:
+      semigroups
