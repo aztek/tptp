@@ -28,28 +28,28 @@ import Data.TSTP.Parse.Combinators
 
 -- | Run a parser for a TSTP unit on 'Text'.
 parseUnit :: Text -> Result Unit
-parseUnit = parse (whitespace >> unit)
+parseUnit = parse (whitespace *> unit)
 
 -- | Run a parser for a TSTP unit that cannot be resupplied
 -- via a 'Partial' result.
 parseUnitOnly :: Text -> Either String Unit
-parseUnitOnly = parseOnly (whitespace >> unit)
+parseUnitOnly = parseOnly (whitespace *> unit)
 
 -- | Run a parser for a TSTP unit with an initial input string,
 -- and a monadic action that can supply more input if needed.
 parseUnitWith :: Monad m => m Text -> Text -> m (Result Unit)
-parseUnitWith m = parseWith m (whitespace >> unit)
+parseUnitWith m = parseWith m (whitespace *> unit)
 
 -- | Run a parser for a TSTP derivation on 'Text'.
 parseDerivation :: Text -> Result Derivation
-parseDerivation = parse (whitespace >> derivation)
+parseDerivation = parse (whitespace *> derivation)
 
 -- | Run a parser for a TSTP derivation that cannot be resupplied
 -- via a 'Partial' result.
 parseDerivationOnly :: Text -> Either String Derivation
-parseDerivationOnly = parseOnly (whitespace >> derivation)
+parseDerivationOnly = parseOnly (whitespace *> derivation)
 
 -- | Run a parser for a TSTP derivation with an initial input string,
 -- and a monadic action that can supply more input if needed.
 parseDerivationWith :: Monad m => m Text -> Text -> m (Result Derivation)
-parseDerivationWith m = parseWith m (whitespace >> derivation)
+parseDerivationWith m = parseWith m (whitespace *> derivation)

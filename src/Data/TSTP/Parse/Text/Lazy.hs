@@ -24,8 +24,8 @@ import Data.TSTP.Parse.Combinators
 
 -- | Parse a TSTP unit from 'Lazy.Text'.
 parseUnit :: Text -> Result Unit
-parseUnit = parse (whitespace >> unit)
+parseUnit = parse (whitespace *> unit)
 
 -- | Parse a TSTP derivation from 'Lazy.Text'.
 parseDerivation :: Text -> Result Derivation
-parseDerivation = parse (whitespace >> derivation)
+parseDerivation = parse (whitespace *> derivation)

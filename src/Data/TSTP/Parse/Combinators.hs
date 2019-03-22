@@ -176,7 +176,7 @@ generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralFormula  <$> form
   where
     generalTerms = option [] (parens (generalTerm `sepBy1` op ','))
-    form = char '$' >> do { l <- lang; parens (formula l) }
+    form = char '$' *> do { l <- lang; parens (formula l) }
 
 generalTerm :: Parser GeneralTerm
 generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
