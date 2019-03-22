@@ -35,12 +35,15 @@ prop_ipp_Atom = ipp atom
 prop_ipp_Var :: Var -> Property
 prop_ipp_Var = ipp var
 
+prop_ipp_Function :: Name Function -> Property
+prop_ipp_Function = ipp function
+
+prop_ipp_Predicate :: Name Predicate -> Property
+prop_ipp_Predicate = ipp predicate
+
 -- ** Sorts and types
 
-prop_ipp_StandardSort :: StandardSort -> Property
-prop_ipp_StandardSort = ipp standardSort
-
-prop_ipp_Sort :: Sort -> Property
+prop_ipp_Sort :: Name Sort -> Property
 prop_ipp_Sort = ipp sort
 
 prop_ipp_Type :: Type -> Property

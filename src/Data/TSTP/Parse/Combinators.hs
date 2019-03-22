@@ -16,7 +16,8 @@ import Data.Text (Text)
 import qualified Data.Text as T
 
 import Data.TSTP
-import Data.TSTP.Internal
+import Data.TSTP.Internal hiding (name)
+import qualified Data.TSTP.Internal as I
 
 -- * Helper functions
 
@@ -48,7 +49,11 @@ enum = lexem
      $ choice
      $ fmap (\(n, c) -> string n $> c)
      $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
-     $ fmap (\c -> (name c, c)) [minBound..]
+     $ fmap (\c -> (I.name c, c)) [minBound..]
+
+name :: (Named a, Enum a, Bounded a) => Parser (Name a)
+name =  Standard <$> enum
+    <|> Defined  <$> atom
 
 isAlphaNumeric :: Char -> Bool
 isAlphaNumeric c = isAlphaNum c || c == '_'
@@ -70,28 +75,16 @@ var = Var <$> lexem upperWord
   where
     upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
-standardFunction :: Parser StandardFunction
-standardFunction = enum
+function :: Parser (Name Function)
+function = name
 
-function :: Parser Function
-function =  StandardFunction <$> standardFunction
-        <|> DefinedFunction  <$> atom
-
-standardPredicate :: Parser StandardPredicate
-standardPredicate = enum
-
-predicate :: Parser Predicate
-predicate =  StandardPredicate <$> standardPredicate
-         <|> DefinedPredicate  <$> atom
+predicate :: Parser (Name Predicate)
+predicate = name
 
 -- ** Sorts and types
 
-standardSort :: Parser StandardSort
-standardSort = enum
-
-sort :: Parser Sort
-sort =  StandardSort <$> standardSort
-    <|> DefinedSort  <$> atom
+sort :: Parser (Name Sort)
+sort = name
 
 type_ :: Parser Type
 type_ = Mapping <$> option [] (sorts <* op '>') <*> sort
@@ -143,12 +136,8 @@ sorted = Sorted <$> optional (op ':' *> sort)
 
 -- ** Formula annotations
 
-standardRole :: Parser StandardRole
-standardRole = enum
-
-role :: Parser Role
-role =  StandardRole <$> standardRole
-    <|> DefinedRole  <$> atom
+role :: Parser (Name Role)
+role = name
 
 lang :: Parser Language
 lang = enum

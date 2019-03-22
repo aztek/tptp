@@ -12,7 +12,7 @@ import Data.TSTP
 class Named a where
   name :: a -> Text
 
-instance Named StandardFunction where
+instance Named Function where
   name = \case
     Uminus     -> "$uminus"
     Sum        -> "$sum"
@@ -33,7 +33,7 @@ instance Named StandardFunction where
     ToRat      -> "$to_rat"
     ToReal     -> "$to_real"
 
-instance Named StandardPredicate where
+instance Named Predicate where
   name = \case
     Distinct  -> "$distinct"
     Less      -> "$less"
@@ -43,7 +43,7 @@ instance Named StandardPredicate where
     IsInt     -> "$is_int"
     IsRat     -> "$is_rat"
 
-instance Named StandardSort where
+instance Named Sort where
   name = \case
     I    -> "$i"
     O    -> "$o"
@@ -69,7 +69,7 @@ instance Named Connective where
     Equivalence -> "<=>"
     ExclusiveOr -> "<~>"
 
-instance Named StandardRole where
+instance Named Role where
   name = \case
     Axiom             -> "axiom"
     Hypothesis        -> "hypothesis"

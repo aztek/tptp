@@ -40,6 +40,11 @@ sepBy as s = hsep (punctuate s as)
 sepBy1 :: NonEmpty (Doc ann) -> Doc ann -> Doc ann
 sepBy1 as s = hsep (punctuate s (NEL.toList as))
 
+instance Named s => Pretty (Name s) where
+  pretty = \case
+    Standard s -> pretty (name s)
+    Defined a  -> pretty a
+
 -- * Names
 
 instance Pretty Atom where
@@ -54,31 +59,7 @@ instance Pretty Atom where
 instance Pretty Var where
   pretty (Var s) = pretty s
 
-instance Pretty StandardFunction where
-  pretty = pretty . name
-
-instance Pretty Function where
-  pretty = \case
-    StandardFunction f -> pretty f
-    DefinedFunction  f -> pretty f
-
-instance Pretty StandardPredicate where
-  pretty = pretty . name
-
-instance Pretty Predicate where
-  pretty = \case
-    StandardPredicate p -> pretty p
-    DefinedPredicate  p -> pretty p
-
 -- * Sorts and types
-
-instance Pretty StandardSort where
-  pretty = pretty . name
-
-instance Pretty Sort where
-  pretty = \case
-    StandardSort s -> pretty s
-    DefinedSort  s -> pretty s
 
 instance Pretty Type where
   pretty = \case
@@ -145,14 +126,6 @@ instance Pretty Formula where
     TFF f -> pretty f
 
 -- * Derivations
-
-instance Pretty StandardRole where
-  pretty = pretty . name
-
-instance Pretty Role where
-  pretty = \case
-    StandardRole r -> pretty r
-    DefinedRole  r -> pretty r
 
 instance Pretty Language where
   pretty = pretty . name

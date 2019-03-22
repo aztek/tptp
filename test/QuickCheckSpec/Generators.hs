@@ -20,6 +20,10 @@ import Data.TSTP
 instance Arbitrary s => Arbitrary (NonEmpty s) where
   arbitrary = genericArbitraryRec (1 % ())
 
+deriving instance Generic (Name s)
+instance Arbitrary s => Arbitrary (Name s) where
+  arbitrary = genericArbitraryU
+
 alphaNumeric :: String
 alphaNumeric = '_' : ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9']
 
@@ -39,16 +43,8 @@ instance Arbitrary Var where
       upperWord = (:) <$> elements ['A'..'Z']
                       <*> listOf (elements alphaNumeric)
 
-deriving instance Generic StandardFunction
-instance Arbitrary StandardFunction where
-  arbitrary = genericArbitraryU
-
 deriving instance Generic Function
 instance Arbitrary Function where
-  arbitrary = genericArbitraryU
-
-deriving instance Generic StandardPredicate
-instance Arbitrary StandardPredicate where
   arbitrary = genericArbitraryU
 
 deriving instance Generic Predicate
@@ -56,10 +52,6 @@ instance Arbitrary Predicate where
   arbitrary = genericArbitraryU
 
 -- * Sorts and types
-
-deriving instance Generic StandardSort
-instance Arbitrary StandardSort where
-  arbitrary = genericArbitraryU
 
 deriving instance Generic Sort
 instance Arbitrary Sort where
@@ -137,10 +129,6 @@ instance Arbitrary Formula where
     TFF f -> TFF <$> shrink f
 
 -- * Formula annotations
-
-deriving instance Generic StandardRole
-instance Arbitrary StandardRole where
-  arbitrary = genericArbitraryU
 
 deriving instance Generic Role
 instance Arbitrary Role where

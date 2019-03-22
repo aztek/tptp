@@ -12,13 +12,11 @@ module Data.TSTP (
   -- * Names
   Atom(..),
   Var(..),
-  StandardFunction(..),
+  Name(..),
   Function(..),
-  StandardPredicate(..),
   Predicate(..),
 
   -- * Sorts and types
-  StandardSort(..),
   Sort(..),
   Type(..),
 
@@ -37,7 +35,6 @@ module Data.TSTP (
 
   -- * Formula annotations
   Formula(..),
-  StandardRole(..),
   Role(..),
   Intro(..),
   Source(..),
@@ -64,7 +61,12 @@ newtype Atom = Atom Text
 newtype Var = Var Text
   deriving (Eq, Show, Ord)
 
-data StandardFunction
+data Name s
+  = Standard s
+  | Defined Atom
+  deriving (Eq, Show, Ord)
+
+data Function
   = Uminus
   | Sum
   | Difference
@@ -85,12 +87,7 @@ data StandardFunction
   | ToReal
   deriving (Eq, Show, Ord, Enum, Bounded)
 
-data Function
-  = StandardFunction StandardFunction
-  | DefinedFunction Atom
-  deriving (Eq, Show, Ord)
-
-data StandardPredicate
+data Predicate
   = Distinct
   | Less
   | Lesseq
@@ -100,12 +97,7 @@ data StandardPredicate
   | IsRat
   deriving (Eq, Show, Ord, Enum, Bounded)
 
-data Predicate
-  = StandardPredicate StandardPredicate
-  | DefinedPredicate Atom
-  deriving (Eq, Show, Ord)
-
-data StandardSort
+data Sort
   = I    -- ^ The type of individuals, represented in TPTP as @$i@
   | O    -- ^ The type of booleans, represented in TPTP as @$o@
   | Int  -- ^ The type of integers, represented in TPTP as @$int@
@@ -113,17 +105,12 @@ data StandardSort
   | Rat  -- ^ The type of rational numbers, represented in TPTP as @$rat@
   deriving (Eq, Show, Ord, Enum, Bounded)
 
-data Sort
-  = StandardSort StandardSort
-  | DefinedSort Atom
-  deriving (Eq, Show, Ord)
-
-data Type = Mapping [Sort] Sort
+data Type = Mapping [Name Sort] (Name Sort)
   deriving (Eq, Show, Ord)
 
 -- | The term in first-order logic extended with integer arithmetic.
 data Term
-  = Function Function [Term] -- ^ Application of a function symbol
+  = Function (Name Function) [Term] -- ^ Application of a function symbol
   | Variable Var
   | Constant Integer
   deriving (Eq, Show, Ord)
@@ -136,10 +123,10 @@ data Sign
 
 -- | The literal in first-order logic.
 data Literal
-  = Predicate Predicate [Term] -- ^ Application of a predicate symbol
-  | Equality Term Sign Term    -- ^ Equality or inequality
-  | Tautology                  -- ^ The logical truth, represented in TPTP as @$true@
-  | Falsum                     -- ^ The logical contradiction, represented in TPTP as @$false@
+  = Predicate (Name Predicate) [Term] -- ^ Application of a predicate symbol
+  | Equality Term Sign Term           -- ^ Equality or inequality
+  | Tautology                         -- ^ The logical truth, represented in TPTP as @$true@
+  | Falsum                            -- ^ The logical contradiction, represented in TPTP as @$false@
   deriving (Eq, Show, Ord)
 
 -- | The clause in first-order logic - implicitly universally-quantified
@@ -186,7 +173,7 @@ type UnsortedFirstOrder = FirstOrder Unsorted
 -- | The sort annotation in sorted first-order logic. The TSTP language allows
 -- a sort annotation to be omitted, in such case the sort of the variable is
 -- assumed to be @$i@.
-newtype Sorted = Sorted (Maybe Sort)
+newtype Sorted = Sorted (Maybe (Name Sort))
   deriving (Eq, Show, Ord)
 
 -- | The formula in sorted first-order logic.
@@ -201,7 +188,7 @@ data Formula
 
 -- | The predefined role of a formula in a TSTP derivation. Theorem provers
 -- might introduce other roles.
-data StandardRole
+data Role
   = Axiom
   | Hypothesis
   | Definition
@@ -218,12 +205,6 @@ data StandardRole
   | FiPredicates
   | Unknown
   deriving (Eq, Show, Ord, Enum, Bounded)
-
--- | The role of a formula in a TSTP derivation.
-data Role
-  = StandardRole StandardRole
-  | DefinedRole  Atom
-  deriving (Eq, Show, Ord)
 
 data Intro
   = ByDefinition
@@ -264,7 +245,7 @@ newtype Info = Info [GeneralTerm]
 
 data Unit = Unit {
   unitName :: Either Atom Integer,
-  unitRole :: Role,
+  unitRole :: Name Role,
   unitFormula :: Formula,
   unitAnnotation :: Maybe (Source, Maybe Info)
 } deriving (Eq, Show, Ord)
