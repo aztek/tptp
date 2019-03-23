@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Data.TSTP.Parse.Combinators where
