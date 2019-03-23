@@ -93,7 +93,8 @@ type_ = Mapping <$> option [] (sorts <* op '>') <*> sort
          <|> parens (sort `sepBy1` op '*')
 
 term :: Parser Term
-term =  Function <$> function <*> option [] (parens (term `sepBy1` op ','))
+term =  parens term
+    <|> Function <$> function <*> option [] (parens (term `sepBy1` op ','))
     <|> Variable <$> var
     <|> Constant <$> numeral
 
@@ -101,17 +102,18 @@ sign :: Parser Sign
 sign = enum
 
 literal :: Parser Literal
-literal =  Equality  <$> term <*> sign <*> term
+literal =  parens literal
+       <|> Equality  <$> term <*> sign <*> term
        <|> Predicate <$> predicate <*> option [] (parens (term `sepBy1` op ','))
-       <|> (token "$true"  $> Tautology)
-       <|> (token "$false" $> Falsum)
+       <|> token "$true"  $> Tautology
+       <|> token "$false" $> Falsum
+
+signedLiteral :: Parser (Sign, Literal)
+signedLiteral = (,) <$> option Positive (op '~' $> Negative) <*> literal
 
 clause :: Parser Clause
-clause = Clause . NEL.fromList <$> signedLiteral `sepBy1` op '|'
-  where
-    signedLiteral :: Parser (Sign, Literal)
-    signedLiteral =  (Negative,) <$> (op '~' *> parens literal)
-                 <|> (Positive,) <$> literal
+clause =  parens clause
+      <|> Clause . NEL.fromList <$> signedLiteral `sepBy1` op '|'
 
 quantifier :: Parser Quantifier
 quantifier = enum
