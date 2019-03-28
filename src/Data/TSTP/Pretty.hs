@@ -109,12 +109,30 @@ instance Pretty Sorted where
     Sorted Nothing  -> mempty
     Sorted (Just s) -> ":" <+> pretty s
 
+unitary :: FirstOrder s -> Bool
+unitary = \case
+  Atomic{}     -> True
+  Negated{}    -> True
+  Quantified{} -> True
+  Connected{}  -> False
+
+pretty' :: Pretty s => FirstOrder s -> Doc ann
+pretty' f
+  | unitary f = pretty f
+  | otherwise = parens (pretty f)
+
 instance Pretty s => Pretty (FirstOrder s) where
   pretty = \case
-    Atomic l          -> pretty l
-    Negated f         -> "~" <+> pretty f
-    Connected f c g   -> parens (pretty f <+> pretty c <+> pretty g)
-    Quantified q vs f -> pretty q <+> vs' <> ":" <+> pretty f
+    Atomic l -> pretty l
+    Negated f -> "~" <+> pretty' f
+    Connected f c g -> pretty'' f <+> pretty c <+> pretty'' g
+      where
+        -- Nested applications of associative connectives do not require
+        -- parenthesis. Otherwise, the connectives do not have precedence
+        pretty'' e@(Connected _ c' _)
+          | c' == c && isAssociative c = pretty e
+        pretty'' e = pretty' e
+    Quantified q vs f -> pretty q <+> vs' <> ":" <+> pretty' f
       where
         vs' = brackets $ fmap var vs `sepBy1` comma
         var (v, s) = pretty v <> pretty s

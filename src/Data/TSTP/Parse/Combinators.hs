@@ -121,12 +121,16 @@ connective :: Parser Connective
 connective = enum
 
 firstOrder :: Parser s -> Parser (FirstOrder s)
-firstOrder p =  Atomic <$> literal
-            <|> Quantified <$> quantifier <*> brackets vs <* op ':' <*> firstOrder p
-            <|> Negated <$> (op '~' *> firstOrder p)
-            <|> parens (Connected <$> firstOrder p <*> connective <*> firstOrder p)
+firstOrder p = do
+  f <- unitary
+  option f (Connected f <$> connective <*> firstOrder p)
   where
-    vs = NEL.fromList <$> v `sepBy1` op ','
+    unitary =  parens (firstOrder p)
+           <|> Atomic <$> literal
+           <|> Quantified <$> quantifier <*> vs <* op ':' <*> unitary
+           <|> Negated <$> (op '~' *> unitary)
+
+    vs = brackets (NEL.fromList <$> v `sepBy1` op ',')
     v = (,) <$> var <*> p
 
 unsorted :: Parser Unsorted
