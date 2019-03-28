@@ -20,8 +20,11 @@ import qualified Data.TSTP.Internal as I
 
 -- * Helper functions
 
+comment :: Parser ()
+comment = char '%' *> skipWhile (not . isEndOfLine) *> endOfLine
+
 whitespace :: Parser ()
-whitespace = skipSpace
+whitespace = skipSpace *> skipMany (comment *> skipSpace)
 
 -- | 'lexem' makes a given parser consume trailing whitespace. This function is
 -- needed because off-the-shelf attoparsec parsers do not do it.
