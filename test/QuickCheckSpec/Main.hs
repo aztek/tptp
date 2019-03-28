@@ -14,9 +14,6 @@ import Data.TSTP
 import Data.TSTP.Internal
 import Data.TSTP.Parse.Combinators
 import Data.TSTP.Pretty
-import Data.Text (Text)
-
-import Data.List.NonEmpty (NonEmpty(..))
 
 import Generators ()
 
