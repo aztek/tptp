@@ -69,6 +69,14 @@ instance Named Connective where
     Equivalence -> "<=>"
     ExclusiveOr -> "<~>"
 
+isAssociative :: Connective -> Bool
+isAssociative = \case
+  Conjunction -> True
+  Disjunction -> True
+  Implication -> False
+  Equivalence -> False
+  ExclusiveOr -> False
+
 instance Named Role where
   name = \case
     Axiom             -> "axiom"
