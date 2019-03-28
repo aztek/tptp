@@ -74,3 +74,6 @@ test-suite quickcheck-spec
   if impl(ghc < 8)
     build-depends:
       semigroups
+  if impl(ghc < 8.2)
+    build-depends:
+      bifunctors
