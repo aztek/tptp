@@ -1,6 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
+-- |
+-- Module       : Data.TSTP.Parse.Combinators
+-- Description  : Parser combinators for the TSTP language.
+-- Copyright    : (c) Evgenii Kotelnikov, 2019
+-- License      : GPL-3
+-- Maintainer   : evgeny.kotelnikov@gmail.com
+-- Stability    : experimental
+--
+
 module Data.TSTP.Parse.Combinators where
 
 import Control.Applicative ((<|>), many, optional)
@@ -20,9 +29,11 @@ import qualified Data.TSTP.Internal as I
 
 -- * Helper functions
 
+-- | Consume a single line comment - characters between @%@ and newline.
 comment :: Parser ()
 comment = char '%' *> skipWhile (not . isEndOfLine) *> endOfLine
 
+-- | Consume white space and trailing comments.
 whitespace :: Parser ()
 whitespace = skipSpace *> skipMany (comment *> skipSpace)
 
@@ -60,10 +71,15 @@ name =  Standard <$> enum
 isAlphaNumeric :: Char -> Bool
 isAlphaNumeric c = isAlphaNum c || c == '_'
 
+maybeP :: Parser a -> Parser (Maybe a)
+maybeP p = optional (op ',' *> p)
+
 -- * Parser combinators
 
 -- ** Names
 
+-- | Parse an atomic word. Single-quoted atoms are parsed without the single
+-- quotes and with the characters @'@ and @\@ unescaped.
 atom :: Parser Atom
 atom = Atom <$> lexem (singleQuoted <|> lowerWord)
   where
@@ -72,37 +88,45 @@ atom = Atom <$> lexem (singleQuoted <|> lowerWord)
     isSg c = (c >= ' ' && c <= '&') || (c >= '(' && c <= '~')
     lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
 
+-- | Parse a variable.
 var :: Parser Var
 var = Var <$> lexem upperWord
   where
     upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
+-- | Parser a function name.
 function :: Parser (Name Function)
 function = name
 
+-- | Parse a predicate name.
 predicate :: Parser (Name Predicate)
 predicate = name
 
 -- ** Sorts and types
 
+-- | Parse a sort.
 sort :: Parser (Name Sort)
 sort = name
 
+-- | Parse a type.
 type_ :: Parser Type
 type_ = Mapping <$> option [] (sorts <* op '>') <*> sort
   where
     sorts =  fmap (:[]) sort
          <|> parens (sort `sepBy1` op '*')
 
+-- | Parse a term.
 term :: Parser Term
 term =  parens term
     <|> Function <$> function <*> option [] (parens (term `sepBy1` op ','))
     <|> Variable <$> var
     <|> Constant <$> numeral
 
+-- | Parse the equality and unequality sign.
 sign :: Parser Sign
 sign = enum
 
+-- Parse a literal.
 literal :: Parser Literal
 literal =  parens literal
        <|> Equality  <$> term <*> sign <*> term
@@ -110,19 +134,24 @@ literal =  parens literal
        <|> token "$true"  $> Tautology
        <|> token "$false" $> Falsum
 
+-- | Parse a signed literal.
 signedLiteral :: Parser (Sign, Literal)
 signedLiteral = (,) <$> option Positive (op '~' $> Negative) <*> literal
 
+-- | Parse a clause.
 clause :: Parser Clause
 clause =  parens clause
       <|> Clause . NEL.fromList <$> signedLiteral `sepBy1` op '|'
 
+-- | Parse a quantifier.
 quantifier :: Parser Quantifier
 quantifier = enum
 
+-- | Parse a logical connective.
 connective :: Parser Connective
 connective = enum
 
+-- | Given a parser for sort annotations, parse a formula in first-order logic.
 firstOrder :: Parser s -> Parser (FirstOrder s)
 firstOrder p = do
   f <- unitary
@@ -162,9 +191,6 @@ intro = enum
 info :: Parser Info
 info = Info <$> generalList
 
-maybeP :: Parser a -> Parser (Maybe a)
-maybeP p = optional (op ',' *> p)
-
 generalData :: Parser GeneralData
 generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralFunction <$> atom <*> generalTerms
@@ -200,6 +226,7 @@ source =  string "file"       *> parens (File       <$> atom  <*> maybeP atom)
 
 -- ** Derivations
 
+-- | Parse a TSTP unit.
 unit :: Parser Unit
 unit = do
   l <- lang
@@ -208,5 +235,6 @@ unit = do
   let u = Unit <$> n <* op ',' <*> role <* op ',' <*> formula l <*> ann
   parens u <* op '.'
 
+-- | Parse a TSTP derivation.
 derivation :: Parser Derivation
 derivation = Derivation <$> many unit

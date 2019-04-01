@@ -11,7 +11,6 @@
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
--- Safe Haskell : Safe
 --
 
 module Data.TSTP.Pretty (

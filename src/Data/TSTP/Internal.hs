@@ -1,6 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
+-- |
+-- Module       : Data.TSTP.Internal
+-- Copyright    : (c) Evgenii Kotelnikov, 2019
+-- License      : GPL-3
+-- Maintainer   : evgeny.kotelnikov@gmail.com
+-- Stability    : experimental
+--
+
 module Data.TSTP.Internal where
 
 import Data.Text (Text)

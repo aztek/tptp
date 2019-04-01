@@ -5,7 +5,10 @@
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
--- Safe Haskell : Safe
+--
+-- The implementation of this modules follows the
+-- [BNF grammar](http://tptp.cs.miami.edu/TPTP/SyntaxBNF.html)
+-- definition of the TSTP language.
 --
 
 module Data.TSTP (
@@ -51,21 +54,36 @@ module Data.TSTP (
 import Data.List.NonEmpty (NonEmpty)
 import Data.Text (Text)
 
--- | See the [BNF grammar](http://tptp.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html#atomic_word)
--- for details.
+-- * Names
+
+-- | The atomic word in the TSTP language - a non-empty string of space or
+-- visible characters from the ASCII range 0x20 to 0x7E. If the string satisfies
+-- the regular expression @[a-z][a-zA-Z0-9_]*@ it is displayed in the TSTP
+-- language as is, otherwise it is displayed in single quotes with the
+-- characters @'@ and @\\@ escaped using @\\@.
+--
+-- >>> print (pretty (Atom "fxYz42"))
+-- fxYz42
+--
+-- >>> print (pretty (Atom "f-'function symbol'"))
+-- 'f-\'function symbol\''
+--
 newtype Atom = Atom Text
   deriving (Eq, Show, Ord)
 
--- | See the [BNF grammar](http://tptp.cs.miami.edu/~tptp/TPTP/SyntaxBNF.html#variable)
--- for details.
+-- | The variable in the TSTP language - a string that satisfies the regular
+-- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
   deriving (Eq, Show, Ord)
 
+-- | The name of a function symbol, a predicate symbol or a sort in TSTP.
 data Name s
-  = Standard s
-  | Defined Atom
+  = Standard s    -- ^ The name defined in the TSTP specification.
+  | Defined Atom  -- ^ The name defined by the user.
   deriving (Eq, Show, Ord)
 
+-- | The standard function symbol in TPTP.
+-- Represents an operation in a first-order theory of arithmetic.
 data Function
   = Uminus
   | Sum
@@ -87,6 +105,8 @@ data Function
   | ToReal
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+-- | The standard predicate symbol in TPTP.
+-- Represents an operation in a first-order theory of arithmetic.
 data Predicate
   = Distinct
   | Less
@@ -97,22 +117,36 @@ data Predicate
   | IsRat
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+
+-- * Sorts and types
+
+-- | The standard sort in TPTP.
 data Sort
-  = I    -- ^ The type of individuals, represented in TPTP as @$i@
-  | O    -- ^ The type of booleans, represented in TPTP as @$o@
-  | Int  -- ^ The type of integers, represented in TPTP as @$int@
-  | Real -- ^ The type of real numbers, represented in TPTP as @$real@
-  | Rat  -- ^ The type of rational numbers, represented in TPTP as @$rat@
+  = I    -- ^ The type of individuals.
+  | O    -- ^ The type of booleans.
+  | Int  -- ^ The type of integers.
+  | Real -- ^ The type of real numbers.
+  | Rat  -- ^ The type of rational numbers.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+-- | The type in TPTP is a mapping of one or more sorts to a sort.
+-- Types are assigned to function and predicate symbols in the sorted
+-- languages of TPTP.
 data Type = Mapping [Name Sort] (Name Sort)
   deriving (Eq, Show, Ord)
 
+
+-- * First-order logic
+
 -- | The term in first-order logic extended with integer arithmetic.
 data Term
-  = Function (Name Function) [Term] -- ^ Application of a function symbol
+  = Function (Name Function) [Term]
+    -- ^ Application of a function symbol. The empty list of arguments
+    -- represents a constant function symbol.
   | Variable Var
+    -- ^ A quantified variable.
   | Constant Integer
+    -- ^ A positive or negative integer constant.
   deriving (Eq, Show, Ord)
 
 -- | The sign of first-order literals and equality.
@@ -123,10 +157,14 @@ data Sign
 
 -- | The literal in first-order logic.
 data Literal
-  = Predicate (Name Predicate) [Term] -- ^ Application of a predicate symbol
-  | Equality Term Sign Term           -- ^ Equality or inequality
-  | Tautology                         -- ^ The logical truth, represented in TPTP as @$true@
-  | Falsum                            -- ^ The logical contradiction, represented in TPTP as @$false@
+  = Predicate (Name Predicate) [Term]
+    -- ^ Application of a predicate symbol.
+  | Equality Term Sign Term
+    -- ^ Equality or inequality.
+  | Tautology
+    -- ^ The logical truth, represented in TPTP as @$true@.
+  | Falsum
+    -- ^ The logical contradiction, represented in TPTP as @$false@.
   deriving (Eq, Show, Ord)
 
 -- | The clause in first-order logic - implicitly universally-quantified
@@ -138,8 +176,8 @@ newtype Clause = Clause (NonEmpty (Sign, Literal))
 
 -- | The quantifier in first-order logic.
 data Quantifier
-  = Forall
-  | Exists
+  = Forall -- ^ The universal quantifier.
+  | Exists -- ^ The existential quantifier.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 -- | The connective in full first-order logic.
@@ -163,7 +201,7 @@ data FirstOrder s
   | Quantified Quantifier (NonEmpty (Var, s)) (FirstOrder s)
   deriving (Eq, Show, Ord)
 
--- | The (void) sort annotation in unsorted first-order logic.
+-- | The (empty) sort annotation in unsorted first-order logic.
 newtype Unsorted = Unsorted ()
   deriving (Eq, Show, Ord)
 
@@ -178,6 +216,9 @@ newtype Sorted = Sorted (Maybe (Name Sort))
 
 -- | The formula in sorted first-order logic.
 type SortedFirstOrder = FirstOrder Sorted
+
+
+-- * Formula annotations
 
 -- | The formula in either of the supported TPTP languages.
 data Formula
@@ -242,6 +283,9 @@ data GeneralTerm
 
 newtype Info = Info [GeneralTerm]
   deriving (Eq, Show, Ord)
+
+
+-- * Derivations
 
 data Unit = Unit {
   unitName :: Either Atom Integer,
