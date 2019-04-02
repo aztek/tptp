@@ -31,11 +31,11 @@ import qualified Data.TSTP.Internal as I
 
 -- | Consume a single line comment - characters between @%@ and newline.
 comment :: Parser ()
-comment = char '%' *> skipWhile (not . isEndOfLine) *> endOfLine
+comment = char '%' *> skipWhile (not . isEndOfLine) *> endOfLine <?> "comment"
 
 -- | Consume white space and trailing comments.
 whitespace :: Parser ()
-whitespace = skipSpace *> skipMany (comment *> skipSpace)
+whitespace = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace"
 
 -- | 'lexem' makes a given parser consume trailing whitespace. This function is
 -- needed because off-the-shelf attoparsec parsers do not do it.
@@ -43,24 +43,24 @@ lexem :: Parser a -> Parser a
 lexem p = p <* whitespace
 
 numeral :: Parser Integer
-numeral = lexem (signed decimal)
+numeral = lexem (signed decimal) <?> "numeral"
 
 token :: Text -> Parser Text
-token = lexem . string
+token t = lexem (string t) <?> "token " ++ T.unpack t
 
 op :: Char -> Parser Char
-op = lexem . char
+op c = lexem (char c) <?> "operator " ++ [c]
 
 parens :: Parser a -> Parser a
-parens p = op '(' *> p <* op ')'
+parens p = op '(' *> p <* op ')' <?> "parens"
 
 brackets :: Parser a -> Parser a
-brackets p = op '[' *> p <* op ']'
+brackets p = op '[' *> p <* op ']' <?> "brackets"
 
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = lexem
      $ choice
-     $ fmap (\(n, c) -> string n $> c)
+     $ fmap (\(n, c) -> string n $> c <?> "reserved " ++ T.unpack n)
      $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
      $ fmap (\c -> (I.name c, c)) [minBound..]
 
@@ -81,7 +81,7 @@ maybeP p = optional (op ',' *> p)
 -- | Parse an atomic word. Single-quoted atoms are parsed without the single
 -- quotes and with the characters @'@ and @\@ unescaped.
 atom :: Parser Atom
-atom = Atom <$> lexem (singleQuoted <|> lowerWord)
+atom = Atom <$> lexem (singleQuoted <|> lowerWord) <?> "atom"
   where
     singleQuoted = T.pack <$> (char '\'' *> many sq <* char '\'')
     sq = A.satisfy isSg <|> string "\\'" $> '\''
@@ -90,27 +90,27 @@ atom = Atom <$> lexem (singleQuoted <|> lowerWord)
 
 -- | Parse a variable.
 var :: Parser Var
-var = Var <$> lexem upperWord
+var = Var <$> lexem upperWord <?> "var"
   where
     upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
 -- | Parser a function name.
 function :: Parser (Name Function)
-function = name
+function = name <?> "function"
 
 -- | Parse a predicate name.
 predicate :: Parser (Name Predicate)
-predicate = name
+predicate = name <?> "predicate"
 
 -- ** Sorts and types
 
 -- | Parse a sort.
 sort :: Parser (Name Sort)
-sort = name
+sort = name <?> "sort"
 
 -- | Parse a type.
 type_ :: Parser Type
-type_ = Mapping <$> option [] (sorts <* op '>') <*> sort
+type_ =  Mapping <$> option [] (sorts <* op '>') <*> sort <?> "type"
   where
     sorts =  fmap (:[]) sort
          <|> parens (sort `sepBy1` op '*')
@@ -121,10 +121,11 @@ term =  parens term
     <|> Function <$> function <*> option [] (parens (term `sepBy1` op ','))
     <|> Variable <$> var
     <|> Constant <$> numeral
+    <?> "term"
 
 -- | Parse the equality and unequality sign.
 sign :: Parser Sign
-sign = enum
+sign = enum <?> "sign"
 
 -- Parse a literal.
 literal :: Parser Literal
@@ -133,23 +134,26 @@ literal =  parens literal
        <|> Predicate <$> predicate <*> option [] (parens (term `sepBy1` op ','))
        <|> token "$true"  $> Tautology
        <|> token "$false" $> Falsum
+       <?> "literal"
 
 -- | Parse a signed literal.
 signedLiteral :: Parser (Sign, Literal)
-signedLiteral = (,) <$> option Positive (op '~' $> Negative) <*> literal
+signedLiteral =  (,) <$> option Positive (op '~' $> Negative) <*> literal
+             <?> "signed literal"
 
 -- | Parse a clause.
 clause :: Parser Clause
 clause =  parens clause
       <|> Clause . NEL.fromList <$> signedLiteral `sepBy1` op '|'
+      <?> "clause"
 
 -- | Parse a quantifier.
 quantifier :: Parser Quantifier
-quantifier = enum
+quantifier = enum <?> "quantifier"
 
 -- | Parse a logical connective.
 connective :: Parser Connective
-connective = enum
+connective = enum <?> "connective"
 
 -- | Given a parser for sort annotations, parse a formula in first-order logic.
 firstOrder :: Parser s -> Parser (FirstOrder s)
@@ -161,23 +165,24 @@ firstOrder p = do
            <|> Atomic <$> literal
            <|> Quantified <$> quantifier <*> vs <* op ':' <*> unitary
            <|> Negated <$> (op '~' *> unitary)
+           <?> "unitary first order"
 
     vs = brackets (NEL.fromList <$> v `sepBy1` op ',')
     v = (,) <$> var <*> p
 
 unsorted :: Parser Unsorted
-unsorted = pure (Unsorted ())
+unsorted = pure (Unsorted ()) <?> "unsorted"
 
 sorted :: Parser Sorted
-sorted = Sorted <$> optional (op ':' *> sort)
+sorted = Sorted <$> optional (op ':' *> sort) <?> "sorted"
 
 -- ** Formula annotations
 
 role :: Parser (Name Role)
-role = name
+role = name <?> "role"
 
 lang :: Parser Language
-lang = enum
+lang = enum <?> "language"
 
 formula :: Language -> Parser Formula
 formula = \case
@@ -186,10 +191,10 @@ formula = \case
   TFF_ -> TFF <$> firstOrder sorted
 
 intro :: Parser Intro
-intro = enum
+intro = enum <?> "intro"
 
 info :: Parser Info
-info = Info <$> generalList
+info = Info <$> generalList <?> "info"
 
 generalData :: Parser GeneralData
 generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
@@ -197,6 +202,7 @@ generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralVariable <$> var
            <|> GeneralNumber   <$> numeral
            <|> GeneralFormula  <$> form
+           <?> "general data"
   where
     generalTerms = option [] (parens (generalTerm `sepBy1` op ','))
     form = char '$' *> do { l <- lang; parens (formula l) }
@@ -204,12 +210,13 @@ generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
 generalTerm :: Parser GeneralTerm
 generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
            <|> GeneralList <$> generalList
+           <?> "general term"
 
 generalList :: Parser [GeneralTerm]
-generalList = brackets (generalTerm `sepBy` op ',')
+generalList = brackets (generalTerm `sepBy` op ',') <?> "general list"
 
 parent :: Parser Parent
-parent = Parent <$> source <*> option [] (op ':' *> generalList)
+parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 
 source :: Parser Source
 source =  string "file"       *> parens (File       <$> atom  <*> maybeP atom)
@@ -221,6 +228,7 @@ source =  string "file"       *> parens (File       <$> atom  <*> maybeP atom)
       <|> string "unknown"    $> UnknownSource
       <|> Sources <$> brackets (NEL.fromList <$> source `sepBy` op ',')
       <|> Dag <$> atom
+      <?> "source"
   where
     ps = brackets (parent `sepBy` op ',')
 
@@ -233,8 +241,8 @@ unit = do
   let n = eitherP atom numeral
   let ann = maybeP $ (,) <$> source <*> maybeP info
   let u = Unit <$> n <* op ',' <*> role <* op ',' <*> formula l <*> ann
-  parens u <* op '.'
+  parens u <* op '.' <?> "unit"
 
 -- | Parse a TSTP derivation.
 derivation :: Parser Derivation
-derivation = Derivation <$> many unit
+derivation = Derivation <$> many unit <?> "derivation"
