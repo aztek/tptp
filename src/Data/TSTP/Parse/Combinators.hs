@@ -31,7 +31,9 @@ import qualified Data.TSTP.Internal as I
 
 -- | Consume a single line comment - characters between @%@ and newline.
 comment :: Parser ()
-comment = char '%' *> skipWhile (not . isEndOfLine) *> endOfLine <?> "comment"
+comment = char '%' *> skipWhile (not . isEndOfLine)
+                   *> (endOfLine <|> endOfInput)
+                  <?> "comment"
 
 -- | Consume white space and trailing comments.
 whitespace :: Parser ()
