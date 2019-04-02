@@ -6,7 +6,7 @@ module Main where
 
 import Test.QuickCheck hiding (Function, function, Positive)
 
-import Data.Attoparsec.Text (Parser, parseOnly)
+import Data.Attoparsec.Text (Parser, parseOnly, endOfInput)
 import Data.Text.Prettyprint.Doc (layoutPretty, defaultLayoutOptions)
 import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 
@@ -22,7 +22,7 @@ import Generators ()
 -- | Idempotent parsing / pretty printing modulo normalization
 ippModulo :: (Show a, Eq a, Pretty a) => (a -> a) -> Parser a -> a -> Property
 ippModulo normalize p a =
-  whenFail (print t) $ case parseOnly p t of
+  whenFail (print t) $ case parseOnly (p <* endOfInput) t of
     Left err -> whenFail (putStrLn $ "Parsing error: " ++ err) False
     Right a' -> normalize a' === normalize a
   where
