@@ -21,7 +21,7 @@ import Data.Text.Lazy (Text)
 import Data.TSTP
 import Data.TSTP.Parse.Combinators
 
--- | Parse a TSTP unit from 'Lazy.Text'.
+-- | Parse a single TSTP unit from 'Lazy.Text'.
 parseUnit :: Text -> Result Unit
 parseUnit = parse (whitespace *> unit)
 

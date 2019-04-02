@@ -25,16 +25,16 @@ import Data.Text (Text)
 import Data.TSTP
 import Data.TSTP.Parse.Combinators
 
--- | Run a parser for a TSTP unit on 'Text'.
+-- | Run a parser for a single TSTP unit on 'Text'.
 parseUnit :: Text -> Result Unit
 parseUnit = parse (whitespace *> unit <* endOfInput)
 
--- | Run a parser for a TSTP unit that cannot be resupplied
+-- | Run a parser for a single TSTP unit that cannot be resupplied
 -- via a 'Partial' result.
 parseUnitOnly :: Text -> Either String Unit
 parseUnitOnly = parseOnly (whitespace *> unit <* endOfInput)
 
--- | Run a parser for a TSTP unit with an initial input string,
+-- | Run a parser for a single TSTP unit with an initial input string,
 -- and a monadic action that can supply more input if needed.
 parseUnitWith :: Monad m => m Text -> Text -> m (Result Unit)
 parseUnitWith m = parseWith m (whitespace *> unit <* endOfInput)
