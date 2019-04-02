@@ -247,4 +247,4 @@ unit = do
 
 -- | Parse a TSTP derivation.
 derivation :: Parser Derivation
-derivation = Derivation <$> many unit <?> "derivation"
+derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
