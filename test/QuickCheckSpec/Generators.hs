@@ -49,6 +49,12 @@ instance Arbitrary Var where
       upperWord = (:) <$> elements ['A'..'Z']
                       <*> listOf (elements alphaNumeric)
 
+instance Arbitrary DistinctObject where
+  arbitrary = DistinctObject . pack <$> doubleQuoted
+    where
+      doubleQuoted = listOf1 (elements dg)
+      dg = [chr 0o40..chr 0o41] ++ [chr 0o43..chr 0o176]
+
 deriving instance Generic Function
 instance Arbitrary Function where
   arbitrary = genericArbitraryU
@@ -72,7 +78,7 @@ instance Arbitrary Type where
 
 deriving instance Generic Term
 instance Arbitrary Term where
-  arbitrary = genericArbitraryRec (2 % 3 % 1 % ())
+  arbitrary = genericArbitraryRec (2 % 3 % 1 % 1 % ())
   shrink = \case
     Function f ts -> ts ++ (Function f <$> shrinkList shrink ts)
     _ -> []
@@ -156,7 +162,7 @@ instance Arbitrary Parent where
 
 deriving instance Generic GeneralData
 instance Arbitrary GeneralData where
-  arbitrary = genericArbitraryRec (1 % 2 % 2 % 2 % 2 % ())
+  arbitrary = genericArbitraryRec (1 % 2 % 2 % 2 % 2 % 1 % ())
   shrink = \case
     GeneralFunction f gts -> GeneralFunction f <$> shrinkList shrink gts
     GeneralFormula f      -> GeneralFormula <$> shrink f

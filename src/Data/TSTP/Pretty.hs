@@ -58,6 +58,11 @@ instance Pretty Atom where
 instance Pretty Var where
   pretty (Var s) = pretty s
 
+instance Pretty DistinctObject where
+  pretty (DistinctObject s) = pretty (quoted s)
+    where
+      quoted = T.cons '"' . flip T.snoc '"' . T.replace "\"" "\\\""
+
 -- * Sorts and types
 
 instance Pretty Type where
@@ -71,10 +76,11 @@ instance Pretty Type where
 
 instance Pretty Term where
   pretty = \case
-    Function f [] -> pretty f
-    Function f ts -> pretty f <> parens (fmap pretty ts `sepBy` comma)
-    Variable v    -> pretty v
-    Constant i    -> pretty i
+    Function f []  -> pretty f
+    Function f ts  -> pretty f <> parens (fmap pretty ts `sepBy` comma)
+    Variable v     -> pretty v
+    Constant i     -> pretty i
+    DistinctTerm d -> pretty d
 
 instance Pretty Literal where
   pretty = \case
@@ -158,6 +164,7 @@ instance Pretty GeneralData where
     GeneralNumber i -> pretty i
     GeneralFormula f -> prettyFormula f
     GeneralBind v f -> "bind" <> parens (pretty v <> comma <+> prettyFormula f)
+    GeneralDistinct d -> pretty d
     where
       prettyFormula f = "$" <> pretty (language f) <> parens (pretty f)
 

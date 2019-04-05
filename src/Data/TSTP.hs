@@ -15,6 +15,7 @@ module Data.TSTP (
   -- * Names
   Atom(..),
   Var(..),
+  DistinctObject(..),
   Name(..),
   Function(..),
   Predicate(..),
@@ -74,6 +75,25 @@ newtype Atom = Atom Text
 -- | The variable in the TSTP language - a string that satisfies the regular
 -- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
+  deriving (Eq, Show, Ord)
+
+-- | The distinct object in the TSTP language - a (possibly empty) string of
+-- space or visible characters from the ASCII range 0x20 to 0x7E. The string is
+-- always displayed in the TSTP language in double quotes with the characters
+-- @"@ and @\\@ escaped using @\\@.
+--
+-- >>> print (pretty (DistinctObject ""))
+-- ""
+--
+-- Distinct objects are different from atoms in that they implicitly carry
+-- semantic inequality. The TPTP documentation says the following about distinct
+-- objects.
+--
+-- /Distinct objects are different from (but may be equal to) other tokens,/
+-- /e.g.,/ @"cat"@ /is different from/ @\'cat\'@ /and/ @cat@. /Distinct objects/
+-- /are always interpreted as themselves, so if they are different they are/
+-- /unequal, e.g.,/ @\"Apple\" != \"Microsoft\"@ /is implicit./
+newtype DistinctObject = DistinctObject Text
   deriving (Eq, Show, Ord)
 
 -- | The name of a function symbol, a predicate symbol or a sort in TSTP.
@@ -147,6 +167,8 @@ data Term
     -- ^ A quantified variable.
   | Constant Integer
     -- ^ A positive or negative integer constant.
+  | DistinctTerm DistinctObject
+    -- ^ A distinct object
   deriving (Eq, Show, Ord)
 
 -- | The sign of first-order literals and equality.
@@ -274,6 +296,7 @@ data GeneralData
   | GeneralNumber Integer
   | GeneralFormula Formula
   | GeneralBind Var Formula
+  | GeneralDistinct DistinctObject
   deriving (Eq, Show, Ord)
 
 data GeneralTerm

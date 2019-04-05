@@ -94,6 +94,9 @@ prop_ipp_Atom = ipp atom
 prop_ipp_Var :: Var -> Property
 prop_ipp_Var = ipp var
 
+prop_ipp_DistinctObject :: DistinctObject -> Property
+prop_ipp_DistinctObject = ipp distinctObject
+
 prop_ipp_Function :: Name Function -> Property
 prop_ipp_Function = ipp function
 

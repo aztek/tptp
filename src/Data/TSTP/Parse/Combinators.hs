@@ -96,6 +96,14 @@ var = Var <$> lexem upperWord <?> "var"
   where
     upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
+-- | Parse a distinct object.
+distinctObject :: Parser DistinctObject
+distinctObject = DistinctObject <$> lexem doubleQuoted <?> "distinct object"
+  where
+    doubleQuoted = T.pack <$> (char '"' *> many dq <* char '"')
+    dq = A.satisfy isDg <|> string "\\\"" $> '"'
+    isDg c = (c >= ' ' && c <= '~') && (c /= '"')
+
 -- | Parser a function name.
 function :: Parser (Name Function)
 function = name <?> "function"
@@ -123,6 +131,7 @@ term =  parens term
     <|> Function <$> function <*> option [] (parens (term `sepBy1` op ','))
     <|> Variable <$> var
     <|> Constant <$> numeral
+    <|> DistinctTerm <$> distinctObject
     <?> "term"
 
 -- | Parse the equality and unequality sign.
@@ -204,6 +213,7 @@ generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralVariable <$> var
            <|> GeneralNumber   <$> numeral
            <|> GeneralFormula  <$> form
+           <|> GeneralDistinct <$> distinctObject
            <?> "general data"
   where
     generalTerms = option [] (parens (generalTerm `sepBy1` op ','))
