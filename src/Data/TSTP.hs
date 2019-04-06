@@ -6,7 +6,7 @@
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
--- The implementation of this modules follows the
+-- The implementation of this module follows the
 -- [BNF grammar](http://tptp.cs.miami.edu/TPTP/SyntaxBNF.html)
 -- definition of the TSTP language.
 --
@@ -82,8 +82,8 @@ newtype Var = Var Text
 -- always displayed in the TSTP language in double quotes with the characters
 -- @"@ and @\\@ escaped using @\\@.
 --
--- >>> print (pretty (DistinctObject ""))
--- ""
+-- >>> print (pretty (DistinctObject "Godel's incompleteness theorem"))
+-- "Godel's incompleteness theorem"
 --
 -- Distinct objects are different from atoms in that they implicitly carry
 -- semantic inequality. The TPTP documentation says the following about distinct
