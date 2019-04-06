@@ -41,7 +41,7 @@ sepBy1 as s = hsep (punctuate s (NEL.toList as))
 
 instance Named s => Pretty (Name s) where
   pretty = \case
-    Reserved s -> pretty (name s)
+    Reserved s -> pretty (T.cons '$' $ name s)
     Defined a  -> pretty a
 
 -- * Names
