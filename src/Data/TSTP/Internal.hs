@@ -76,6 +76,9 @@ instance Named Connective where
     Implication -> "=>"
     Equivalence -> "<=>"
     ExclusiveOr -> "<~>"
+    NegatedConjunction  -> "~&"
+    NegatedDisjunction  -> "~|"
+    ReversedImplication -> "<="
 
 isAssociative :: Connective -> Bool
 isAssociative = \case
@@ -84,6 +87,9 @@ isAssociative = \case
   Implication -> False
   Equivalence -> False
   ExclusiveOr -> False
+  NegatedConjunction  -> False
+  NegatedDisjunction  -> False
+  ReversedImplication -> False
 
 instance Named Role where
   name = \case

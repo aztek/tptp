@@ -209,6 +209,9 @@ data Connective
   | Implication
   | Equivalence
   | ExclusiveOr
+  | NegatedConjunction
+  | NegatedDisjunction
+  | ReversedImplication
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 -- | The formula in sorted or unsorted first-order logic.
