@@ -98,8 +98,8 @@ newtype DistinctObject = DistinctObject Text
 
 -- | The name of a function symbol, a predicate symbol or a sort in TSTP.
 data Name s
-  = Standard s    -- ^ The name defined in the TSTP specification.
-  | Defined Atom  -- ^ The name defined by the user.
+  = Reserved s   -- ^ The name reserved in the TSTP specification.
+  | Defined Atom -- ^ The name defined by the user.
   deriving (Eq, Show, Ord)
 
 -- | The standard function symbol in TPTP.

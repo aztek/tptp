@@ -67,7 +67,7 @@ enum = lexem
      $ fmap (\c -> (I.name c, c)) [minBound..]
 
 name :: (Named a, Enum a, Bounded a) => Parser (Name a)
-name =  Standard <$> enum
+name =  Reserved <$> enum
     <|> Defined  <$> atom
 
 isAlphaNumeric :: Char -> Bool
