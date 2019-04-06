@@ -81,13 +81,13 @@ maybeP p = optional (op ',' *> p)
 -- ** Names
 
 -- | Parse an atomic word. Single-quoted atoms are parsed without the single
--- quotes and with the characters @'@ and @\@ unescaped.
+-- quotes and with the characters @'@ and @\\@ unescaped.
 atom :: Parser Atom
 atom = Atom <$> lexem (singleQuoted <|> lowerWord) <?> "atom"
   where
     singleQuoted = T.pack <$> (char '\'' *> many sq <* char '\'')
-    sq = A.satisfy isSg <|> string "\\'" $> '\''
-    isSg c = (c >= ' ' && c <= '&') || (c >= '(' && c <= '~')
+    sq = string "\\'" $> '\'' <|> string "\\\\" $> '\\' <|> A.satisfy isSg
+    isSg c = c >= ' ' && c <= '~' && c /= '\''
     lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
 
 -- | Parse a variable.
@@ -96,13 +96,14 @@ var = Var <$> lexem upperWord <?> "var"
   where
     upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
--- | Parse a distinct object.
+-- | Parse a distinct object. Double quotes are not preserved and the characters
+-- @'@ and @\\@ are unescaped.
 distinctObject :: Parser DistinctObject
 distinctObject = DistinctObject <$> lexem doubleQuoted <?> "distinct object"
   where
     doubleQuoted = T.pack <$> (char '"' *> many dq <* char '"')
-    dq = A.satisfy isDg <|> string "\\\"" $> '"'
-    isDg c = (c >= ' ' && c <= '~') && (c /= '"')
+    dq = string "\\\"" $> '"' <|> string "\\\\" $> '\\' <|> A.satisfy isDg
+    isDg c = c >= ' ' && c <= '~' && c /= '"'
 
 -- | Parser a function name.
 function :: Parser (Name Function)

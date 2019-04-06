@@ -51,7 +51,8 @@ instance Pretty Atom where
     | isLowerWord s = pretty s
     | otherwise = pretty (quoted s)
     where
-      quoted = T.cons '\'' . flip T.snoc '\'' . T.replace "'" "\\'"
+      quoted = T.cons '\'' . flip T.snoc '\''
+             . T.replace "'" "\\'" . T.replace "\\" "\\\\"
       isLowerWord w = isAsciiLower (T.head w) && T.all isAlphaNumeric (T.tail w)
       isAlphaNumeric c = isAlphaNum c || c == '_'
 
@@ -61,7 +62,8 @@ instance Pretty Var where
 instance Pretty DistinctObject where
   pretty (DistinctObject s) = pretty (quoted s)
     where
-      quoted = T.cons '"' . flip T.snoc '"' . T.replace "\"" "\\\""
+      quoted = T.cons '"' . flip T.snoc '"'
+             . T.replace "\"" "\\\"" . T.replace "\\" "\\\\"
 
 -- * Sorts and types
 
