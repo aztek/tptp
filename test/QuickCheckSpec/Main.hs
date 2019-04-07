@@ -86,6 +86,17 @@ normalizeDerivation (Derivation us) = Derivation (fmap normalizeUnit us)
 
 -- * Properties
 
+-- ** Generators
+
+prop_validAtom :: Atom -> Bool
+prop_validAtom (Atom t) = isValidAtom t
+
+prop_validVar :: Var -> Bool
+prop_validVar (Var t) = isValidVar t
+
+prop_validDistinctObject :: DistinctObject -> Bool
+prop_validDistinctObject (DistinctObject t) = isValidDistinctObject t
+
 -- ** Names
 
 prop_ipp_Atom :: Atom -> Property

@@ -14,8 +14,14 @@
 module Data.TSTP (
   -- * Names
   Atom(..),
+  isValidAtom,
+
   Var(..),
+  isValidVar,
+
   DistinctObject(..),
+  isValidDistinctObject,
+
   Name(..),
   Function(..),
   Predicate(..),
@@ -53,7 +59,9 @@ module Data.TSTP (
   Derivation(..)
 ) where
 
+import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.List.NonEmpty (NonEmpty)
+import qualified Data.Text as Text
 import Data.Text (Text)
 
 -- * Names
@@ -73,10 +81,41 @@ import Data.Text (Text)
 newtype Atom = Atom Text
   deriving (Eq, Show, Ord)
 
+-- | Check whether a given character is in the ASCII range 0x20 to 0x7E.
+isAsciiPrint :: Char -> Bool
+isAsciiPrint c = isAscii c && isPrint c
+
+-- | Check whether a given string is a valid atom.
+--
+-- prop> isValidAtom "" == False
+-- prop> isValidAtom "\r\n" == False
+-- prop> isValidAtom "fxYz42" == True
+-- prop> isValidAtom "f-'function symbol'" == True
+isValidAtom :: Text -> Bool
+isValidAtom t = not (Text.null t)
+             && Text.all isAsciiPrint t
+
 -- | The variable in the TSTP language - a string that satisfies the regular
 -- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
   deriving (Eq, Show, Ord)
+
+-- | Check whether a given character matches the regular expression
+-- @[a-zA-Z0-9_]@.
+isAlphaNumeric :: Char -> Bool
+isAlphaNumeric c = isAsciiLower c || isAsciiUpper c || isDigit c || c == '_'
+
+-- | Check whether a given string is a valid variable.
+--
+-- prop> isValidVar "" == False
+-- prop> isValidVar "x" == False
+-- prop> isValidVar "X" == True
+-- prop> isValidVar "Cat" == True
+-- prop> isValidVar "C@t" == False
+isValidVar :: Text -> Bool
+isValidVar t = not (Text.null t)
+            && isAsciiUpper (Text.head t)
+            && Text.all isAlphaNumeric (Text.tail t)
 
 -- | The distinct object in the TSTP language - a (possibly empty) string of
 -- space or visible characters from the ASCII range 0x20 to 0x7E. The string is
@@ -96,6 +135,14 @@ newtype Var = Var Text
 -- /unequal, e.g.,/ @\"Apple\" != \"Microsoft\"@ /is implicit./
 newtype DistinctObject = DistinctObject Text
   deriving (Eq, Show, Ord)
+
+-- | Check whether a given string is a valid distinct object.
+--
+-- prop> isValidDistinctObject "" == True
+-- prop> isValidDistinctObject "Godel's incompleteness theorem" == True
+-- prop> isValidDistinctObject "\r\n" == False
+isValidDistinctObject :: Text -> Bool
+isValidDistinctObject = Text.all isAsciiPrint
 
 -- | The name of a function symbol, a predicate symbol or a sort in TSTP.
 data Name s
