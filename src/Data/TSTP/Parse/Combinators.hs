@@ -15,7 +15,7 @@ module Data.TSTP.Parse.Combinators where
 import Control.Applicative ((<|>), optional)
 
 import Data.Attoparsec.Text as A hiding (Number, number)
-import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isAlphaNum, isPrint)
+import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Functor (($>))
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NEL
@@ -72,7 +72,7 @@ name =  Reserved <$> (char '$' *> enum)
     <|> Defined  <$> atom
 
 isAlphaNumeric :: Char -> Bool
-isAlphaNumeric c = isAlphaNum c || c == '_'
+isAlphaNumeric c = isAsciiLower c || isAsciiUpper c || isDigit c || c == '_'
 
 isAsciiPrint :: Char -> Bool
 isAsciiPrint c = isAscii c && isPrint c
