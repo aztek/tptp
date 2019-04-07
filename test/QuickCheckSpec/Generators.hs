@@ -10,7 +10,6 @@ import Generic.Random
 import Test.QuickCheck hiding (Sorted, Function)
 
 import Data.Bitraversable (bitraverse)
-import Data.List ((\\))
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Text (pack)
 
@@ -40,7 +39,7 @@ instance Arbitrary Atom where
     where
       lowerWord = (:) <$> elements ['a'..'z']
                       <*> listOf (elements alphaNumeric)
-      singleQuoted = listOf1 (elements $ [' '..'~'] \\ ['\''])
+      singleQuoted = listOf1 (elements [' '..'~'])
 
 instance Arbitrary Var where
   arbitrary = Var . pack <$> upperWord
@@ -51,7 +50,7 @@ instance Arbitrary Var where
 instance Arbitrary DistinctObject where
   arbitrary = DistinctObject . pack <$> doubleQuoted
     where
-      doubleQuoted = listOf (elements $ [' '..'~'] \\ ['"'])
+      doubleQuoted = listOf (elements [' '..'~'])
 
 deriving instance Generic Function
 instance Arbitrary Function where
