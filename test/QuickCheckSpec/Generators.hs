@@ -29,28 +29,26 @@ shrinkMaybe s = \case
   Nothing -> []
   Just a  -> Nothing : fmap Just (s a)
 
-alphaNumeric :: String
-alphaNumeric = '_' : ['a'..'z'] ++ ['A'..'Z'] ++ ['0'..'9']
+lowerAlpha, upperAlpha, printable, numeric, alphaNumeric :: Gen Char
+lowerAlpha   = choose ('a', 'z')
+upperAlpha   = choose ('A', 'Z')
+numeric      = choose ('0', '9')
+printable    = choose (' ', '~')
+alphaNumeric = oneof [pure '_', lowerAlpha, upperAlpha, numeric]
 
 -- * Names
 
 instance Arbitrary Atom where
-  arbitrary = Atom . pack <$> oneof [lowerWord, singleQuoted]
-    where
-      lowerWord = (:) <$> elements ['a'..'z']
-                      <*> listOf (elements alphaNumeric)
-      singleQuoted = listOf1 (elements [' '..'~'])
+  arbitrary = Atom . pack <$> oneof [
+      (:) <$> lowerAlpha <*> listOf alphaNumeric,
+      listOf1 printable
+    ]
 
 instance Arbitrary Var where
-  arbitrary = Var . pack <$> upperWord
-    where
-      upperWord = (:) <$> elements ['A'..'Z']
-                      <*> listOf (elements alphaNumeric)
+  arbitrary = Var . pack <$> ((:) <$> upperAlpha <*> listOf alphaNumeric)
 
 instance Arbitrary DistinctObject where
-  arbitrary = DistinctObject . pack <$> doubleQuoted
-    where
-      doubleQuoted = listOf (elements [' '..'~'])
+  arbitrary = DistinctObject . pack <$> listOf printable
 
 deriving instance Generic Function
 instance Arbitrary Function where
