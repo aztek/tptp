@@ -15,7 +15,7 @@ module Data.TSTP.Parse.Combinators where
 import Control.Applicative ((<|>), many, optional)
 
 import Data.Attoparsec.Text as A hiding (Number, number)
-import Data.Char (isAsciiLower, isAsciiUpper, isAlphaNum)
+import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isAlphaNum, isPrint)
 import Data.Functor (($>))
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NEL
@@ -88,7 +88,7 @@ atom = Atom <$> lexem (singleQuoted <|> lowerWord) <?> "atom"
   where
     singleQuoted = T.pack <$> (char '\'' *> many sq <* char '\'')
     sq = string "\\'" $> '\'' <|> string "\\\\" $> '\\' <|> A.satisfy isSg
-    isSg c = c >= ' ' && c <= '~' && c /= '\''
+    isSg c = isAscii c && isPrint c && c /= '\''
     lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
 
 -- | Parse a variable.
@@ -104,7 +104,7 @@ distinctObject = DistinctObject <$> lexem doubleQuoted <?> "distinct object"
   where
     doubleQuoted = T.pack <$> (char '"' *> many dq <* char '"')
     dq = string "\\\"" $> '"' <|> string "\\\\" $> '\\' <|> A.satisfy isDg
-    isDg c = c >= ' ' && c <= '~' && c /= '"'
+    isDg c = isAscii c && isPrint c && c /= '"'
 
 -- | Parser a function name.
 function :: Parser (Name Function)
