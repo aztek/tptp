@@ -12,7 +12,7 @@
 
 module Data.TSTP.Parse.Combinators where
 
-import Control.Applicative ((<|>), many, optional)
+import Control.Applicative ((<|>), optional)
 
 import Data.Attoparsec.Text as A hiding (Number, number)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isAlphaNum, isPrint)
@@ -74,6 +74,9 @@ name =  Reserved <$> (char '$' *> enum)
 isAlphaNumeric :: Char -> Bool
 isAlphaNumeric c = isAlphaNum c || c == '_'
 
+isAsciiPrint :: Char -> Bool
+isAsciiPrint c = isAscii c && isPrint c
+
 maybeP :: Parser a -> Parser (Maybe a)
 maybeP p = optional (op ',' *> p)
 
@@ -81,30 +84,29 @@ maybeP p = optional (op ',' *> p)
 
 -- ** Names
 
+lowerWord, upperWord :: Parser Text
+lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
+upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
+
+quoted :: Char -> Parser Text
+quoted q = T.pack <$> (char q *> manyTill escaped (char q)) <?> "quoted " ++ [q]
+  where
+    escaped =  char '\\' *> (char q $> q <|> char '\\' $> '\\')
+           <|> A.satisfy isAsciiPrint
+
 -- | Parse an atomic word. Single-quoted atoms are parsed without the single
 -- quotes and with the characters @'@ and @\\@ unescaped.
 atom :: Parser Atom
-atom = Atom <$> lexem (singleQuoted <|> lowerWord) <?> "atom"
-  where
-    singleQuoted = T.pack <$> (char '\'' *> many sq <* char '\'')
-    sq = string "\\'" $> '\'' <|> string "\\\\" $> '\\' <|> A.satisfy isSg
-    isSg c = isAscii c && isPrint c && c /= '\''
-    lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
+atom = Atom <$> lexem (quoted '\'' <|> lowerWord) <?> "atom"
 
 -- | Parse a variable.
 var :: Parser Var
 var = Var <$> lexem upperWord <?> "var"
-  where
-    upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
 
 -- | Parse a distinct object. Double quotes are not preserved and the characters
 -- @'@ and @\\@ are unescaped.
 distinctObject :: Parser DistinctObject
-distinctObject = DistinctObject <$> lexem doubleQuoted <?> "distinct object"
-  where
-    doubleQuoted = T.pack <$> (char '"' *> many dq <* char '"')
-    dq = string "\\\"" $> '"' <|> string "\\\\" $> '\\' <|> A.satisfy isDg
-    isDg c = isAscii c && isPrint c && c /= '"'
+distinctObject = DistinctObject <$> lexem (quoted '"') <?> "distinct object"
 
 -- | Parser a function name.
 function :: Parser (Name Function)
