@@ -14,7 +14,7 @@ module Data.TSTP.Parse.Combinators where
 
 import Control.Applicative ((<|>), many, optional)
 
-import Data.Attoparsec.Text as A
+import Data.Attoparsec.Text as A hiding (Number, number)
 import Data.Char (isAsciiLower, isAsciiUpper, isAlphaNum)
 import Data.Functor (($>))
 import qualified Data.List as L
@@ -44,8 +44,9 @@ whitespace = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace"
 lexem :: Parser a -> Parser a
 lexem p = p <* whitespace
 
-numeral :: Parser Integer
-numeral = lexem (signed decimal) <?> "numeral"
+-- | Parse an unsigned integer.
+integer :: Parser Integer
+integer = lexem decimal <?> "integer"
 
 token :: Text -> Parser Text
 token t = lexem (string t) <?> "token " ++ T.unpack t
@@ -126,12 +127,18 @@ type_ =  Mapping <$> option [] (sorts <* op '>') <*> sort <?> "type"
     sorts =  fmap (:[]) sort
          <|> parens (sort `sepBy1` op '*')
 
+-- | Parse a number.
+number :: Parser Number
+number =  RationalConstant <$> signed integer <* char '/' <*> integer
+      <|> IntegerConstant <$> signed integer
+      <?> "number"
+
 -- | Parse a term.
 term :: Parser Term
 term =  parens term
     <|> Function <$> function <*> option [] (parens (term `sepBy1` op ','))
     <|> Variable <$> var
-    <|> Constant <$> numeral
+    <|> Number   <$> number
     <|> DistinctTerm <$> distinctObject
     <?> "term"
 
@@ -212,7 +219,7 @@ generalData :: Parser GeneralData
 generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralFunction <$> atom <*> generalTerms
            <|> GeneralVariable <$> var
-           <|> GeneralNumber   <$> numeral
+           <|> GeneralNumber   <$> number
            <|> GeneralFormula  <$> form
            <|> GeneralDistinct <$> distinctObject
            <?> "general data"
@@ -251,7 +258,7 @@ source =  string "file"       *> parens (File       <$> atom  <*> maybeP atom)
 unit :: Parser Unit
 unit = do
   l <- lang
-  let n = eitherP atom numeral
+  let n = eitherP atom (signed integer)
   let ann = maybeP $ (,) <$> source <*> maybeP info
   let u = Unit <$> n <* op ',' <*> role <* op ',' <*> formula l <*> ann
   parens u <* op '.' <?> "unit"

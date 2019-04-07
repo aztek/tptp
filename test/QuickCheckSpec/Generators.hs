@@ -74,6 +74,12 @@ instance Arbitrary Type where
 
 -- * First-order logic
 
+instance Arbitrary Number where
+  arbitrary = oneof [integer, rational]
+    where
+      integer = IntegerConstant <$> arbitrary
+      rational = RationalConstant <$> arbitrary <*> arbitrary `suchThat` (> 0)
+
 deriving instance Generic Term
 instance Arbitrary Term where
   arbitrary = genericArbitraryRec (2 % 3 % 1 % 1 % ())

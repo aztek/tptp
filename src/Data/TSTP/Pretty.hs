@@ -76,12 +76,17 @@ instance Pretty Type where
 
 -- * First-order logic
 
+instance Pretty Number where
+  pretty = \case
+    IntegerConstant i    -> pretty i
+    RationalConstant n d -> pretty n <> "/" <> pretty d
+
 instance Pretty Term where
   pretty = \case
     Function f []  -> pretty f
     Function f ts  -> pretty f <> parens (fmap pretty ts `sepBy` comma)
     Variable v     -> pretty v
-    Constant i     -> pretty i
+    Number i       -> pretty i
     DistinctTerm d -> pretty d
 
 instance Pretty Literal where
@@ -163,7 +168,7 @@ instance Pretty GeneralData where
     GeneralFunction f gts -> pretty f <> maybe mempty args (NEL.nonEmpty gts)
       where args ts = parens (fmap pretty ts `sepBy1` comma)
     GeneralVariable v -> pretty v
-    GeneralNumber i -> pretty i
+    GeneralNumber n -> pretty n
     GeneralFormula f -> prettyFormula f
     GeneralBind v f -> "bind" <> parens (pretty v <> comma <+> prettyFormula f)
     GeneralDistinct d -> pretty d

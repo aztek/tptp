@@ -113,6 +113,9 @@ prop_ipp_Type = ipp type_
 
 -- ** First-order logic
 
+prop_ipp_Number :: Number -> Property
+prop_ipp_Number = ipp number
+
 prop_ipp_Term :: Term -> Property
 prop_ipp_Term = ipp term
 

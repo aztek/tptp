@@ -25,6 +25,7 @@ module Data.TSTP (
   Type(..),
 
   -- * First-order logic
+  Number(..),
   Term(..),
   Literal(..),
   Sign(..),
@@ -158,17 +159,27 @@ data Type = Mapping [Name Sort] (Name Sort)
 
 -- * First-order logic
 
--- | The term in first-order logic extended with integer arithmetic.
+-- | The integer, rational, or real constant.
+data Number
+  = IntegerConstant Integer
+  -- ^ A positive or negative integer.
+  | RationalConstant Integer Integer
+  -- ^ A rational number, represented as a pair of its numerator (positive or
+  -- negative integer, possibly zero) and denominator (strictly positive
+  -- non-zero integer).
+  deriving (Eq, Show, Ord)
+
+-- | The term in first-order logic extended with arithmetic.
 data Term
   = Function (Name Function) [Term]
     -- ^ Application of a function symbol. The empty list of arguments
     -- represents a constant function symbol.
   | Variable Var
     -- ^ A quantified variable.
-  | Constant Integer
-    -- ^ A positive or negative integer constant.
+  | Number Number
+    -- ^ An integer, rational or real constant.
   | DistinctTerm DistinctObject
-    -- ^ A distinct object
+    -- ^ A distinct object.
   deriving (Eq, Show, Ord)
 
 -- | The sign of first-order literals and equality.
@@ -296,7 +307,7 @@ data Parent = Parent Source [GeneralTerm]
 data GeneralData
   = GeneralFunction Atom [GeneralTerm]
   | GeneralVariable Var
-  | GeneralNumber Integer
+  | GeneralNumber Number
   | GeneralFormula Formula
   | GeneralBind Var Formula
   | GeneralDistinct DistinctObject
