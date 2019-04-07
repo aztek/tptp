@@ -239,17 +239,18 @@ parent :: Parser Parent
 parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 
 source :: Parser Source
-source =  string "file"       *> parens (File       <$> atom  <*> maybeP atom)
-      <|> string "theory"     *> parens (Theory     <$> atom  <*> maybeP info)
-      <|> string "creator"    *> parens (Creator    <$> atom  <*> maybeP info)
-      <|> string "introduced" *> parens (Introduced <$> intro <*> maybeP info)
-      <|> string "inference"  *> parens (Inference  <$> atom <* op ','
-                                                    <*> info <* op ',' <*> ps)
-      <|> string "unknown"    $> UnknownSource
+source =  app "file"       (File       <$> atom  <*> maybeP atom)
+      <|> app "theory"     (Theory     <$> atom  <*> maybeP info)
+      <|> app "creator"    (Creator    <$> atom  <*> maybeP info)
+      <|> app "introduced" (Introduced <$> intro <*> maybeP info)
+      <|> app "inference"  (Inference  <$> atom <* op ','
+                                       <*> info <* op ',' <*> ps)
+      <|> string "unknown" $> UnknownSource
       <|> Sources <$> brackets (NEL.fromList <$> source `sepBy` op ',')
       <|> Dag <$> atom
       <?> "source"
   where
+    app f as = string f *> parens as
     ps = brackets (parent `sepBy` op ',')
 
 -- ** Derivations
