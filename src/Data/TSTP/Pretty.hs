@@ -203,10 +203,10 @@ instance Pretty Parent where
 
 instance Pretty Source where
   pretty = \case
-    File       n i -> source "file"       n i
-    Theory     n i -> source "theory"     n i
-    Creator    n i -> source "creator"    n i
-    Introduced n i -> source "introduced" n i
+    File (Atom n) i -> source "file"       (SingleQuoted n) i
+    Theory     n  i -> source "theory"     n i
+    Creator    n  i -> source "creator"    n i
+    Introduced n  i -> source "introduced" n i
     Inference n i ps -> "inference" <> parens (args `sepBy` comma)
       where args = [pretty n, pretty i, brackets (fmap pretty ps `sepBy` comma)]
     UnknownSource -> "unknown"
