@@ -46,24 +46,36 @@ instance Named s => Pretty (Name s) where
 
 -- * Names
 
+quoted :: Char -> Text -> Text
+quoted q = T.cons q . flip T.snoc q
+         . T.replace (T.singleton q) (T.pack ['\\', q])
+         . T.replace "\\" "\\\\"
+
+newtype SingleQuoted = SingleQuoted Text
+  deriving (Eq, Show, Ord)
+
+instance Pretty SingleQuoted where
+  pretty (SingleQuoted t) = pretty (quoted '\'' t)
+
 instance Pretty Atom where
   pretty (Atom s)
     | isLowerWord s = pretty s
-    | otherwise = pretty (quoted s)
+    | otherwise = pretty (SingleQuoted s)
     where
-      quoted = T.cons '\'' . flip T.snoc '\''
-             . T.replace "'" "\\'" . T.replace "\\" "\\\\"
       isLowerWord w = isAsciiLower (T.head w) && T.all isAlphaNumeric (T.tail w)
       isAlphaNumeric c = isAlphaNum c || c == '_'
 
 instance Pretty Var where
   pretty (Var s) = pretty s
 
+newtype DoubleQuoted = DoubleQuoted Text
+  deriving (Eq, Show, Ord)
+
+instance Pretty DoubleQuoted where
+  pretty (DoubleQuoted t) = pretty (quoted '"' t)
+
 instance Pretty DistinctObject where
-  pretty (DistinctObject s) = pretty (quoted s)
-    where
-      quoted = T.cons '"' . flip T.snoc '"'
-             . T.replace "\"" "\\\"" . T.replace "\\" "\\\\"
+  pretty (DistinctObject s) = pretty (DoubleQuoted s)
 
 -- * Sorts and types
 
