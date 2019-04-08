@@ -11,6 +11,7 @@ import Test.QuickCheck hiding (Sorted, Function)
 
 import Data.Bitraversable (bitraverse)
 import Data.List.NonEmpty (NonEmpty(..))
+import qualified Data.Scientific as Sci
 import Data.Text (pack)
 
 import Data.TSTP
@@ -72,10 +73,11 @@ instance Arbitrary Type where
 -- * First-order logic
 
 instance Arbitrary Number where
-  arbitrary = oneof [integer, rational]
+  arbitrary = oneof [integer, rational, real]
     where
       integer = IntegerConstant <$> arbitrary
       rational = RationalConstant <$> arbitrary <*> arbitrary `suchThat` (> 0)
+      real = RealConstant <$> (Sci.scientific <$> arbitrary <*> arbitrary)
 
 deriving instance Generic Term
 instance Arbitrary Term where

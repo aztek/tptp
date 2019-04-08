@@ -92,6 +92,7 @@ instance Pretty Number where
   pretty = \case
     IntegerConstant i    -> pretty i
     RationalConstant n d -> pretty n <> "/" <> pretty d
+    RealConstant r       -> pretty (show r)
 
 instance Pretty Term where
   pretty = \case

@@ -20,6 +20,8 @@ import Data.Functor (($>))
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NEL
 
+import qualified Data.Scientific as Sci
+
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -132,8 +134,12 @@ type_ =  Mapping <$> option [] (sorts <* op '>') <*> sort <?> "type"
 -- | Parse a number.
 number :: Parser Number
 number =  RationalConstant <$> signed integer <* char '/' <*> integer
-      <|> IntegerConstant <$> signed integer
+      <|> real <$> lexem scientific
       <?> "number"
+  where
+    real n
+      | Sci.base10Exponent n == 0 = IntegerConstant (Sci.coefficient n)
+      | otherwise = RealConstant n
 
 -- | Parse a term.
 term :: Parser Term

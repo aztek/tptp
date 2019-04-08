@@ -41,12 +41,11 @@ library
     -Wall
   if flag(Werror)
     ghc-options: -Werror
-  default-extensions:
-    Safe
   build-depends:
     base >= 4.5 && < 5.0,
     text,
     attoparsec,
+    scientific,
     prettyprinter
   if impl(ghc < 8)
     build-depends:
@@ -67,6 +66,7 @@ test-suite quickcheck-spec
     base >= 4.5 && < 5.0,
     text,
     attoparsec,
+    scientific,
     prettyprinter,
     tstp,
     generic-random,

@@ -61,6 +61,7 @@ module Data.TSTP (
 
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.List.NonEmpty (NonEmpty)
+import Data.Scientific (Scientific)
 import qualified Data.Text as Text
 import Data.Text (Text)
 
@@ -214,6 +215,8 @@ data Number
   -- ^ A rational number, represented as a pair of its numerator (positive or
   -- negative integer, possibly zero) and denominator (strictly positive
   -- non-zero integer).
+  | RealConstant Scientific
+  -- ^ A real number, written in the scientific notation.
   deriving (Eq, Show, Ord)
 
 -- | The term in first-order logic extended with arithmetic.
