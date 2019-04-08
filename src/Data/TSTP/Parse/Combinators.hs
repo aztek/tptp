@@ -73,6 +73,10 @@ name :: (Named a, Enum a, Bounded a) => Parser (Name a)
 name =  Reserved <$> (char '$' *> enum)
     <|> Defined  <$> atom
 
+keyword :: (Named a, Enum a, Bounded a) => Parser (Name a)
+keyword =  Reserved <$> enum
+       <|> Defined  <$> atom
+
 isAlphaNumeric :: Char -> Bool
 isAlphaNumeric c = isAsciiLower c || isAsciiUpper c || isDigit c || c == '_'
 
@@ -206,7 +210,7 @@ sorted = Sorted <$> optional (op ':' *> sort) <?> "sorted"
 -- ** Formula annotations
 
 role :: Parser (Name Role)
-role = name <?> "role"
+role = keyword <?> "role"
 
 lang :: Parser Language
 lang = enum <?> "language"

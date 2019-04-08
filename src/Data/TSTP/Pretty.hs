@@ -44,6 +44,11 @@ instance Named s => Pretty (Name s) where
     Reserved s -> pretty (T.cons '$' $ name s)
     Defined a  -> pretty a
 
+keyword :: Named s => Name s -> Doc ann
+keyword = \case
+  Reserved s -> pretty (name s)
+  Defined a  -> pretty a
+
 -- * Names
 
 quoted :: Char -> Text -> Text
@@ -226,7 +231,7 @@ instance Pretty Unit where
   pretty (Unit nm r formula ann) = lang <> parens (args `sepBy` comma) <> "."
     where
       lang = pretty (language formula)
-      args = [either pretty pretty nm, pretty r, pretty formula]
+      args = [either pretty pretty nm, keyword r, pretty formula]
           ++ case ann of
                Just (s, Just i)  -> [pretty s, pretty i]
                Just (s, Nothing) -> [pretty s]
