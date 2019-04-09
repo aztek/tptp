@@ -271,11 +271,11 @@ declaration l = typeDeclaration l <|> formulaDeclaration l <?> "declaration"
 -- | Parse a declaration with the @type@ role - either a typing relation or
 -- a sort declaration.
 typeDeclaration :: Language -> Parser Declaration
-typeDeclaration l =  token "type" *> op ',' *> (atom <* op ':') >>= tt
+typeDeclaration l =  token "type" *> op ',' *> (parens tt <|> tt)
                  <?> "type declaration"
   where
-    tt s =  token "$tType" $> Sort s
-        <|> Typing s <$> type_ l
+    tt = atom <* op ':' >>= \s -> token "$tType" $> Sort s
+                              <|> Typing s <$> type_ l
 
 -- | Parse a formula declaration.
 formulaDeclaration :: Language -> Parser Declaration
