@@ -39,15 +39,6 @@ sepBy as s = hsep (punctuate s as)
 sepBy1 :: NonEmpty (Doc ann) -> Doc ann -> Doc ann
 sepBy1 as s = hsep (punctuate s (NEL.toList as))
 
-instance Named s => Pretty (Name s) where
-  pretty = \case
-    Reserved s -> pretty (T.cons '$' $ name s)
-    Defined a  -> pretty a
-
-keyword :: Named s => Name s -> Doc ann
-keyword = \case
-  Reserved s -> pretty (name s)
-  Defined a  -> pretty a
 
 -- * Names
 
@@ -82,14 +73,16 @@ instance Pretty DoubleQuoted where
 instance Pretty DistinctObject where
   pretty (DistinctObject s) = pretty (DoubleQuoted s)
 
--- * Sorts and types
-
-instance Pretty Type where
+instance Named s => Pretty (Name s) where
   pretty = \case
-    Mapping []  r -> pretty r
-    Mapping [a] r -> pretty a  <+> ">" <+> pretty r
-    Mapping as  r -> parens ts <+> ">" <+> pretty r
-      where ts = fmap pretty as `sepBy` (space <> "*")
+    Reserved s -> pretty (T.cons '$' $ name s)
+    Defined a  -> pretty a
+
+keyword :: Named s => Name s -> Doc ann
+keyword = \case
+  Reserved s -> pretty (name s)
+  Defined a  -> pretty a
+
 
 -- * First-order logic
 
@@ -167,16 +160,43 @@ instance Pretty s => Pretty (FirstOrder s) where
         vs' = brackets $ fmap var vs `sepBy1` comma
         var (v, s) = pretty v <> pretty s
 
+
+-- ** Units
+
+instance Pretty Language where
+  pretty = pretty . name
+
 instance Pretty Formula where
   pretty = \case
     CNF c -> pretty c
     FOF f -> pretty f
     TFF f -> pretty f
 
--- * Derivations
+instance Pretty Type where
+  pretty = \case
+    TFFType []  r -> pretty r
+    TFFType [a] r -> pretty a  <+> ">" <+> pretty r
+    TFFType as  r -> parens ts <+> ">" <+> pretty r
+      where ts = fmap pretty as `sepBy` (space <> "*")
 
-instance Pretty Language where
-  pretty = pretty . name
+instance Pretty Unit where
+  pretty (Unit n d a) = lang <> parens ((nm : decl ++ ann) `sepBy` comma) <> "."
+    where
+      lang = pretty (language d)
+      nm = either pretty pretty n
+      decl = case d of
+        Typing  s t -> ["type",    pretty s <> ":" <+> pretty t]
+        Formula r f -> [keyword r, pretty f]
+      ann = case a of
+        Just (s, Just i)  -> [pretty s, pretty i]
+        Just (s, Nothing) -> [pretty s]
+        Nothing -> []
+
+instance Pretty Derivation where
+  pretty (Derivation us) = sep (fmap pretty us)
+
+
+-- * Annotations
 
 instance Pretty Intro where
   pretty = pretty . name
@@ -191,7 +211,7 @@ instance Pretty GeneralData where
     GeneralBind v f -> "bind" <> parens (pretty v <> comma <+> prettyFormula f)
     GeneralDistinct d -> pretty d
     where
-      prettyFormula f = "$" <> pretty (language f) <> parens (pretty f)
+      prettyFormula f = "$" <> pretty (formulaLanguage f) <> parens (pretty f)
 
 instance Pretty GeneralTerm where
   pretty = \case
@@ -226,16 +246,3 @@ instance Pretty Source where
       optional = maybe mempty (\a -> comma <+> pretty a)
 
   prettyList ss = brackets (fmap pretty ss `sepBy` comma)
-
-instance Pretty Unit where
-  pretty (Unit nm r formula ann) = lang <> parens (args `sepBy` comma) <> "."
-    where
-      lang = pretty (language formula)
-      args = [either pretty pretty nm, keyword r, pretty formula]
-          ++ case ann of
-               Just (s, Just i)  -> [pretty s, pretty i]
-               Just (s, Nothing) -> [pretty s]
-               Nothing -> []
-
-instance Pretty Derivation where
-  pretty (Derivation us) = sep (fmap pretty us)

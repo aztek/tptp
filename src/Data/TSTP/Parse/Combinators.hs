@@ -20,10 +20,7 @@ module Data.TSTP.Parse.Combinators (
   distinctObject,
   function,
   predicate,
-
-  -- * Sorts and types
   sort,
-  type_,
 
   -- * First-order logic
   number,
@@ -33,18 +30,18 @@ module Data.TSTP.Parse.Combinators (
   unsortedFirstOrder,
   sortedFirstOrder,
 
-  -- * Formula annotations
+  -- * Units
+  unit,
+  derivation,
+
+  -- * Annotations
   intro,
   info,
   generalData,
   generalTerm,
   generalList,
   parent,
-  source,
-
-  -- * Derivations
-  unit,
-  derivation
+  source
 ) where
 
 import Control.Applicative ((<|>), optional)
@@ -121,6 +118,7 @@ isAsciiPrint c = isAscii c && isPrint c
 maybeP :: Parser a -> Parser (Maybe a)
 maybeP p = optional (op ',' *> p)
 
+
 -- * Parser combinators
 
 -- ** Names
@@ -157,18 +155,10 @@ function = name <?> "function"
 predicate :: Parser (Name Predicate)
 predicate = name <?> "predicate"
 
--- ** Sorts and types
-
 -- | Parse a sort.
 sort :: Parser (Name Sort)
 sort = name <?> "sort"
 
--- | Parse a type.
-type_ :: Parser Type
-type_ =  Mapping <$> option [] (sorts <* op '>') <*> sort <?> "type"
-  where
-    sorts =  fmap (:[]) sort
-         <|> parens (sort `sepBy1` op '*')
 
 -- ** First-order logic
 
@@ -248,19 +238,54 @@ sortedFirstOrder :: Parser SortedFirstOrder
 sortedFirstOrder = firstOrder sorted
   where sorted = Sorted <$> optional (op ':' *> sort) <?> "sorted"
 
--- ** Formula annotations
 
-role :: Parser (Name Role)
-role = keyword <?> "role"
+-- ** Units
 
-lang :: Parser Language
-lang = enum <?> "language"
-
+-- | Parse a formula in a given TPTP language.
 formula :: Language -> Parser Formula
 formula = \case
   CNF_ -> CNF <$> clause
   FOF_ -> FOF <$> unsortedFirstOrder
   TFF_ -> TFF <$> sortedFirstOrder
+
+-- | Parse a type in a given TPTP language.
+type_ :: Language -> Parser Type
+type_ = \case
+  TFF_ -> TFFType <$> option [] (sorts <* op '>') <*> sort <?> "type"
+  l -> error $ "Unable to parse a type declaration in " ++ show l
+  where
+    sorts =  fmap (:[]) sort
+         <|> parens (sort `sepBy1` op '*')
+
+-- | Parse a formula role.
+role :: Parser (Name Role)
+role = keyword <?> "role"
+
+-- | Parse the name of a TPTP language.
+lang :: Parser Language
+lang = enum <?> "language"
+
+-- | Parse a TPTP declaration in a given language.
+declaration :: Language -> Parser Declaration
+declaration l = eitherP (string "type") role <* op ',' >>= \case
+  Left  _ -> Typing <$> atom <* op ':' <*> type_ l
+  Right r -> Formula r <$> formula l
+
+-- | Parse a TSTP unit.
+unit :: Parser Unit
+unit = do
+  l <- lang
+  let n = eitherP atom (signed integer)
+  let d = parens (declaration l) <|> declaration l
+  let a = maybeP annotation
+  parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.' <?> "unit"
+
+-- | Parse a TSTP derivation.
+derivation :: Parser Derivation
+derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
+
+
+-- ** Annotations
 
 intro :: Parser Intro
 intro = enum <?> "intro"
@@ -306,17 +331,6 @@ source =  app "file"       (File       <$> atom  <*> maybeP atom)
     app f as = string f *> parens as
     ps = brackets (parent `sepBy` op ',')
 
--- ** Derivations
-
--- | Parse a TSTP unit.
-unit :: Parser Unit
-unit = do
-  l <- lang
-  let n = eitherP atom (signed integer)
-  let ann = maybeP $ (,) <$> source <*> maybeP info
-  let u = Unit <$> n <* op ',' <*> role <* op ',' <*> formula l <*> ann
-  parens u <* op '.' <?> "unit"
-
--- | Parse a TSTP derivation.
-derivation :: Parser Derivation
-derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
+-- | Parse an annotation.
+annotation :: Parser Annotation
+annotation = (,) <$> source <*> maybeP info

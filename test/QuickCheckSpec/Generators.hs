@@ -38,6 +38,7 @@ numeric      = choose ('0', '9')
 printable    = choose (' ', '~')
 alphaNumeric = oneof [pure '_', lowerAlpha, upperAlpha, numeric]
 
+
 -- * Names
 
 instance Arbitrary Atom where
@@ -60,16 +61,10 @@ deriving instance Generic Predicate
 instance Arbitrary Predicate where
   arbitrary = genericArbitraryU
 
--- * Sorts and types
-
 deriving instance Generic Sort
 instance Arbitrary Sort where
   arbitrary = genericArbitraryU
 
-deriving instance Generic Type
-instance Arbitrary Type where
-  arbitrary = genericArbitraryU
-  shrink (Mapping as r) = flip Mapping r <$> shrinkList shrink as
 
 -- * First-order logic
 
@@ -133,6 +128,9 @@ instance Arbitrary s => Arbitrary (FirstOrder s) where
     Quantified q vs f -> f : (Quantified q vs <$> shrink f)
     Connected f c g -> f : g : (Connected <$> shrink f <*> pure c <*> shrink g)
 
+
+-- * Units
+
 deriving instance Generic Formula
 instance Arbitrary Formula where
   arbitrary = genericArbitraryU
@@ -141,11 +139,37 @@ instance Arbitrary Formula where
     FOF f -> FOF <$> shrink f
     TFF f -> TFF <$> shrink f
 
--- * Formula annotations
-
 deriving instance Generic Role
 instance Arbitrary Role where
   arbitrary = genericArbitraryU
+
+deriving instance Generic Type
+instance Arbitrary Type where
+  arbitrary = genericArbitraryU
+  shrink = \case
+    TFFType as r -> flip TFFType r <$> shrinkList shrink as
+
+deriving instance Generic Declaration
+instance Arbitrary Declaration where
+  arbitrary = genericArbitraryU
+  shrink = \case
+    Formula r f -> Formula r <$> shrink f
+    Typing  n t -> Typing  n <$> shrink t
+
+deriving instance Generic Unit
+instance Arbitrary Unit where
+  arbitrary = genericArbitraryRec (1 % ())
+  shrink (Unit n d a) = Unit n <$> shrink d <*> shrinkAnnotation a
+    where
+      shrinkAnnotation = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)
+
+deriving instance Generic Derivation
+instance Arbitrary Derivation where
+  arbitrary = genericArbitraryU
+  shrink (Derivation us) = Derivation <$> shrinkList shrink us
+
+
+-- * Annotations
 
 deriving instance Generic Intro
 instance Arbitrary Intro where
@@ -187,17 +211,3 @@ deriving instance Generic Info
 instance Arbitrary Info where
   arbitrary = genericArbitraryRec (1 % ())
   shrink (Info gts) = Info <$> shrinkList shrink gts
-
--- * Derivations
-
-deriving instance Generic Unit
-instance Arbitrary Unit where
-  arbitrary = genericArbitraryRec (1 % ())
-  shrink (Unit nm r f ann) = Unit nm r <$> shrink f <*> shrinkAnn ann
-    where
-      shrinkAnn = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)
-
-deriving instance Generic Derivation
-instance Arbitrary Derivation where
-  arbitrary = genericArbitraryU
-  shrink (Derivation us) = Derivation <$> shrinkList shrink us

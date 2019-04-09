@@ -25,10 +25,7 @@ module Data.TSTP (
   Name(..),
   Function(..),
   Predicate(..),
-
-  -- * Sorts and types
   Sort(..),
-  Type(..),
 
   -- * First-order logic
   Number(..),
@@ -47,6 +44,8 @@ module Data.TSTP (
   -- * Units
   Formula(..),
   Role(..),
+  Type(..),
+  Declaration(..),
   Unit(..),
   Derivation(..),
 
@@ -56,7 +55,8 @@ module Data.TSTP (
   Parent(..),
   GeneralTerm(..),
   GeneralData(..),
-  Info(..)
+  Info(..),
+  Annotation
 ) where
 
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
@@ -186,9 +186,6 @@ data Predicate
   | IsRat
   deriving (Eq, Show, Ord, Enum, Bounded)
 
-
--- * Sorts and types
-
 -- | The standard sort in TPTP.
 data Sort
   = I    -- ^ The type of individuals.
@@ -197,12 +194,6 @@ data Sort
   | Real -- ^ The type of real numbers.
   | Rat  -- ^ The type of rational numbers.
   deriving (Eq, Show, Ord, Enum, Bounded)
-
--- | The type in TPTP is a mapping of one or more sorts to a sort.
--- Types are assigned to function and predicate symbols in the sorted
--- languages of TPTP.
-data Type = Mapping [Name Sort] (Name Sort)
-  deriving (Eq, Show, Ord)
 
 
 -- * First-order logic
@@ -313,19 +304,6 @@ data Formula
   | TFF SortedFirstOrder
   deriving (Eq, Show, Ord)
 
-data Unit = Unit {
-  unitName :: Either Atom Integer,
-  unitRole :: Name Role,
-  unitFormula :: Formula,
-  unitAnnotation :: Maybe (Source, Maybe Info)
-} deriving (Eq, Show, Ord)
-
-newtype Derivation = Derivation { units :: [Unit] }
-  deriving (Eq, Show, Ord)
-
-
--- * Annotations
-
 -- | The predefined role of a formula in a TSTP derivation. Theorem provers
 -- might introduce other roles.
 data Role
@@ -339,12 +317,32 @@ data Role
   | Conjecture
   | NegatedConjecture
   | Plain
-  | RoleType
   | FiDomain
   | FiFunctors
   | FiPredicates
   | Unknown
   deriving (Eq, Show, Ord, Enum, Bounded)
+
+-- | The type in TPTP is a mapping of one or more sorts to a sort.
+-- Types are assigned to function and predicate symbols in the sorted
+-- languages of TPTP.
+data Type
+  = TFFType [Name Sort] (Name Sort)
+  deriving (Eq, Show, Ord)
+
+data Declaration
+  = Typing Atom Type
+  | Formula (Name Role) Formula
+  deriving (Eq, Show, Ord)
+
+data Unit = Unit (Either Atom Integer) Declaration (Maybe Annotation)
+  deriving (Eq, Show, Ord)
+
+newtype Derivation = Derivation { units :: [Unit] }
+  deriving (Eq, Show, Ord)
+
+
+-- * Annotations
 
 data Intro
   = ByDefinition
@@ -383,3 +381,5 @@ data GeneralTerm
 
 newtype Info = Info [GeneralTerm]
   deriving (Eq, Show, Ord)
+
+type Annotation = (Source, Maybe Info)

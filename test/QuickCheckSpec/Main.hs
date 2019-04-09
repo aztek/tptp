@@ -76,13 +76,19 @@ normalizeGeneralTerm = \case
 normalizeInfo :: Info -> Info
 normalizeInfo (Info gts) = Info (fmap normalizeGeneralTerm gts)
 
+normalizeDeclaration :: Declaration -> Declaration
+normalizeDeclaration = \case
+  Formula r f -> Formula r (normalizeFormula f)
+  d -> d
+
 normalizeUnit :: Unit -> Unit
-normalizeUnit (Unit n r f ann) = Unit n r (normalizeFormula f) (normalizeAnn ann)
+normalizeUnit (Unit n d a) = Unit n (normalizeDeclaration d) (normalizeAnn a)
   where
     normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap normalizeInfo i)
 
 normalizeDerivation :: Derivation -> Derivation
 normalizeDerivation (Derivation us) = Derivation (fmap normalizeUnit us)
+
 
 -- * Properties
 
@@ -96,6 +102,7 @@ prop_validVar (Var t) = isValidVar t
 
 prop_validDistinctObject :: DistinctObject -> Bool
 prop_validDistinctObject (DistinctObject t) = isValidDistinctObject t
+
 
 -- ** Names
 
@@ -114,13 +121,9 @@ prop_ipp_Function = ipp function
 prop_ipp_Predicate :: Name Predicate -> Property
 prop_ipp_Predicate = ipp predicate
 
--- ** Sorts and types
-
 prop_ipp_Sort :: Name Sort -> Property
 prop_ipp_Sort = ipp sort
 
-prop_ipp_Type :: Type -> Property
-prop_ipp_Type = ipp type_
 
 -- ** First-order logic
 
@@ -142,7 +145,17 @@ prop_ipp_UnsortedFO = ippModulo reassociate unsortedFirstOrder
 prop_ipp_SortedFO :: SortedFirstOrder -> Property
 prop_ipp_SortedFO = ippModulo reassociate sortedFirstOrder
 
--- ** Formula annotations
+
+-- ** Units
+
+prop_ipp_Unit :: Unit -> Property
+prop_ipp_Unit = ippModulo normalizeUnit unit
+
+prop_ipp_Derivation :: Derivation -> Property
+prop_ipp_Derivation = ippModulo normalizeDerivation derivation
+
+
+-- ** Annotations
 
 prop_ipp_Parent :: Parent -> Property
 prop_ipp_Parent = ippModulo normalizeParent parent
@@ -159,13 +172,6 @@ prop_ipp_Info = ippModulo normalizeInfo info
 prop_ipp_Source :: Source -> Property
 prop_ipp_Source = ippModulo normalizeSource source
 
--- ** Derivations
-
-prop_ipp_Unit :: Unit -> Property
-prop_ipp_Unit = ippModulo normalizeUnit unit
-
-prop_ipp_Derivation :: Derivation -> Property
-prop_ipp_Derivation = ippModulo normalizeDerivation derivation
 
 -- * Runner
 

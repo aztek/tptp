@@ -103,7 +103,6 @@ instance Named Role where
     Conjecture        -> "conjecture"
     NegatedConjecture -> "negated_conjecture"
     Plain             -> "plain"
-    RoleType          -> "type"
     FiDomain          -> "fi_domain"
     FiFunctors        -> "fi_functors"
     FiPredicates      -> "fi_predicates"
@@ -133,9 +132,17 @@ instance Named Language where
     TFF_ -> "tff"
     -- THF_ -> "thf"
 
-language :: Formula -> Language
+language :: Declaration -> Language
 language = \case
+  Formula _ f -> formulaLanguage f
+  Typing  _ t -> typeLanguage t
+
+formulaLanguage :: Formula -> Language
+formulaLanguage = \case
   CNF{} -> CNF_
   FOF{} -> FOF_
   TFF{} -> TFF_
-  -- THF{} -> THF_
+
+typeLanguage :: Type -> Language
+typeLanguage = \case
+  TFFType{} -> TFF_
