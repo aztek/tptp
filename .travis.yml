@@ -27,5 +27,4 @@ install:
 script:
   - cabal new-test
   - wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
-  - curl -sSL https://raw.github.com/ndmitchell/weeder/master/misc/run.sh | sh -s .
   - cabal check
