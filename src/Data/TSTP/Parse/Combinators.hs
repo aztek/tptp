@@ -30,9 +30,8 @@ module Data.TSTP.Parse.Combinators (
   term,
   literal,
   clause,
-  firstOrder,
-  sorted,
-  unsorted,
+  unsortedFirstOrder,
+  sortedFirstOrder,
 
   -- * Formula annotations
   intro,
@@ -239,11 +238,15 @@ firstOrder p = do
     vs = brackets (NEL.fromList <$> v `sepBy1` op ',')
     v = (,) <$> var <*> p
 
-unsorted :: Parser Unsorted
-unsorted = pure (Unsorted ()) <?> "unsorted"
+-- | Parse a formula in unsorted first-order logic.
+unsortedFirstOrder :: Parser UnsortedFirstOrder
+unsortedFirstOrder = firstOrder unsorted
+  where unsorted = pure (Unsorted ()) <?> "unsorted"
 
-sorted :: Parser Sorted
-sorted = Sorted <$> optional (op ':' *> sort) <?> "sorted"
+-- | Parse a formula in unsorted first-order logic.
+sortedFirstOrder :: Parser SortedFirstOrder
+sortedFirstOrder = firstOrder sorted
+  where sorted = Sorted <$> optional (op ':' *> sort) <?> "sorted"
 
 -- ** Formula annotations
 
@@ -256,8 +259,8 @@ lang = enum <?> "language"
 formula :: Language -> Parser Formula
 formula = \case
   CNF_ -> CNF <$> clause
-  FOF_ -> FOF <$> firstOrder unsorted
-  TFF_ -> TFF <$> firstOrder sorted
+  FOF_ -> FOF <$> unsortedFirstOrder
+  TFF_ -> TFF <$> sortedFirstOrder
 
 intro :: Parser Intro
 intro = enum <?> "intro"

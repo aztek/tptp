@@ -137,10 +137,10 @@ prop_ipp_Clause :: Clause -> Property
 prop_ipp_Clause = ipp clause
 
 prop_ipp_UnsortedFO :: UnsortedFirstOrder -> Property
-prop_ipp_UnsortedFO = ippModulo reassociate (firstOrder unsorted)
+prop_ipp_UnsortedFO = ippModulo reassociate unsortedFirstOrder
 
 prop_ipp_SortedFO :: SortedFirstOrder -> Property
-prop_ipp_SortedFO = ippModulo reassociate (firstOrder sorted)
+prop_ipp_SortedFO = ippModulo reassociate sortedFirstOrder
 
 -- ** Formula annotations
 
