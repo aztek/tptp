@@ -44,19 +44,19 @@ module Data.TSTP (
   UnsortedFirstOrder,
   SortedFirstOrder,
 
-  -- * Formula annotations
+  -- * Units
   Formula(..),
   Role(..),
+  Unit(..),
+  Derivation(..),
+
+  -- * Annotations
   Intro(..),
   Source(..),
   Parent(..),
   GeneralTerm(..),
   GeneralData(..),
-  Info(..),
-
-  -- * Derivations
-  Unit(..),
-  Derivation(..)
+  Info(..)
 ) where
 
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
@@ -304,7 +304,7 @@ newtype Sorted = Sorted (Maybe (Name Sort))
 type SortedFirstOrder = FirstOrder Sorted
 
 
--- * Formula annotations
+-- * Units
 
 -- | The formula in either of the supported TPTP languages.
 data Formula
@@ -312,6 +312,19 @@ data Formula
   | FOF UnsortedFirstOrder
   | TFF SortedFirstOrder
   deriving (Eq, Show, Ord)
+
+data Unit = Unit {
+  unitName :: Either Atom Integer,
+  unitRole :: Name Role,
+  unitFormula :: Formula,
+  unitAnnotation :: Maybe (Source, Maybe Info)
+} deriving (Eq, Show, Ord)
+
+newtype Derivation = Derivation { units :: [Unit] }
+  deriving (Eq, Show, Ord)
+
+
+-- * Annotations
 
 -- | The predefined role of a formula in a TSTP derivation. Theorem provers
 -- might introduce other roles.
@@ -369,17 +382,4 @@ data GeneralTerm
   deriving (Eq, Show, Ord)
 
 newtype Info = Info [GeneralTerm]
-  deriving (Eq, Show, Ord)
-
-
--- * Derivations
-
-data Unit = Unit {
-  unitName :: Either Atom Integer,
-  unitRole :: Name Role,
-  unitFormula :: Formula,
-  unitAnnotation :: Maybe (Source, Maybe Info)
-} deriving (Eq, Show, Ord)
-
-newtype Derivation = Derivation { units :: [Unit] }
   deriving (Eq, Show, Ord)
