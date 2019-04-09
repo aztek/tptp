@@ -18,6 +18,12 @@ author: Evgenii Kotelnikov
 maintainer: evgeny.kotelnikov@gmail.com
 category: Language, Parsing, Pretty Printer, Theorem Provers, Formal Methods
 extra-source-files: README.md
+tested-with:
+  GHC == 7.10.3,
+  GHC == 8.0.2,
+  GHC == 8.2.2,
+  GHC == 8.4.4,
+  GHC == 8.6.3
 
 source-repository head
   type: git
