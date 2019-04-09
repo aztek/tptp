@@ -48,7 +48,7 @@ import Control.Applicative ((<|>), optional)
 
 import Data.Attoparsec.Text as A hiding (Number, number)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
-import Data.Functor (($>))
+import Data.Functor (($>), (<&>))
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NEL
 
@@ -268,8 +268,12 @@ lang = enum <?> "language"
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
 declaration l = eitherP (string "type") role <* op ',' >>= \case
-  Left  _ -> Typing <$> atom <* op ':' <*> type_ l
   Right r -> Formula r <$> formula l
+  Left  _ -> do
+    s <- atom <* op ':'
+    eitherP (string "$tType") (type_ l) <&> \case
+      Left  _ -> Sort s
+      Right t -> Typing s t
 
 -- | Parse a TSTP unit.
 unit :: Parser Unit

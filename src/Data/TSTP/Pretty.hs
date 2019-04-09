@@ -185,6 +185,7 @@ instance Pretty Unit where
       lang = pretty (language d)
       nm = either pretty pretty n
       decl = case d of
+        Sort s      -> ["type",    pretty s <> ":" <+> "$tType"]
         Typing  s t -> ["type",    pretty s <> ":" <+> pretty t]
         Formula r f -> [keyword r, pretty f]
       ann = case a of

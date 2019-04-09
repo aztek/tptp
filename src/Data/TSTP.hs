@@ -331,7 +331,8 @@ data Type
   deriving (Eq, Show, Ord)
 
 data Declaration
-  = Typing Atom Type
+  = Sort Atom
+  | Typing Atom Type
   | Formula (Name Role) Formula
   deriving (Eq, Show, Ord)
 

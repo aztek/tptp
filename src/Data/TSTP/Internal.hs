@@ -134,8 +134,9 @@ instance Named Language where
 
 language :: Declaration -> Language
 language = \case
-  Formula _ f -> formulaLanguage f
+  Sort _      -> TFF_
   Typing  _ t -> typeLanguage t
+  Formula _ f -> formulaLanguage f
 
 formulaLanguage :: Formula -> Language
 formulaLanguage = \case

@@ -153,8 +153,9 @@ deriving instance Generic Declaration
 instance Arbitrary Declaration where
   arbitrary = genericArbitraryU
   shrink = \case
-    Formula r f -> Formula r <$> shrink f
+    Sort _      -> []
     Typing  n t -> Typing  n <$> shrink t
+    Formula r f -> Formula r <$> shrink f
 
 deriving instance Generic Unit
 instance Arbitrary Unit where
