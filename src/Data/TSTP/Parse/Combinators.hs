@@ -269,18 +269,23 @@ lang = enum <?> "language"
 declaration :: Language -> Parser Declaration
 declaration l = eitherP (string "type") role <* op ',' >>= \case
   Right r -> Formula r <$> formula l
-  Left  _ -> do
-    s <- atom <* op ':'
-    eitherP (string "$tType") (type_ l) <&> \case
-      Left  _ -> Sort s
-      Right t -> Typing s t
+  Left  _ -> parens (typeDeclaration l) <|> typeDeclaration l
+
+-- | Parse a declaration with the @type@ role - either a typing relation or
+-- a sort declaration.
+typeDeclaration :: Language -> Parser Declaration
+typeDeclaration l = do
+  s <- atom <* op ':'
+  eitherP (string "$tType") (type_ l) <&> \case
+    Left  _ -> Sort s
+    Right t -> Typing s t
 
 -- | Parse a TSTP unit.
 unit :: Parser Unit
 unit = do
   l <- lang
   let n = eitherP atom (signed integer)
-  let d = parens (declaration l) <|> declaration l
+  let d = declaration l
   let a = maybeP annotation
   parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.' <?> "unit"
 
