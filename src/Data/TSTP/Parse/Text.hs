@@ -22,8 +22,8 @@ module Data.TSTP.Parse.Text (
 import Data.Attoparsec.Text
 import Data.Text (Text)
 
-import Data.TSTP
-import Data.TSTP.Parse.Combinators
+import Data.TSTP (Unit, Derivation)
+import Data.TSTP.Parse.Combinators (whitespace, unit, derivation)
 
 -- | Run a parser for a single TSTP unit on 'Text'.
 parseUnit :: Text -> Result Unit

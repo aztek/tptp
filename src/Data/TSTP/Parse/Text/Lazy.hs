@@ -18,8 +18,8 @@ module Data.TSTP.Parse.Text.Lazy (
 import Data.Attoparsec.Text.Lazy
 import Data.Text.Lazy (Text)
 
-import Data.TSTP
-import Data.TSTP.Parse.Combinators
+import Data.TSTP (Unit, Derivation)
+import Data.TSTP.Parse.Combinators (whitespace, unit, derivation)
 
 -- | Parse a single TSTP unit from 'Lazy.Text'.
 parseUnit :: Text -> Result Unit

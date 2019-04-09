@@ -3,7 +3,7 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Generators where
+module Generators () where
 
 import GHC.Generics
 import Generic.Random

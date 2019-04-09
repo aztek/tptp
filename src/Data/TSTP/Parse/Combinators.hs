@@ -10,7 +10,43 @@
 -- Stability    : experimental
 --
 
-module Data.TSTP.Parse.Combinators where
+module Data.TSTP.Parse.Combinators (
+  -- * Whitespace
+  whitespace,
+
+  -- * Names
+  atom,
+  var,
+  distinctObject,
+  function,
+  predicate,
+
+  -- * Sorts and types
+  sort,
+  type_,
+
+  -- * First-order logic
+  number,
+  term,
+  literal,
+  clause,
+  firstOrder,
+  sorted,
+  unsorted,
+
+  -- * Formula annotations
+  intro,
+  info,
+  generalData,
+  generalTerm,
+  generalList,
+  parent,
+  source,
+
+  -- * Derivations
+  unit,
+  derivation
+) where
 
 import Control.Applicative ((<|>), optional)
 
@@ -135,6 +171,8 @@ type_ =  Mapping <$> option [] (sorts <* op '>') <*> sort <?> "type"
     sorts =  fmap (:[]) sort
          <|> parens (sort `sepBy1` op '*')
 
+-- ** First-order logic
+
 -- | Parse a number.
 number :: Parser Number
 number =  RationalConstant <$> signed integer <* char '/' <*> integer
@@ -158,7 +196,7 @@ term =  parens term
 sign :: Parser Sign
 sign = enum <?> "sign"
 
--- Parse a literal.
+-- | Parse a literal.
 literal :: Parser Literal
 literal =  parens literal
        <|> Equality  <$> term <*> sign <*> term
