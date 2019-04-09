@@ -269,6 +269,7 @@ declaration :: Language -> Parser Declaration
 declaration l = eitherP (token "type") role <* op ',' >>= \case
   Right r -> Formula r <$> formula l
   Left  _ -> parens (typeDeclaration l) <|> typeDeclaration l
+  <?> "declaration"
 
 -- | Parse a declaration with the @type@ role - either a typing relation or
 -- a sort declaration.
@@ -278,6 +279,7 @@ typeDeclaration l = do
   eitherP (token "$tType") (type_ l) <&> \case
     Left  _ -> Sort s
     Right t -> Typing s t
+  <?> "type declaration"
 
 -- | Parse a TSTP unit.
 unit :: Parser Unit
@@ -341,4 +343,4 @@ source =  app "file"       (File       <$> atom  <*> maybeP atom)
 
 -- | Parse an annotation.
 annotation :: Parser Annotation
-annotation = (,) <$> source <*> maybeP info
+annotation = (,) <$> source <*> maybeP info <?> "annotation"
