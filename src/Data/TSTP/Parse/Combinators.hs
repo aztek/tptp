@@ -95,9 +95,8 @@ brackets :: Parser a -> Parser a
 brackets p = op '[' *> p <* op ']' <?> "brackets"
 
 enum :: (Named a, Enum a, Bounded a) => Parser a
-enum = lexem
-     $ choice
-     $ fmap (\(n, c) -> string n $> c <?> "reserved " ++ T.unpack n)
+enum = choice
+     $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ T.unpack n)
      $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
      $ fmap (\c -> (I.name c, c)) [minBound..]
 
@@ -267,7 +266,7 @@ lang = enum <?> "language"
 
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
-declaration l = eitherP (string "type") role <* op ',' >>= \case
+declaration l = eitherP (token "type") role <* op ',' >>= \case
   Right r -> Formula r <$> formula l
   Left  _ -> parens (typeDeclaration l) <|> typeDeclaration l
 
@@ -276,7 +275,7 @@ declaration l = eitherP (string "type") role <* op ',' >>= \case
 typeDeclaration :: Language -> Parser Declaration
 typeDeclaration l = do
   s <- atom <* op ':'
-  eitherP (string "$tType") (type_ l) <&> \case
+  eitherP (token "$tType") (type_ l) <&> \case
     Left  _ -> Sort s
     Right t -> Typing s t
 
@@ -303,7 +302,7 @@ info :: Parser Info
 info = Info <$> generalList <?> "info"
 
 generalData :: Parser GeneralData
-generalData =  string "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
+generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralFunction <$> atom <*> generalTerms
            <|> GeneralVariable <$> var
            <|> GeneralNumber   <$> number
@@ -332,12 +331,12 @@ source =  app "file"       (File       <$> atom  <*> maybeP atom)
       <|> app "introduced" (Introduced <$> intro <*> maybeP info)
       <|> app "inference"  (Inference  <$> atom <* op ','
                                        <*> info <* op ',' <*> ps)
-      <|> string "unknown" $> UnknownSource
+      <|> token "unknown"  $> UnknownSource
       <|> Sources <$> brackets (NEL.fromList <$> source `sepBy` op ',')
       <|> Dag <$> atom
       <?> "source"
   where
-    app f as = string f *> parens as
+    app f as = token f *> parens as
     ps = brackets (parent `sepBy` op ',')
 
 -- | Parse an annotation.
