@@ -48,7 +48,7 @@ import Control.Applicative ((<|>), optional)
 
 import Data.Attoparsec.Text as A hiding (Number, number)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
-import Data.Functor (($>), (<&>))
+import Data.Functor (($>))
 import qualified Data.List as L
 import qualified Data.List.NonEmpty as NEL
 
@@ -266,20 +266,21 @@ lang = enum <?> "language"
 
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
-declaration l = eitherP (token "type") role <* op ',' >>= \case
-  Right r -> Formula r <$> formula l
-  Left  _ -> parens (typeDeclaration l) <|> typeDeclaration l
-  <?> "declaration"
+declaration l = typeDeclaration l <|> formulaDeclaration l <?> "declaration"
 
 -- | Parse a declaration with the @type@ role - either a typing relation or
 -- a sort declaration.
 typeDeclaration :: Language -> Parser Declaration
-typeDeclaration l = do
-  s <- atom <* op ':'
-  eitherP (token "$tType") (type_ l) <&> \case
-    Left  _ -> Sort s
-    Right t -> Typing s t
-  <?> "type declaration"
+typeDeclaration l =  token "type" *> op ',' *> (atom <* op ':') >>= tt
+                 <?> "type declaration"
+  where
+    tt s =  token "$tType" $> Sort s
+        <|> Typing s <$> type_ l
+
+-- | Parse a formula declaration.
+formulaDeclaration :: Language -> Parser Declaration
+formulaDeclaration l =  Formula <$> role <* op ',' <*> formula l
+                    <?> "formula declaration"
 
 -- | Parse a TSTP unit.
 unit :: Parser Unit
