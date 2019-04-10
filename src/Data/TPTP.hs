@@ -1,6 +1,6 @@
 -- |
--- Module       : Data.TSTP
--- Description  : Data type definitions for the syntax of the TSTP language.
+-- Module       : Data.TPTP
+-- Description  : Data type definitions for the syntax of the TPTP language.
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
@@ -8,10 +8,10 @@
 --
 -- The implementation of this module follows the
 -- [BNF grammar](http://tptp.cs.miami.edu/TPTP/SyntaxBNF.html)
--- definition of the TSTP language.
+-- definition of the TPTP language.
 --
 
-module Data.TSTP (
+module Data.TPTP (
   -- * Names
   Atom(..),
   isValidAtom,
@@ -67,9 +67,9 @@ import Data.Text (Text)
 
 -- * Names
 
--- | The atomic word in the TSTP language - a non-empty string of space or
+-- | The atomic word in the TPTP language - a non-empty string of space or
 -- visible characters from the ASCII range 0x20 to 0x7E. If the string satisfies
--- the regular expression @[a-z][a-zA-Z0-9_]*@ it is displayed in the TSTP
+-- the regular expression @[a-z][a-zA-Z0-9_]*@ it is displayed in the TPTP
 -- language as is, otherwise it is displayed in single quotes with the
 -- characters @'@ and @\\@ escaped using @\\@.
 --
@@ -96,7 +96,7 @@ isValidAtom :: Text -> Bool
 isValidAtom t = not (Text.null t)
              && Text.all isAsciiPrint t
 
--- | The variable in the TSTP language - a string that satisfies the regular
+-- | The variable in the TPTP language - a string that satisfies the regular
 -- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
   deriving (Eq, Show, Ord)
@@ -118,9 +118,9 @@ isValidVar t = not (Text.null t)
             && isAsciiUpper (Text.head t)
             && Text.all isAlphaNumeric (Text.tail t)
 
--- | The distinct object in the TSTP language - a (possibly empty) string of
+-- | The distinct object in the TPTP language - a (possibly empty) string of
 -- space or visible characters from the ASCII range 0x20 to 0x7E. The string is
--- always displayed in the TSTP language in double quotes with the characters
+-- always displayed in the TPTP language in double quotes with the characters
 -- @"@ and @\\@ escaped using @\\@.
 --
 -- >>> print (pretty (DistinctObject "Godel's incompleteness theorem"))
@@ -145,9 +145,9 @@ newtype DistinctObject = DistinctObject Text
 isValidDistinctObject :: Text -> Bool
 isValidDistinctObject = Text.all isAsciiPrint
 
--- | The name of a function symbol, a predicate symbol or a sort in TSTP.
+-- | The name of a function symbol, a predicate symbol or a sort in TPTP.
 data Name s
-  = Reserved s   -- ^ The name reserved in the TSTP specification.
+  = Reserved s   -- ^ The name reserved in the TPTP specification.
   | Defined Atom -- ^ The name defined by the user.
   deriving (Eq, Show, Ord)
 
@@ -243,7 +243,7 @@ data Literal
 
 -- | The clause in first-order logic - implicitly universally-quantified
 -- disjunction of one or more signed literals. Semantically, a clause is allowed
--- to be empty in which case it is the logical falsum. However, the TSTP syntax
+-- to be empty in which case it is the logical falsum. However, the TPTP syntax
 -- does not allow empty clauses, instead the unit clause @$false@ must be used.
 newtype Clause = Clause (NonEmpty (Sign, Literal))
   deriving (Eq, Show, Ord)
@@ -285,7 +285,7 @@ newtype Unsorted = Unsorted ()
 -- | The formula in unsorted first-order logic.
 type UnsortedFirstOrder = FirstOrder Unsorted
 
--- | The sort annotation in sorted first-order logic. The TSTP language allows
+-- | The sort annotation in sorted first-order logic. The TPTP language allows
 -- a sort annotation to be omitted, in such case the sort of the variable is
 -- assumed to be @$i@.
 newtype Sorted = Sorted (Maybe (Name Sort))
@@ -304,7 +304,7 @@ data Formula
   | TFF SortedFirstOrder
   deriving (Eq, Show, Ord)
 
--- | The predefined role of a formula in a TSTP derivation. Theorem provers
+-- | The predefined role of a formula in a TPTP derivation. Theorem provers
 -- might introduce other roles.
 data Role
   = Axiom

@@ -2,15 +2,15 @@
 {-# LANGUAGE LambdaCase #-}
 
 -- |
--- Module       : Data.TSTP.Parse.Combinators
--- Description  : Parser combinators for the TSTP language.
+-- Module       : Data.TPTP.Parse.Combinators
+-- Description  : Parser combinators for the TPTP language.
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
 
-module Data.TSTP.Parse.Combinators (
+module Data.TPTP.Parse.Combinators (
   -- * Whitespace
   whitespace,
 
@@ -57,9 +57,9 @@ import qualified Data.Scientific as Sci
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Data.TSTP
-import Data.TSTP.Internal hiding (name)
-import qualified Data.TSTP.Internal as I
+import Data.TPTP
+import Data.TPTP.Internal hiding (name)
+import qualified Data.TPTP.Internal as I
 
 -- * Helper functions
 
@@ -296,11 +296,11 @@ annotatedUnit = do
   parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.'
   <?> "annotated unit"
 
--- | Parse a TSTP unit.
+-- | Parse a TPTP unit.
 unit :: Parser Unit
 unit = include <|> annotatedUnit <?> "unit"
 
--- | Parse a TSTP derivation.
+-- | Parse a TPTP derivation.
 derivation :: Parser Derivation
 derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
 

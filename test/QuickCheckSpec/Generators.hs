@@ -5,7 +5,7 @@
 
 -- |
 -- Module       : Generators
--- Description  : QuickCheck generators for datatypes in the tstp library.
+-- Description  : QuickCheck generators for datatypes in the tptp library.
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
@@ -24,7 +24,7 @@ import Data.Scientific (Scientific)
 import qualified Data.Scientific as Sci
 import Data.Text (pack)
 
-import Data.TSTP
+import Data.TPTP
 
 -- * Helpers
 

@@ -2,7 +2,7 @@
 
 -- |
 -- Module       : Normalizers
--- Description  : Normalization of the Data.TSTP datatypes.
+-- Description  : Normalization of the Data.TPTP datatypes.
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
@@ -23,8 +23,8 @@ module Normalizers (
   normalizeInfo
 ) where
 
-import Data.TSTP
-import Data.TSTP.Internal
+import Data.TPTP
+import Data.TPTP.Internal
 
 
 -- * First-order logic

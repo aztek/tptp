@@ -3,13 +3,13 @@
 
 -- |
 -- Module       : Main
--- Description  : QuickCheck specification for the tstp library.
+-- Description  : QuickCheck specification for the tptp library.
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
--- Defines properties of the tstp library and runs QuickCheck on them.
+-- Defines properties of the tptp library and runs QuickCheck on them.
 --
 
 module Main where
@@ -20,9 +20,9 @@ import Data.Attoparsec.Text (Parser, parseOnly, endOfInput)
 import Data.Text.Prettyprint.Doc (layoutPretty, defaultLayoutOptions)
 import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 
-import Data.TSTP
-import Data.TSTP.Parse.Combinators
-import Data.TSTP.Pretty
+import Data.TPTP
+import Data.TPTP.Parse.Combinators
+import Data.TPTP.Pretty
 
 import Generators ()
 import Normalizers

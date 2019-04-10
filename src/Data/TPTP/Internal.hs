@@ -2,18 +2,18 @@
 {-# LANGUAGE LambdaCase #-}
 
 -- |
--- Module       : Data.TSTP.Internal
+-- Module       : Data.TPTP.Internal
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
 
-module Data.TSTP.Internal where
+module Data.TPTP.Internal where
 
 import Data.Text (Text)
 
-import Data.TSTP
+import Data.TPTP
 
 -- * Names
 
@@ -115,9 +115,9 @@ instance Named Intro where
     ByTautology   -> "tautology"
     ByAssumption  -> "assumption"
 
--- * TSTP languages
+-- * TPTP languages
 
--- | The language of logical formulas supported by TSTP.
+-- | The language of logical formulas supported by TPTP.
 data Language
   = CNF_ -- ^ Clausal normal form
   | FOF_ -- ^ Unsorted first-order form

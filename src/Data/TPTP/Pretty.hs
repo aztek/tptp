@@ -5,15 +5,15 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 -- |
--- Module       : Data.TSTP.Pretty
--- Description  : Pretty printers for the TSTP language.
+-- Module       : Data.TPTP.Pretty
+-- Description  : Pretty printers for the TPTP language.
 -- Copyright    : (c) Evgenii Kotelnikov, 2019
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
 
-module Data.TSTP.Pretty (
+module Data.TPTP.Pretty (
   Pretty(..)
 ) where
 
@@ -27,8 +27,8 @@ import qualified Data.Text as T
 import Prelude hiding ((<>))
 #endif
 
-import Data.TSTP
-import Data.TSTP.Internal
+import Data.TPTP
+import Data.TPTP.Internal
 import Data.Text.Prettyprint.Doc
 
 -- * Helper functions
