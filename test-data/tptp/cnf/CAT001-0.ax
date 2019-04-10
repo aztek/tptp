@@ -1,0 +1,115 @@
+%--------------------------------------------------------------------------
+% File     : CAT001-0 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Category theory
+% Axioms   : Category theory axioms
+% Version  : [Mit67] axioms.
+% English  :
+
+% Refs     : [Mit67] Mitchell (1967), Theory of Categories
+% Source   : [ANL]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :   18 (   0 non-Horn;   6 unit;  12 RR)
+%            Number of atoms      :   45 (   1 equality)
+%            Maximal clause size  :    4 (   2 average)
+%            Number of predicates :    4 (   0 propositional; 1-3 arity)
+%            Number of functors   :    3 (   0 constant; 1-2 arity)
+%            Number of variables  :   52 (   5 singleton)
+%            Maximal term depth   :    2 (   1 average)
+% SPC      : 
+
+% Comments :
+%--------------------------------------------------------------------------
+%----Notice that composition is read as compose(x,y)(G) means x o y, -i.e.
+%----x(y(G)). It is a skolem function from -(all x all
+%----y, (DEF(x,y) -> exists z (P(x,y,z)))).
+
+%-----Composition is closed when defined
+cnf(closure_of_composition,axiom,
+    ( ~ defined(X,Y)
+    | product(X,Y,compose(X,Y)) )).
+
+%-----Associative property
+cnf(associative_property1,axiom,
+    ( ~ product(X,Y,Z)
+    | defined(X,Y) )).
+
+cnf(associative_property2,axiom,
+    ( ~ product(X,Y,Xy)
+    | ~ defined(Xy,Z)
+    | defined(Y,Z) )).
+
+%-----Special category theory axiom
+cnf(category_theory_axiom1,axiom,
+    ( ~ product(X,Y,Xy)
+    | ~ product(Y,Z,Yz)
+    | ~ defined(Xy,Z)
+    | defined(X,Yz) )).
+
+cnf(category_theory_axiom2,axiom,
+    ( ~ product(X,Y,Xy)
+    | ~ product(Xy,Z,Xyz)
+    | ~ product(Y,Z,Yz)
+    | product(X,Yz,Xyz) )).
+
+cnf(category_theory_axiom3,axiom,
+    ( ~ product(Y,Z,Yz)
+    | ~ defined(X,Yz)
+    | defined(X,Y) )).
+
+cnf(category_theory_axiom4,axiom,
+    ( ~ product(Y,Z,Yz)
+    | ~ product(X,Y,Xy)
+    | ~ defined(X,Yz)
+    | defined(Xy,Z) )).
+
+cnf(category_theory_axiom5,axiom,
+    ( ~ product(Y,Z,Yz)
+    | ~ product(X,Yz,Xyz)
+    | ~ product(X,Y,Xy)
+    | product(Xy,Z,Xyz) )).
+
+cnf(category_theory_axiom6,axiom,
+    ( ~ defined(X,Y)
+    | ~ defined(Y,Z)
+    | ~ identity_map(Y)
+    | defined(X,Z) )).
+
+%-----Properties of domain(x) and codomain(x)
+cnf(domain_is_an_identity_map,axiom,
+    ( identity_map(domain(X)) )).
+
+cnf(codomain_is_an_identity_map,axiom,
+    ( identity_map(codomain(X)) )).
+
+cnf(mapping_from_x_to_its_domain,axiom,
+    ( defined(X,domain(X)) )).
+
+cnf(mapping_from_codomain_of_x_to_x,axiom,
+    ( defined(codomain(X),X) )).
+
+cnf(product_on_domain,axiom,
+    ( product(X,domain(X),X) )).
+
+cnf(product_on_codomain,axiom,
+    ( product(codomain(X),X,X) )).
+
+%-----Definition of the identity predicate
+cnf(identity1,axiom,
+    ( ~ defined(X,Y)
+    | ~ identity_map(X)
+    | product(X,Y,Y) )).
+
+cnf(identity2,axiom,
+    ( ~ defined(X,Y)
+    | ~ identity_map(Y)
+    | product(X,Y,X) )).
+
+%-----Composition is well defined
+cnf(composition_is_well_defined,axiom,
+    ( ~ product(X,Y,Z)
+    | ~ product(X,Y,W)
+    | Z = W )).
+
+%--------------------------------------------------------------------------

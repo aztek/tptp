@@ -1,0 +1,35 @@
+%------------------------------------------------------------------------------
+% File     : REL001-1 : TPTP v7.2.0. Released v3.6.0.
+% Domain   : Relation Algebra
+% Axioms   : Dedkind and two modular laws
+% Version  : [Mad95] (equational) axioms : Augmented.
+% English  :
+
+% Refs     : [Mad95] Maddux (1995), Relation-Algebraic Semantics
+%          : [Hoe08] Hoefner (2008), Email to G. Sutcliffe
+% Source   : [Hoe08]
+% Names    :
+
+% Status   : Satisfiable
+% Rating   : ? v3.6.0
+% Syntax   : Number of clauses     :    3 (   0 non-Horn;   3 unit;   0 RR)
+%            Number of atoms       :    3 (   3 equality)
+%            Maximal clause size   :    1 (   1 average)
+%            Number of predicates  :    1 (   0 propositional; 2-2 arity)
+%            Number of functors    :    4 (   0 constant; 1-2 arity)
+%            Number of variables   :    9 (   0 singleton)
+%            Maximal term depth    :    7 (   6 average)
+% SPC      : 
+
+% Comments : tptp2X -f tptp:short -t cnf:otter REL001+1.ax
+%------------------------------------------------------------------------------
+cnf(dedekind_law_14,axiom,
+    ( join(meet(composition(A,B),C),composition(meet(A,composition(C,converse(B))),meet(B,composition(converse(A),C)))) = composition(meet(A,composition(C,converse(B))),meet(B,composition(converse(A),C))) )).
+
+cnf(modular_law_1_15,axiom,
+    ( join(meet(composition(A,B),C),meet(composition(A,meet(B,composition(converse(A),C))),C)) = meet(composition(A,meet(B,composition(converse(A),C))),C) )).
+
+cnf(modular_law_2_16,axiom,
+    ( join(meet(composition(A,B),C),meet(composition(meet(A,composition(C,converse(B))),B),C)) = meet(composition(meet(A,composition(C,converse(B))),B),C) )).
+
+%------------------------------------------------------------------------------

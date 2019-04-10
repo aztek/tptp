@@ -1,0 +1,76 @@
+%--------------------------------------------------------------------------
+% File     : GRP006-0 : TPTP v7.2.0. Bugfixed v1.2.1.
+% Domain   : Group Theory (Named groups)
+% Axioms   : Group theory (Named groups) axioms
+% Version  : [MOW76] axioms.
+% English  :
+
+% Refs     : [MOW76] McCharen et al. (1976), Problems and Experiments for a
+% Source   : [ANL]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :   11 (   0 non-Horn;   5 unit;   6 RR)
+%            Number of atoms      :   24 (   1 equality)
+%            Maximal clause size  :    4 (   2 average)
+%            Number of predicates :    3 (   0 propositional; 2-4 arity)
+%            Number of functors   :    3 (   0 constant; 1-3 arity)
+%            Number of variables  :   36 (   0 singleton)
+%            Maximal term depth   :    2 (   1 average)
+% SPC      : 
+
+% Comments : [Ver93] pointed out that the traditional labelling of the
+%            closure and well_definedness axioms was wrong. The correct
+%            labelling indicates that product is a total function.
+% Bugfixes : v1.2.1 - Clause associativity1 fixed. This is a typo in
+%            [MOW76], and is wrong in [ANL].
+%--------------------------------------------------------------------------
+cnf(identity_in_group,axiom,
+    ( group_member(identity_for(Xg),Xg) )).
+
+cnf(left_identity,axiom,
+    ( product(Xg,identity_for(Xg),X,X) )).
+
+cnf(right_identity,axiom,
+    ( product(Xg,X,identity_for(Xg),X) )).
+
+cnf(inverse_in_group,axiom,
+    ( ~ group_member(X,Xg)
+    | group_member(inverse(Xg,X),Xg) )).
+
+cnf(left_inverse,axiom,
+    ( product(Xg,inverse(Xg,X),X,identity_for(Xg)) )).
+
+cnf(right_inverse,axiom,
+    ( product(Xg,X,inverse(Xg,X),identity_for(Xg)) )).
+
+%----These axioms are called closure or totality in some axiomatisations
+cnf(total_function1_1,axiom,
+    ( ~ group_member(X,Xg)
+    | ~ group_member(Y,Xg)
+    | product(Xg,X,Y,multiply(Xg,X,Y)) )).
+
+cnf(total_function1_2,axiom,
+    ( ~ group_member(X,Xg)
+    | ~ group_member(Y,Xg)
+    | group_member(multiply(Xg,X,Y),Xg) )).
+
+%----This axiom is called well_definedness in some axiomatisations
+cnf(total_function2,axiom,
+    ( ~ product(Xg,X,Y,Z)
+    | ~ product(Xg,X,Y,W)
+    | W = Z )).
+
+cnf(associativity1,axiom,
+    ( ~ product(Xg,X,Y,Xy)
+    | ~ product(Xg,Y,Z,Yz)
+    | ~ product(Xg,Xy,Z,Xyz)
+    | product(Xg,X,Yz,Xyz) )).
+
+cnf(associativity2,axiom,
+    ( ~ product(Xg,X,Y,Xy)
+    | ~ product(Xg,Y,Z,Yz)
+    | ~ product(Xg,X,Yz,Xyz)
+    | product(Xg,Xy,Z,Xyz) )).
+
+%--------------------------------------------------------------------------

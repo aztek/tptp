@@ -1,0 +1,27 @@
+%--------------------------------------------------------------------------
+% File     : LCL004-2 : TPTP v7.2.0. Released v2.3.0.
+% Domain   : Logic Calculi (Propositional)
+% Axioms   : Propositional logic deduction axioms for EQUIVALENT
+% Version  : [WR27] axioms.
+% English  :
+
+% Refs     : [WR27]  Whitehead & Russell (1927), Principia Mathematica
+% Source   : [WR27]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    1 (   0 non-Horn;   1 unit;   0 RR)
+%            Number of atoms      :    1 (   1 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    3 (   0 constant; 2-2 arity)
+%            Number of variables  :    2 (   0 singleton)
+%            Maximal term depth   :    3 (   2 average)
+% SPC      : 
+
+% Comments : Requires LCL004-0.ax LCL004-1.ax
+%--------------------------------------------------------------------------
+cnf(equivalent_defn,axiom,
+    ( equivalent(P,Q) = and(implies(P,Q),implies(Q,P)) )).
+
+%--------------------------------------------------------------------------

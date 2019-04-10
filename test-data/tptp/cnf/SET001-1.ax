@@ -1,0 +1,56 @@
+%--------------------------------------------------------------------------
+% File     : SET001-1 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Set Theory
+% Axioms   : Membership and union
+% Version  : [LS74] axioms.
+% English  :
+
+% Refs     : [LS74]  Lawrence & Starkey (1974), Experimental tests of resol
+% Source   : [SPRFN]
+% Names    : Problem 118 [LS74]
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    6 (   2 non-Horn;   0 unit;   5 RR)
+%            Number of atoms      :   20 (   0 equality)
+%            Maximal clause size  :    4 (   3 average)
+%            Number of predicates :    2 (   0 propositional; 2-3 arity)
+%            Number of functors   :    1 (   0 constant; 3-3 arity)
+%            Number of variables  :   21 (   2 singleton)
+%            Maximal term depth   :    2 (   1 average)
+% SPC      : 
+
+% Comments : Requires SET001-0.ax
+%--------------------------------------------------------------------------
+cnf(member_of_union_is_member_of_one_set,axiom,
+    ( ~ union(Set1,Set2,Union)
+    | ~ member(Element,Union)
+    | member(Element,Set1)
+    | member(Element,Set2) )).
+
+cnf(member_of_set1_is_member_of_union,axiom,
+    ( ~ union(Set1,Set2,Union)
+    | ~ member(Element,Set1)
+    | member(Element,Union) )).
+
+cnf(member_of_set2_is_member_of_union,axiom,
+    ( ~ union(Set1,Set2,Union)
+    | ~ member(Element,Set2)
+    | member(Element,Union) )).
+
+cnf(union_axiom1,axiom,
+    ( union(Set1,Set2,Union)
+    | member(g(Set1,Set2,Union),Set1)
+    | member(g(Set1,Set2,Union),Set2)
+    | member(g(Set1,Set2,Union),Union) )).
+
+cnf(union_axiom2,axiom,
+    ( ~ member(g(Set1,Set2,Union),Set1)
+    | ~ member(g(Set1,Set2,Union),Union)
+    | union(Set1,Set2,Union) )).
+
+cnf(union_axiom3,axiom,
+    ( ~ member(g(Set1,Set2,Union),Set2)
+    | ~ member(g(Set1,Set2,Union),Union)
+    | union(Set1,Set2,Union) )).
+
+%--------------------------------------------------------------------------

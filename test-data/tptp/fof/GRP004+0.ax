@@ -1,0 +1,42 @@
+%--------------------------------------------------------------------------
+% File     : GRP004+0 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Group Theory
+% Axioms   : Group theory (equality) axioms
+% Version  : [MOW76] (equality) axioms :
+%            Reduced > Complete.
+% English  :
+
+% Refs     : [MOW76] McCharen et al. (1976), Problems and Experiments for a
+%          : [Wos88] Wos (1988), Automated Reasoning - 33 Basic Research Pr
+% Source   : [TPTP]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of formulae    :    3 (   3 unit)
+%            Number of atoms       :    3 (   3 equality)
+%            Maximal formula depth :    4 (   3 average)
+%            Number of connectives :    0 (   0 ~  ;   0  |;   0  &)
+%                                         (   0 <=>;   0 =>;   0 <=)
+%                                         (   0 <~>;   0 ~|;   0 ~&)
+%            Number of predicates  :    1 (   0 propositional; 2-2 arity)
+%            Number of functors    :    3 (   1 constant; 0-2 arity)
+%            Number of variables   :    5 (   0 singleton;   5 !;   0 ?)
+%            Maximal term depth    :    3 (   2 average)
+% SPC      : 
+
+% Comments : Reverse engineered from GRP004-0.ax.
+%--------------------------------------------------------------------------
+%----There exists an identity element
+fof(left_identity,axiom,
+    ( ! [X] : multiply(identity,X) = X )).
+
+%----For any x in the group, there exists an element y such that x*y = y*x
+%----= identity.
+fof(left_inverse,axiom,
+    ( ! [X] : multiply(inverse(X),X) = identity )).
+
+%----The operation '*' is associative
+fof(associativity,axiom,
+    ( ! [X,Y,Z] : multiply(multiply(X,Y),Z) = multiply(X,multiply(Y,Z)) )).
+
+%--------------------------------------------------------------------------

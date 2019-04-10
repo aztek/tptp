@@ -1,0 +1,70 @@
+%--------------------------------------------------------------------------
+% File     : HWV001-2 : TPTP v7.2.0. Released v2.1.0.
+% Domain   : Hardware Verification
+% Axioms   : Full-adder.
+% Version  : [Gei96] axioms.
+% English  :
+
+% Refs     : [Gei96] Geisler (1996), Email to G. Sutcliffe
+% Source   : [Gei96]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :   11 (   0 non-Horn;   0 unit;  11 RR)
+%            Number of atoms      :   22 (   0 equality)
+%            Maximal clause size  :    2 (   2 average)
+%            Number of predicates :    2 (   0 propositional; 2-2 arity)
+%            Number of functors   :   12 (   7 constant; 0-2 arity)
+%            Number of variables  :   11 (   0 singleton)
+%            Maximal term depth   :    3 (   2 average)
+% SPC      : 
+
+% Comments : Requires HWV001-0.ax HWV001-1.ax
+%--------------------------------------------------------------------------
+%----Composition of fulladder
+cnf(fulladder_halfadder1,axiom,
+    ( ~ type(X,fulladder)
+    | type(h1(X),halfadder) )).
+
+cnf(fulladder_halfadder2,axiom,
+    ( ~ type(X,fulladder)
+    | type(h2(X),halfadder) )).
+
+cnf(fulladder_or1,axiom,
+    ( ~ type(X,fulladder)
+    | type(or1(X),or) )).
+
+%----Connections of fulladder
+cnf(fulladder_connection_outsh1_in2h2,axiom,
+    ( ~ type(X,fulladder)
+    | connection(out(s,h1(X)),in(n2,h2(X))) )).
+
+cnf(fulladder_connection_outch1_in2or1,axiom,
+    ( ~ type(X,fulladder)
+    | connection(out(c,h1(X)),in(n2,or1(X))) )).
+
+cnf(fulladder_connection_outch2_in1or1,axiom,
+    ( ~ type(X,fulladder)
+    | connection(out(c,h2(X)),in(n1,or1(X))) )).
+
+cnf(fulladder_connection_in1_in1h2,axiom,
+    ( ~ type(X,fulladder)
+    | connection(in(n1,X),in(n1,h2(X))) )).
+
+cnf(fulladder_connection_in2_in1h1,axiom,
+    ( ~ type(X,fulladder)
+    | connection(in(n2,X),in(n1,h1(X))) )).
+
+cnf(fulladder_connection_inc_in2h1,axiom,
+    ( ~ type(X,fulladder)
+    | connection(in(c,X),in(n2,h1(X))) )).
+
+cnf(fulladder_connection_outs_outsh2,axiom,
+    ( ~ type(X,fulladder)
+    | connection(out(s,X),out(s,h2(X))) )).
+
+cnf(fulladder_connection_outc_out1or1,axiom,
+    ( ~ type(X,fulladder)
+    | connection(out(c,X),out(n1,or1(X))) )).
+
+%--------------------------------------------------------------------------

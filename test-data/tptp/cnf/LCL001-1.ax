@@ -1,0 +1,41 @@
+%--------------------------------------------------------------------------
+% File     : LCL001-1 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Logic Calculi (Wajsberg Algebras)
+% Axioms   : Wajsberg algebra lattice structure definitions
+% Version  : [Bon91] (equality) axioms.
+% English  :
+
+% Refs     : [FRT84] Font et al. (1984), Wajsberg Algebras
+%          : [Bon91] Bonacina (1991), Problems in Lukasiewicz Logic
+% Source   : [Bon91]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    4 (   0 non-Horn;   2 unit;   2 RR)
+%            Number of atoms      :    6 (   4 equality)
+%            Maximal clause size  :    2 (   2 average)
+%            Number of predicates :    2 (   0 propositional; 2-2 arity)
+%            Number of functors   :    5 (   1 constant; 0-2 arity)
+%            Number of variables  :    8 (   0 singleton)
+%            Maximal term depth   :    4 (   2 average)
+% SPC      : 
+
+% Comments : Requires LCL001-0.ax
+%--------------------------------------------------------------------------
+%----Definitions of big_V and big_hat
+cnf(big_V_definition,axiom,
+    ( big_V(X,Y) = implies(implies(X,Y),Y) )).
+
+cnf(big_hat_definition,axiom,
+    ( big_hat(X,Y) = not(big_V(not(X),not(Y))) )).
+
+%----Definition of partial order
+cnf(partial_order_definition1,axiom,
+    ( ~ ordered(X,Y)
+    | implies(X,Y) = truth )).
+
+cnf(partial_order_definition2,axiom,
+    ( implies(X,Y) != truth
+    | ordered(X,Y) )).
+
+%--------------------------------------------------------------------------

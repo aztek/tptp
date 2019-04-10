@@ -1,0 +1,76 @@
+%------------------------------------------------------------------------------
+% File     : SWV007+4 : TPTP v7.2.0. Released v3.3.0.
+% Domain   : Software Verification
+% Axioms   : Priority queue checker: implementation function, Pi, Pi#
+% Version  : [dNP05] axioms.
+% English  :
+
+% Refs     : [Pis06] Piskac (2006), Email to Geoff Sutcliffe
+%          : [dNP05] de Nivelle & Piskac (2005), Verification of an Off-Lin
+% Source   : [Pis06]
+% Names    :
+
+% Status   : Satisfiable
+% Rating   : <Don't worry about this one - we'll do it automatically>
+% Syntax   : Number of formulae    :    9 (   2 unit)
+%            Number of atoms       :   20 (   2 equality)
+%            Maximal formula depth :    6 (   5 average)
+%            Number of connectives :   11 (   0 ~  ;   0  |;   4  &)
+%                                         (   7 <=>;   0 =>;   0 <=)
+%                                         (   0 <~>;   0 ~|;   0 ~&)
+%            Number of predicates  :   13 (   0 propositional; 1-2 arity)
+%            Number of functors    :    7 (   2 constant; 0-3 arity)
+%            Number of variables   :   21 (   0 singleton;  18 !;   3 ?)
+%            Maximal term depth    :    5 (   1 average)
+% SPC      : 
+
+% Comments : Requires SWV007+0 SWV007+1 SWV007+2 SWV007+3
+%------------------------------------------------------------------------------
+fof(ax54,axiom,(
+    ! [U,V] : i(triple(U,create_slb,V)) = create_pq )).
+
+fof(ax55,axiom,(
+    ! [U,V,W,X,Y] : i(triple(U,insert_slb(V,pair(X,Y)),W)) = insert_pq(i(triple(U,V,W)),X) )).
+
+%----All below here are definitions
+fof(ax56,axiom,(
+    ! [U,V] :
+      ( pi_sharp_remove(U,V)
+    <=> contains_pq(U,V) ) )).
+
+fof(ax57,axiom,(
+    ! [U,V] :
+      ( pi_remove(U,V)
+    <=> pi_sharp_remove(i(U),V) ) )).
+
+fof(ax58,axiom,(
+    ! [U,V] :
+      ( pi_sharp_find_min(U,V)
+    <=> ( contains_pq(U,V)
+        & issmallestelement_pq(U,V) ) ) )).
+
+fof(ax59,axiom,(
+    ! [U] :
+      ( pi_find_min(U)
+    <=> ? [V] : pi_sharp_find_min(i(U),V) ) )).
+
+fof(ax60,axiom,(
+    ! [U,V] :
+      ( pi_sharp_removemin(U,V)
+    <=> ( contains_pq(U,V)
+        & issmallestelement_pq(U,V) ) ) )).
+
+fof(ax61,axiom,(
+    ! [U] :
+      ( pi_removemin(U)
+    <=> ? [V] : pi_sharp_find_min(i(U),V) ) )).
+
+fof(ax62,axiom,(
+    ! [U] :
+      ( phi(U)
+    <=> ? [V] :
+          ( succ_cpq(U,V)
+          & ok(V)
+          & check_cpq(V) ) ) )).
+
+%------------------------------------------------------------------------------

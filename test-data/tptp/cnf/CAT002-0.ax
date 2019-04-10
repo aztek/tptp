@@ -1,0 +1,51 @@
+%--------------------------------------------------------------------------
+% File     : CAT002-0 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Category theory
+% Axioms   : Category theory (equality) axioms
+% Version  : [Qua89] (equality) axioms.
+% English  :
+
+% Refs     : [Qua89] Quaife (1989), Email to L. Wos
+% Source   : [ANL]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    7 (   0 non-Horn;   4 unit;   3 RR)
+%            Number of atoms      :   11 (  11 equality)
+%            Maximal clause size  :    3 (   2 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    3 (   0 constant; 1-2 arity)
+%            Number of variables  :   11 (   0 singleton)
+%            Maximal term depth   :    3 (   2 average)
+% SPC      : 
+
+% Comments :
+%--------------------------------------------------------------------------
+%----Composition is read right-to-left: compose(x,y)(G) means -y(x(G)) The
+%----axioms themselves
+cnf(codomain_of_domain_is_domain,axiom,
+    ( codomain(domain(X)) = domain(X) )).
+
+cnf(domain_of_codomain_is_codomain,axiom,
+    ( domain(codomain(X)) = codomain(X) )).
+
+cnf(domain_composition,axiom,
+    ( compose(domain(X),X) = X )).
+
+cnf(codomain_composition,axiom,
+    ( compose(X,codomain(X)) = X )).
+
+cnf(codomain_domain1,axiom,
+    ( codomain(X) != domain(Y)
+    | domain(compose(X,Y)) = domain(X) )).
+
+cnf(codomain_domain2,axiom,
+    ( codomain(X) != domain(Y)
+    | codomain(compose(X,Y)) = codomain(Y) )).
+
+cnf(star_property,axiom,
+    ( codomain(X) != domain(Y)
+    | codomain(Y) != domain(Z)
+    | compose(X,compose(Y,Z)) = compose(compose(X,Y),Z) )).
+
+%--------------------------------------------------------------------------

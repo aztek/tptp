@@ -1,0 +1,45 @@
+%--------------------------------------------------------------------------
+% File     : LCL001-2 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Logic Calculi (Wajsberg Algebras)
+% Axioms   : Wajsberg algebra AND and OR definitions
+% Version  : [AB90] (equality) axioms.
+% English  :
+
+% Refs     : [FRT84] Font et al. (1984), Wajsberg Algebras
+%          : [AB90]  Anantharaman & Bonacina (1990), An Application of the
+%          : [Bon91] Bonacina (1991), Problems in Lukasiewicz Logic
+% Source   : [Bon91]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    6 (   0 non-Horn;   6 unit;   0 RR)
+%            Number of atoms      :    6 (   6 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    4 (   0 constant; 1-2 arity)
+%            Number of variables  :   14 (   0 singleton)
+%            Maximal term depth   :    4 (   3 average)
+% SPC      : 
+
+% Comments : Requires LCL001-0.ax
+%--------------------------------------------------------------------------
+%----Definitions of or and and, which are AC
+cnf(or_definition,axiom,
+    ( or(X,Y) = implies(not(X),Y) )).
+
+cnf(or_associativity,axiom,
+    ( or(or(X,Y),Z) = or(X,or(Y,Z)) )).
+
+cnf(or_commutativity,axiom,
+    ( or(X,Y) = or(Y,X) )).
+
+cnf(and_definition,axiom,
+    ( and(X,Y) = not(or(not(X),not(Y))) )).
+
+cnf(and_associativity,axiom,
+    ( and(and(X,Y),Z) = and(X,and(Y,Z)) )).
+
+cnf(and_commutativity,axiom,
+    ( and(X,Y) = and(Y,X) )).
+
+%--------------------------------------------------------------------------

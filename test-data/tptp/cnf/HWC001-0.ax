@@ -1,0 +1,55 @@
+%--------------------------------------------------------------------------
+% File     : HWC001-0 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Hardware Creation
+% Axioms   : Definitions of AND, OR and NOT
+% Version  : [WO+92] axioms.
+%            Axiom formulation : Ground axioms.
+% English  :
+
+% Refs     : [WO+92] Wos et al. (1992), Automated Reasoning: Introduction a
+% Source   : [ANL]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :   10 (   0 non-Horn;  10 unit;  10 RR)
+%            Number of atoms      :   10 (  10 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    5 (   2 constant; 0-2 arity)
+%            Number of variables  :    0 (   0 singleton)
+%            Maximal term depth   :    2 (   2 average)
+% SPC      : 
+
+% Comments :
+%--------------------------------------------------------------------------
+cnf(and_definition1,axiom,
+    ( and(n0,n0) = n0 )).
+
+cnf(and_definition2,axiom,
+    ( and(n0,n1) = n0 )).
+
+cnf(and_definition3,axiom,
+    ( and(n1,n0) = n0 )).
+
+cnf(and_definition4,axiom,
+    ( and(n1,n1) = n1 )).
+
+cnf(or_definition1,axiom,
+    ( or(n0,n0) = n0 )).
+
+cnf(or_definition2,axiom,
+    ( or(n0,n1) = n1 )).
+
+cnf(or_definition3,axiom,
+    ( or(n1,n0) = n1 )).
+
+cnf(or_definition4,axiom,
+    ( or(n1,n1) = n1 )).
+
+cnf(not_definition1,axiom,
+    ( not(n0) = n1 )).
+
+cnf(not_definition2,axiom,
+    ( not(n1) = n0 )).
+
+%--------------------------------------------------------------------------

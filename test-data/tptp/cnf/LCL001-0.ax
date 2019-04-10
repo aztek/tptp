@@ -1,0 +1,38 @@
+%--------------------------------------------------------------------------
+% File     : LCL001-0 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Logic Calculi (Wajsberg Algebras)
+% Axioms   : Wajsberg algebra
+% Version  : [Bon91] (equality) axioms.
+% English  :
+
+% Refs     : [FRT84] Font et al. (1984), Wajsberg Algebras
+%          : [Bon91] Bonacina (1991), Problems in Lukasiewicz Logic
+%          : [MW92]  McCune & Wos (1992), Experiments in Automated Deductio
+% Source   : [MW92]
+% Names    : MV Sentential Calculus [MW92]
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    4 (   0 non-Horn;   4 unit;   0 RR)
+%            Number of atoms      :    4 (   4 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    3 (   1 constant; 0-2 arity)
+%            Number of variables  :    8 (   0 singleton)
+%            Maximal term depth   :    4 (   2 average)
+% SPC      : 
+
+% Comments :
+%--------------------------------------------------------------------------
+cnf(wajsberg_1,axiom,
+    ( implies(truth,X) = X )).
+
+cnf(wajsberg_2,axiom,
+    ( implies(implies(X,Y),implies(implies(Y,Z),implies(X,Z))) = truth )).
+
+cnf(wajsberg_3,axiom,
+    ( implies(implies(X,Y),Y) = implies(implies(Y,X),X) )).
+
+cnf(wajsberg_4,axiom,
+    ( implies(implies(not(X),not(Y)),implies(Y,X)) = truth )).
+
+%--------------------------------------------------------------------------

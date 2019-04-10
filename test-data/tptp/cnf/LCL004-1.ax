@@ -1,0 +1,27 @@
+%--------------------------------------------------------------------------
+% File     : LCL004-1 : TPTP v7.2.0. Released v2.3.0.
+% Domain   : Logic Calculi (Propositional)
+% Axioms   : Propositional logic deduction axioms for AND
+% Version  : [WR27] axioms.
+% English  :
+
+% Refs     : [WR27]  Whitehead & Russell (1927), Principia Mathematica
+% Source   : [WR27]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    1 (   0 non-Horn;   1 unit;   0 RR)
+%            Number of atoms      :    1 (   1 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    3 (   0 constant; 1-2 arity)
+%            Number of variables  :    2 (   0 singleton)
+%            Maximal term depth   :    4 (   3 average)
+% SPC      : 
+
+% Comments : Requires LCL004-0.ax
+%--------------------------------------------------------------------------
+cnf(and_defn,axiom,
+    ( and(P,Q) = not(or(not(P),not(Q))) )).
+
+%--------------------------------------------------------------------------

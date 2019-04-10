@@ -1,0 +1,47 @@
+%--------------------------------------------------------------------------
+% File     : LCL002-1 : TPTP v7.2.0. Released v1.0.0.
+% Domain   : Logic Calculi (Wajsberg Algebras)
+% Axioms   : Alternative Wajsberg algebra definitions
+% Version  : [AB90] (equality) axioms.
+% English  :
+
+% Refs     : [FRT84] Font et al. (1984), Wajsberg Algebras
+%          : [AB90]  Anantharaman & Bonacina (1990), An Application of the
+%          : [Bon91] Bonacina (1991), Problems in Lukasiewicz Logic
+% Source   : [Bon91]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    6 (   0 non-Horn;   6 unit;   1 RR)
+%            Number of atoms      :    6 (   6 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    7 (   2 constant; 0-2 arity)
+%            Number of variables  :   11 (   0 singleton)
+%            Maximal term depth   :    4 (   2 average)
+% SPC      : 
+
+% Comments : Requires LCL001-0.ax LCL001-2.ax
+%--------------------------------------------------------------------------
+%----Definitions of and_star and xor, where and_star is AC and xor is C
+cnf(xor_definition,axiom,
+    ( xor(X,Y) = or(and(X,not(Y)),and(not(X),Y)) )).
+
+cnf(xor_commutativity,axiom,
+    ( xor(X,Y) = xor(Y,X) )).
+
+cnf(and_star_definition,axiom,
+    ( and_star(X,Y) = not(or(not(X),not(Y))) )).
+
+%---I guess the next two can be derived from the AC of and
+cnf(and_star_associativity,axiom,
+    ( and_star(and_star(X,Y),Z) = and_star(X,and_star(Y,Z)) )).
+
+cnf(and_star_commutativity,axiom,
+    ( and_star(X,Y) = and_star(Y,X) )).
+
+%----Definition of false in terms of truth
+cnf(false_definition,axiom,
+    ( not(truth) = falsehood )).
+
+%--------------------------------------------------------------------------

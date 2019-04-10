@@ -1,0 +1,50 @@
+%--------------------------------------------------------------------------
+% File     : LAT004-0 : TPTP v7.2.0. Released v2.2.0.
+% Domain   : Lattice Theory (Quasilattices)
+% Axioms   : Quasilattice theory (equality) axioms
+% Version  : [McC98b] (equality) axioms.
+% English  :
+
+% Refs     : [McC98] McCune (1998), Email to G. Sutcliffe
+%          : [MP96]  McCune & Padmanabhan (1996), Automated Deduction in Eq
+% Source   : [McC98]
+% Names    :
+
+% Status   : Satisfiable
+% Syntax   : Number of clauses    :    8 (   0 non-Horn;   8 unit;   0 RR)
+%            Number of atoms      :    8 (   8 equality)
+%            Maximal clause size  :    1 (   1 average)
+%            Number of predicates :    1 (   0 propositional; 2-2 arity)
+%            Number of functors   :    2 (   0 constant; 2-2 arity)
+%            Number of variables  :   18 (   0 singleton)
+%            Maximal term depth   :    4 (   2 average)
+% SPC      : 
+
+% Comments :
+%--------------------------------------------------------------------------
+%----Quasilattice theory:
+cnf(idempotence_of_meet,axiom,
+    ( meet(X,X) = X )).
+
+cnf(idempotence_of_join,axiom,
+    ( join(X,X) = X )).
+
+cnf(commutativity_of_meet,axiom,
+    ( meet(X,Y) = meet(Y,X) )).
+
+cnf(commutativity_of_join,axiom,
+    ( join(X,Y) = join(Y,X) )).
+
+cnf(associativity_of_meet,axiom,
+    ( meet(meet(X,Y),Z) = meet(X,meet(Y,Z)) )).
+
+cnf(associativity_of_join,axiom,
+    ( join(join(X,Y),Z) = join(X,join(Y,Z)) )).
+
+cnf(quasi_lattice1,axiom,
+    ( join(meet(X,join(Y,Z)),meet(X,Y)) = meet(X,join(Y,Z)) )).
+
+cnf(quasi_lattice2,axiom,
+    ( meet(join(X,meet(Y,Z)),join(X,Y)) = join(X,meet(Y,Z)) )).
+
+%--------------------------------------------------------------------------

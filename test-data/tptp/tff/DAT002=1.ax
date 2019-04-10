@@ -1,0 +1,67 @@
+%------------------------------------------------------------------------------
+% File     : DAT002=1 : TPTP v7.2.0. Released v5.0.0.
+% Domain   : Data Structures
+% Axioms   : Integer collections with counting
+% Version  : [Wal10] axioms.
+% English  : 
+
+% Refs     : [PW06]  Prevosto & Waldmann (2006), SPASS+T
+%          : [Wal10] Waldmann (2010), Email to Geoff Sutcliffe
+% Source   : [Wal10]
+% Names    : 
+
+% Status   : Satisfiable
+% Syntax   : Number of formulae    :    8 (   1 unit;   1 type)
+%            Number of atoms       :   13 (   7 equality)
+%            Maximal formula depth :    5 (   4 average)
+%            Number of connectives :    8 (   2   ~;   0   |;   0   &)
+%                                         (   5 <=>;   1  =>;   0  <=;   0 <~>)
+%                                         (   0  ~|;   0  ~&)
+%            Number of type conns  :    1 (   1   >;   0   *;   0   +;   0  <<)
+%            Number of predicates  :    6 (   3 propositional; 0-2 arity)
+%            Number of functors    :    8 (   3 constant; 0-2 arity)
+%            Number of variables   :   12 (   0 sgn;  12   !;   0   ?)
+%                                         (  12   :;   0  !>;   0  ?*)
+%            Maximal term depth    :    3 (   2 average)
+%            Arithmetic symbols    :   10 (   1 prd;   2 fun;   2 num;   5 var)
+% SPC      : TFF_SAT_RFO_SEQ_SAR
+
+% Comments : Requires DAT002=0
+%------------------------------------------------------------------------------
+tff(count_type,type,(
+    count: collection > $int )).
+
+tff(ax1,axiom,(
+    ! [X6: collection] : $greatereq(count(X6),0) )).
+
+tff(ax2,axiom,(
+    ! [X7: collection] :
+      ( X7 = empty
+    <=> count(X7) = 0 ) )).
+
+tff(ax3,axiom,(
+    ! [X8: $int,X9: collection] :
+      ( ~ in(X8,X9)
+    <=> count(add(X8,X9)) = $sum(count(X9),1) ) )).
+
+tff(ax4,axiom,(
+    ! [X10: $int,X11: collection] :
+      ( in(X10,X11)
+    <=> count(add(X10,X11)) = count(X11) ) )).
+
+tff(ax5,axiom,(
+    ! [X12: $int,X13: collection] :
+      ( in(X12,X13)
+    <=> count(remove(X12,X13)) = $difference(count(X13),1) ) )).
+
+tff(ax6,axiom,(
+    ! [X14: $int,X15: collection] :
+      ( ~ in(X14,X15)
+    <=> count(remove(X14,X15)) = count(X15) ) )).
+
+tff(ax7,axiom,(
+    ! [X16: $int,X17: collection] :
+      ( in(X16,X17)
+     => X17 = add(X16,remove(X16,X17)) ) )).
+
+%------------------------------------------------------------------------------
