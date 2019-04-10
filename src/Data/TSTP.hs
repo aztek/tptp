@@ -328,21 +328,32 @@ data Role
 -- languages of TPTP.
 data Type
   = TFFType [Name Sort] (Name Sort)
+  -- ^ The type of a function or a predicate symbol in the sorted
+  -- first-order logic.
   deriving (Eq, Show, Ord)
 
+-- | The logical declaration.
 data Declaration
   = Sort Atom
+  -- ^ Introduction of a sort.
   | Typing Atom Type
+  -- ^ Assignment of a type to a symbol.
   | Formula (Name Role) Formula
+  -- ^ Logical formula marked with its role.
   deriving (Eq, Show, Ord)
 
+-- | The unit of TPTP input.
 data Unit
   = Include Atom
+  -- ^ The @include@ statement.
   | Unit (Either Atom Integer) Declaration (Maybe Annotation)
+  -- ^ THe named and possibly annotated logical declaration.
   deriving (Eq, Show, Ord)
 
-newtype Derivation = Derivation { units :: [Unit] }
-  deriving (Eq, Show, Ord)
+-- | The derivation in TPTP - the list of zero or more units.
+newtype Derivation = Derivation {
+  units :: [Unit]
+} deriving (Eq, Show, Ord)
 
 
 -- * Annotations
