@@ -180,18 +180,20 @@ instance Pretty Type where
       where ts = fmap pretty as `sepBy` (space <> "*")
 
 instance Pretty Unit where
-  pretty (Unit n d a) = lang <> parens ((nm : decl ++ ann) `sepBy` comma) <> "."
-    where
-      lang = pretty (language d)
-      nm = either pretty pretty n
-      decl = case d of
-        Sort s      -> ["type",    pretty s <> ":" <+> "$tType"]
-        Typing  s t -> ["type",    pretty s <> ":" <+> pretty t]
-        Formula r f -> [keyword r, pretty f]
-      ann = case a of
-        Just (s, Just i)  -> [pretty s, pretty i]
-        Just (s, Nothing) -> [pretty s]
-        Nothing -> []
+  pretty = \case
+    Include (Atom f) -> "include" <> parens (pretty $ SingleQuoted f) <> "."
+    Unit n d a -> lang <> parens ((nm : decl ++ ann) `sepBy` comma) <> "."
+      where
+        lang = pretty (language d)
+        nm = either pretty pretty n
+        decl = case d of
+          Sort s      -> ["type",    pretty s <> ":" <+> "$tType"]
+          Typing  s t -> ["type",    pretty s <> ":" <+> pretty t]
+          Formula r f -> [keyword r, pretty f]
+        ann = case a of
+          Just (s, Just i)  -> [pretty s, pretty i]
+          Just (s, Nothing) -> [pretty s]
+          Nothing -> []
 
 instance Pretty Derivation where
   pretty (Derivation us) = sep (fmap pretty us)

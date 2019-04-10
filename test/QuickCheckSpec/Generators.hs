@@ -159,10 +159,12 @@ instance Arbitrary Declaration where
 
 deriving instance Generic Unit
 instance Arbitrary Unit where
-  arbitrary = genericArbitraryRec (1 % ())
-  shrink (Unit n d a) = Unit n <$> shrink d <*> shrinkAnnotation a
-    where
-      shrinkAnnotation = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)
+  arbitrary = genericArbitraryU
+  shrink = \case
+    Include _  -> []
+    Unit n d a -> Unit n <$> shrink d <*> shrinkAnnotation a
+      where
+        shrinkAnnotation = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)
 
 deriving instance Generic Derivation
 instance Arbitrary Derivation where

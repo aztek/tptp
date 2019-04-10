@@ -282,14 +282,23 @@ formulaDeclaration :: Language -> Parser Declaration
 formulaDeclaration l =  Formula <$> role <* op ',' <*> formula l
                     <?> "formula declaration"
 
--- | Parse a TSTP unit.
-unit :: Parser Unit
-unit = do
+-- | Parse an @include@ statement.
+include :: Parser Unit
+include = token "include" *> parens (Include <$> atom) <* op '.' <?> "include"
+
+-- | Parse an annotated unit.
+annotatedUnit :: Parser Unit
+annotatedUnit = do
   l <- lang
   let n = eitherP atom (signed integer)
   let d = declaration l
   let a = maybeP annotation
-  parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.' <?> "unit"
+  parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.'
+  <?> "annotated unit"
+
+-- | Parse a TSTP unit.
+unit :: Parser Unit
+unit = include <|> annotatedUnit <?> "unit"
 
 -- | Parse a TSTP derivation.
 derivation :: Parser Derivation

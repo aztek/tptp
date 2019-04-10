@@ -82,9 +82,11 @@ normalizeDeclaration = \case
   d -> d
 
 normalizeUnit :: Unit -> Unit
-normalizeUnit (Unit n d a) = Unit n (normalizeDeclaration d) (normalizeAnn a)
-  where
-    normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap normalizeInfo i)
+normalizeUnit = \case
+  Include f -> Include f
+  Unit n d a -> Unit n (normalizeDeclaration d) (normalizeAnn a)
+    where
+      normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap normalizeInfo i)
 
 normalizeDerivation :: Derivation -> Derivation
 normalizeDerivation (Derivation us) = Derivation (fmap normalizeUnit us)

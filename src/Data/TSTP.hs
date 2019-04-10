@@ -336,7 +336,9 @@ data Declaration
   | Formula (Name Role) Formula
   deriving (Eq, Show, Ord)
 
-data Unit = Unit (Either Atom Integer) Declaration (Maybe Annotation)
+data Unit
+  = Include Atom
+  | Unit (Either Atom Integer) Declaration (Maybe Annotation)
   deriving (Eq, Show, Ord)
 
 newtype Derivation = Derivation { units :: [Unit] }
