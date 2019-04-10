@@ -3,6 +3,15 @@
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 
+-- |
+-- Module       : Generators
+-- Description  : QuickCheck generators for datatypes in the tstp library.
+-- Copyright    : (c) Evgenii Kotelnikov, 2019
+-- License      : GPL-3
+-- Maintainer   : evgeny.kotelnikov@gmail.com
+-- Stability    : experimental
+--
+
 module Generators () where
 
 import GHC.Generics
