@@ -77,22 +77,28 @@ whitespace = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace"
 -- needed because off-the-shelf attoparsec parsers do not do it.
 lexem :: Parser a -> Parser a
 lexem p = p <* whitespace
+{-# INLINE lexem #-}
 
 -- | Parse an unsigned integer.
 integer :: Parser Integer
 integer = lexem decimal <?> "integer"
+{-# INLINE integer #-}
 
 token :: Text -> Parser Text
 token t = lexem (string t) <?> "token " ++ T.unpack t
+{-# INLINE token #-}
 
 op :: Char -> Parser Char
 op c = lexem (char c) <?> "operator " ++ [c]
+{-# INLINE op #-}
 
 parens :: Parser a -> Parser a
 parens p = op '(' *> p <* op ')' <?> "parens"
+{-# INLINE parens #-}
 
 brackets :: Parser a -> Parser a
 brackets p = op '[' *> p <* op ']' <?> "brackets"
+{-# INLINE brackets #-}
 
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
@@ -136,27 +142,33 @@ quoted q = T.pack <$> (char q *> manyTill escaped (char q)) <?> "quoted " ++ [q]
 -- quotes and with the characters @'@ and @\\@ unescaped.
 atom :: Parser Atom
 atom = Atom <$> lexem (quoted '\'' <|> lowerWord) <?> "atom"
+{-# INLINE atom #-}
 
 -- | Parse a variable.
 var :: Parser Var
 var = Var <$> lexem upperWord <?> "var"
+{-# INLINE var #-}
 
 -- | Parse a distinct object. Double quotes are not preserved and the characters
 -- @'@ and @\\@ are unescaped.
 distinctObject :: Parser DistinctObject
 distinctObject = DistinctObject <$> lexem (quoted '"') <?> "distinct object"
+{-# INLINE distinctObject #-}
 
 -- | Parser a function name.
 function :: Parser (Name Function)
 function = name <?> "function"
+{-# INLINE function #-}
 
 -- | Parse a predicate name.
 predicate :: Parser (Name Predicate)
 predicate = name <?> "predicate"
+{-# INLINE predicate #-}
 
 -- | Parse a sort.
 sort :: Parser (Name Sort)
 sort = name <?> "sort"
+{-# INLINE sort #-}
 
 
 -- ** First-order logic
@@ -183,6 +195,7 @@ term =  parens term
 -- | Parse the equality and unequality sign.
 sign :: Parser Sign
 sign = enum <?> "sign"
+{-# INLINE sign #-}
 
 -- | Parse a literal.
 literal :: Parser Literal
@@ -207,10 +220,12 @@ clause =  parens clause
 -- | Parse a quantifier.
 quantifier :: Parser Quantifier
 quantifier = enum <?> "quantifier"
+{-# INLINE quantifier #-}
 
 -- | Parse a logical connective.
 connective :: Parser Connective
 connective = enum <?> "connective"
+{-# INLINE connective #-}
 
 -- | Given a parser for sort annotations, parse a formula in first-order logic.
 firstOrder :: Parser s -> Parser (FirstOrder s)
@@ -259,10 +274,12 @@ type_ = \case
 -- | Parse a formula role.
 role :: Parser (Name Role)
 role = keyword <?> "role"
+{-# INLINE role #-}
 
 -- | Parse the name of a TPTP language.
 lang :: Parser Language
 lang = enum <?> "language"
+{-# INLINE lang #-}
 
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
@@ -309,6 +326,7 @@ derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
 
 intro :: Parser Intro
 intro = enum <?> "intro"
+{-# INLINE intro #-}
 
 info :: Parser Info
 info = Info <$> generalList <?> "info"
