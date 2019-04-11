@@ -97,11 +97,5 @@ test-suite unit-tests
   build-depends:
     base >= 4.5 && < 5.0,
     text,
-    attoparsec,
-    scientific,
-    prettyprinter,
     tptp,
     directory >= 1.2.5
-  if impl(ghc < 8)
-    build-depends:
-      semigroups
