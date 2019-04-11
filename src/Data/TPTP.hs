@@ -65,6 +65,12 @@ import Data.Scientific (Scientific)
 import qualified Data.Text as Text
 import Data.Text (Text)
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+-- >>> :load Data.TPTP.Pretty
+-- >>> import Test.QuickCheck
+
+
 -- * Names
 
 -- | The atomic word in the TPTP language - a non-empty string of space or
