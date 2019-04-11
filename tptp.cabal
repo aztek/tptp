@@ -109,12 +109,10 @@ test-suite doctests
     -Wall -threaded
   if flag(Werror)
     ghc-options: -Werror
+  -- TODO: Make it work for older GHCs
+  if impl(ghc < 8.4)
+    buildable: False
   build-depends:
     base >= 4.5 && < 5.0,
-    text,
-    attoparsec,
-    scientific,
-    prettyprinter,
-    tptp,
     QuickCheck,
     doctest
