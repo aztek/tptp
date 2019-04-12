@@ -146,4 +146,5 @@ formulaLanguage = \case
 
 typeLanguage :: Type -> Language
 typeLanguage = \case
-  TFFType{} -> TFF_
+  Monomorphic{} -> TFF_
+  Polymorphic{} -> TFF_

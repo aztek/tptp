@@ -264,12 +264,21 @@ formula = \case
 
 -- | Parse a type in a given TPTP language.
 type_ :: Language -> Parser Type
-type_ = \case
-  TFF_ -> TFFType <$> option [] (sorts <* op '>') <*> sort <?> "type"
-  l -> error $ "Unable to parse a type declaration in " ++ show l
+type_ _ =  do { p <- prefix
+              ; uncurry (Polymorphic p) <$> (parens matrix <|> matrix) }
+       <|> uncurry Monomorphic <$> mapping sort
+       <?> "type"
   where
-    sorts =  fmap (:[]) sort
-         <|> parens (sort `sepBy1` op '*')
+    mapping s = (,) <$> option [] (args <* op '>') <*> s
+      where
+        args = fmap (:[]) s <|> parens (s `sepBy1` op '*')
+
+    prefix = token "!>" *> brackets qvars <* op ':'
+      where
+        qvars = NEL.fromList <$> qvar `sepBy1` op ','
+        qvar = var <* op ':' <* token "$tType"
+
+    matrix = mapping (eitherP var sort)
 
 -- | Parse a formula role.
 role :: Parser (Name Role)

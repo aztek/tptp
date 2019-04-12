@@ -172,12 +172,27 @@ instance Pretty Formula where
     FOF f -> pretty f
     TFF f -> pretty f
 
+instance Pretty (Either Var (Name Sort)) where
+  pretty = \case
+    Left v  -> pretty v
+    Right s -> pretty s
+
 instance Pretty Type where
   pretty = \case
-    TFFType []  r -> pretty r
-    TFFType [a] r -> pretty a  <+> ">" <+> pretty r
-    TFFType as  r -> parens ts <+> ">" <+> pretty r
-      where ts = fmap pretty as `sepBy` (space <> "*")
+    Monomorphic as r -> mapping as r
+    Polymorphic vs as r -> prefix <+> if null as then matrix else parens matrix
+      where
+        prefix = "!>" <+> brackets (fmap prettyVar vs `sepBy1` comma) <> ":"
+        prettyVar v = pretty v <> ":" <+> "$tType"
+        matrix = mapping as r
+    where
+      mapping as r = args <+> pretty r
+        where
+          args = case as of
+            []  -> mempty
+            [a] -> pretty a  <+> ">"
+            _   -> parens ts <+> ">"
+          ts = fmap pretty as `sepBy` (space <> "*")
 
 instance Pretty Unit where
   pretty = \case

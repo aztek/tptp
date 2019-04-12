@@ -156,7 +156,10 @@ deriving instance Generic Type
 instance Arbitrary Type where
   arbitrary = genericArbitraryU
   shrink = \case
-    TFFType as r -> flip TFFType r <$> shrinkList shrink as
+    Monomorphic as r ->
+      Monomorphic <$> shrinkList shrink as <*> pure r
+    Polymorphic vs as r ->
+      Polymorphic <$> shrink vs <*> shrinkList shrink as <*> pure r
 
 deriving instance Generic Declaration
 instance Arbitrary Declaration where

@@ -329,13 +329,25 @@ data Role
   | Unknown
   deriving (Eq, Show, Ord, Enum, Bounded)
 
--- | The type in TPTP is a mapping of one or more sorts to a sort.
--- Types are assigned to function and predicate symbols in the sorted
--- languages of TPTP.
+-- | The type of a function or a predicate symbol in a sorted logic.
 data Type
-  = TFFType [Name Sort] (Name Sort)
-  -- ^ The type of a function or a predicate symbol in the sorted
+  -- | The type of a function or a predicate symbol in the sorted monomorphic
   -- first-order logic.
+  = Monomorphic [Name Sort]
+                -- ^ The list of argument sorts. Empty list corresponds to the
+                -- typing of a constant symbol.
+                (Name Sort)
+                -- ^ The result sort.
+
+  -- | The type of a function or a predicate symbol in the sorted rank-1
+  -- polymorphic first-order logic.
+  | Polymorphic (NonEmpty Var)
+                -- ^ The list of quantified sort variables.
+                [Either Var (Name Sort)]
+                -- ^ The argument sorts, each one is either a sort or a
+                -- quantified sort variable.
+                (Either Var (Name Sort))
+                -- ^ The result sort that can be a quntified sort variable.
   deriving (Eq, Show, Ord)
 
 -- | The logical declaration.
