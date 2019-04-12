@@ -4,7 +4,7 @@ version: 0.1.0.0
 synopsis: A parser and a pretty printer for the TPTP language
 description:
   [TPTP](http://www.tptp.org) (Thousands of Problems for Theorem Provers)
-  is the standard language of problems, proofs, and models, use by automated
+  is the standard language of problems, proofs, and models, used by automated
   theorem provers.
   .
   This library provides definitions of data types, a pretty printer and an
