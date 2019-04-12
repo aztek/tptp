@@ -22,7 +22,7 @@ install:
   - ghc --version
   - cabal --version
   - cabal new-update
-  - cabal new-build -fWerror --enable-tests --disable-shared
+  - cabal new-build -fWerror --enable-tests
 
 script:
   - cabal new-test
