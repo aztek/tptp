@@ -163,9 +163,13 @@ instance Arbitrary Type where
 
 deriving instance Generic Declaration
 instance Arbitrary Declaration where
-  arbitrary = genericArbitraryU
+  arbitrary = oneof [
+      Sort    <$> arbitrary <*> choose (0, 3),
+      Typing  <$> arbitrary <*> arbitrary,
+      Formula <$> arbitrary <*> arbitrary
+    ]
   shrink = \case
-    Sort _      -> []
+    Sort    a n -> Sort    a <$> shrink n
     Typing  n t -> Typing  n <$> shrink t
     Formula r f -> Formula r <$> shrink f
 

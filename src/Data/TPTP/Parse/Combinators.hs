@@ -262,6 +262,11 @@ formula = \case
   FOF_ -> FOF <$> unsortedFirstOrder
   TFF_ -> TFF <$> sortedFirstOrder
 
+mapping :: Parser a -> Parser ([a], a)
+mapping s = (,) <$> option [] (args <* op '>') <*> s
+  where
+    args = fmap (:[]) s <|> parens (s `sepBy1` op '*')
+
 -- | Parse a type in a given TPTP language.
 type_ :: Language -> Parser Type
 type_ _ =  do { p <- prefix
@@ -269,10 +274,6 @@ type_ _ =  do { p <- prefix
        <|> uncurry Monomorphic <$> mapping sort
        <?> "type"
   where
-    mapping s = (,) <$> option [] (args <* op '>') <*> s
-      where
-        args = fmap (:[]) s <|> parens (s `sepBy1` op '*')
-
     prefix = token "!>" *> brackets qvars <* op ':'
       where
         qvars = NEL.fromList <$> qvar `sepBy1` op ','
@@ -300,8 +301,9 @@ typeDeclaration :: Language -> Parser Declaration
 typeDeclaration l =  token "type" *> op ',' *> (parens tt <|> tt)
                  <?> "type declaration"
   where
-    tt = atom <* op ':' >>= \s -> token "$tType" $> Sort s
+    tt = atom <* op ':' >>= \s -> Sort   s <$> arity
                               <|> Typing s <$> type_ l
+    arity = L.genericLength . fst <$> mapping (token "$tType")
 
 -- | Parse a formula declaration.
 formulaDeclaration :: Language -> Parser Declaration

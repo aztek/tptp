@@ -18,6 +18,7 @@ module Data.TPTP.Pretty (
 ) where
 
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
+import Data.List (genericReplicate)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL
 import Data.Text (Text)
@@ -177,22 +178,22 @@ instance Pretty (Either Var (Name Sort)) where
     Left v  -> pretty v
     Right s -> pretty s
 
+prettyMapping :: Pretty a => [a] -> a -> Doc ann
+prettyMapping as r = args <+> pretty r
+  where
+    args = case as of
+      []  -> mempty
+      [a] -> pretty a <+> ">"
+      _   -> parens (fmap pretty as `sepBy` (space <> "*")) <+> ">"
+
 instance Pretty Type where
   pretty = \case
-    Monomorphic as r -> mapping as r
+    Monomorphic    as r -> prettyMapping as r
     Polymorphic vs as r -> prefix <+> if null as then matrix else parens matrix
       where
         prefix = "!>" <+> brackets (fmap prettyVar vs `sepBy1` comma) <> ":"
         prettyVar v = pretty v <> ":" <+> "$tType"
-        matrix = mapping as r
-    where
-      mapping as r = args <+> pretty r
-        where
-          args = case as of
-            []  -> mempty
-            [a] -> pretty a  <+> ">"
-            _   -> parens ts <+> ">"
-          ts = fmap pretty as `sepBy` (space <> "*")
+        matrix = prettyMapping as r
 
 instance Pretty Unit where
   pretty = \case
@@ -201,10 +202,16 @@ instance Pretty Unit where
       where
         lang = pretty (language d)
         nm = either pretty pretty n
+
         decl = case d of
-          Sort s      -> ["type",    pretty s <> ":" <+> "$tType"]
+          Sort   s ar -> ["type",    pretty s <> ":" <+> sortConstructor ar]
           Typing  s t -> ["type",    pretty s <> ":" <+> pretty t]
           Formula r f -> [keyword r, pretty f]
+
+        sortConstructor ar = prettyMapping (genericReplicate ar tType) tType
+        tType :: Text
+        tType = "$tType"
+
         ann = case a of
           Just (s, Just i)  -> [pretty s, pretty i]
           Just (s, Nothing) -> [pretty s]

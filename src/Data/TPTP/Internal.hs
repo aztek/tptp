@@ -134,7 +134,7 @@ instance Named Language where
 
 language :: Declaration -> Language
 language = \case
-  Sort _      -> TFF_
+  Sort    _ _ -> TFF_
   Typing  _ t -> typeLanguage t
   Formula _ f -> formulaLanguage f
 

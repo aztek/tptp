@@ -352,8 +352,10 @@ data Type
 
 -- | The logical declaration.
 data Declaration
-  = Sort Atom
-  -- ^ Introduction of a sort.
+  = Sort Atom Integer
+  -- ^ Introduction of a sort contructor. The non-negative integer argument
+  -- denotes the arity of the constructor. A constructor with zero arity is
+  -- simply a sort.
   | Typing Atom Type
   -- ^ Assignment of a type to a symbol.
   | Formula (Name Role) Formula
