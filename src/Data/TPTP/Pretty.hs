@@ -21,6 +21,7 @@ import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.List (genericReplicate)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL
+import Data.Maybe (maybeToList)
 import Data.Text (Text)
 import qualified Data.Text as T
 
@@ -39,6 +40,10 @@ sepBy as s = hsep (punctuate s as)
 
 sepBy1 :: NonEmpty (Doc ann) -> Doc ann -> Doc ann
 sepBy1 as s = hsep (punctuate s (NEL.toList as))
+
+application :: Pretty f => f -> [Doc ann] -> Doc ann
+application f [] = pretty f
+application f as = pretty f <> parens (as `sepBy` comma)
 
 
 -- * Names
@@ -74,9 +79,18 @@ instance Pretty DoubleQuoted where
 instance Pretty DistinctObject where
   pretty (DistinctObject s) = pretty (DoubleQuoted s)
 
+newtype DollarWord = DollarWord Text
+  deriving (Eq, Show, Ord)
+
+instance Pretty DollarWord where
+  pretty (DollarWord w) = pretty (T.cons '$' w)
+
+tType :: DollarWord
+tType = DollarWord "tType"
+
 instance Named s => Pretty (Name s) where
   pretty = \case
-    Reserved s -> pretty (T.cons '$' $ name s)
+    Reserved s -> pretty (DollarWord (name s))
     Defined a  -> pretty a
 
 keyword :: Named s => Name s -> Doc ann
@@ -90,8 +104,7 @@ keyword = \case
 instance Pretty TFF1Sort where
   pretty = \case
     SortVariable v -> pretty v
-    TFF1Sort s [] -> pretty s
-    TFF1Sort f ss -> pretty f <> parens (fmap pretty ss `sepBy` comma)
+    TFF1Sort f ss -> application f (fmap pretty ss)
 
 prettyMapping :: Pretty a => [a] -> a -> Doc ann
 prettyMapping as r = args <> pretty r
@@ -110,7 +123,7 @@ instance Pretty Type where
           Nothing  -> mempty
           Just vs' -> "!>" <+> brackets (vars vs') <> ":" <> space
         vars vs' = fmap prettyVar vs' `sepBy1` comma
-        prettyVar v = pretty v <> ":" <+> "$tType"
+        prettyVar v = pretty v <> ":" <+> pretty tType
         matrix = prettyMapping as r
 
 
@@ -124,19 +137,17 @@ instance Pretty Number where
 
 instance Pretty Term where
   pretty = \case
-    Function f []  -> pretty f
-    Function f ts  -> pretty f <> parens (fmap pretty ts `sepBy` comma)
+    Function f ts  -> application f (fmap pretty ts)
     Variable v     -> pretty v
     Number i       -> pretty i
     DistinctTerm d -> pretty d
 
 instance Pretty Literal where
   pretty = \case
-    Predicate p [] -> pretty p
-    Predicate p ts -> pretty p <> parens (fmap pretty ts `sepBy` comma)
+    Predicate p ts -> application p (fmap pretty ts)
     Equality a s b -> pretty a <+> pretty s <+> pretty b
-    Tautology      -> "$true"
-    Falsum         -> "$false"
+    Tautology      -> pretty (DollarWord "true")
+    Falsum         -> pretty (DollarWord "false")
 
 instance Pretty Sign where
   pretty = pretty . name
@@ -158,12 +169,10 @@ instance Pretty Unsorted where
   pretty = const mempty
 
 instance Pretty s => Pretty (Sorted s) where
-  pretty = \case
-    Sorted Nothing  -> mempty
-    Sorted (Just s) -> ":" <+> pretty s
+  pretty (Sorted s) = maybe mempty (\a -> ":" <+> pretty a) s
 
 instance Pretty QuantifiedSort where
-  pretty = const "$tType"
+  pretty = const (pretty tType)
 
 instance Pretty (Either QuantifiedSort TFF1Sort) where
   pretty = either pretty pretty
@@ -193,7 +202,7 @@ instance Pretty s => Pretty (FirstOrder s) where
         pretty'' e = pretty' e
     Quantified q vs f -> pretty q <+> vs' <> ":" <+> pretty' f
       where
-        vs' = brackets $ fmap var vs `sepBy1` comma
+        vs' = brackets (fmap var vs `sepBy1` comma)
         var (v, s) = pretty v <> pretty s
 
 
@@ -211,10 +220,10 @@ instance Pretty Formula where
 
 instance Pretty Unit where
   pretty = \case
-    Include (Atom f) -> "include" <> parens (pretty $ SingleQuoted f) <> "."
-    Unit n d a -> lang <> parens ((nm : decl ++ ann) `sepBy` comma) <> "."
+    Include (Atom f) ->
+      application (Atom "include") [pretty (SingleQuoted f)] <> "."
+    Unit n d a -> application (language d) (nm : decl ++ ann) <> "."
       where
-        lang = pretty (language d)
         nm = either pretty pretty n
 
         decl = case d of
@@ -223,8 +232,6 @@ instance Pretty Unit where
           Formula r f -> [keyword r, pretty f]
 
         sortConstructor ar = prettyMapping (genericReplicate ar tType) tType
-        tType :: Text
-        tType = "$tType"
 
         ann = case a of
           Just (s, Just i)  -> [pretty s, pretty i]
@@ -242,15 +249,15 @@ instance Pretty Intro where
 
 instance Pretty GeneralData where
   pretty = \case
-    GeneralFunction f gts -> pretty f <> maybe mempty args (NEL.nonEmpty gts)
-      where args ts = parens (fmap pretty ts `sepBy1` comma)
+    GeneralFunction f gts -> application f (fmap pretty gts)
     GeneralVariable v -> pretty v
-    GeneralNumber n -> pretty n
-    GeneralFormula f -> prettyFormula f
-    GeneralBind v f -> "bind" <> parens (pretty v <> comma <+> prettyFormula f)
+    GeneralNumber   n -> pretty n
+    GeneralFormula  f -> prettyFormula f
+    GeneralBind   v f -> application (Atom "bind") [pretty v, prettyFormula f]
     GeneralDistinct d -> pretty d
     where
-      prettyFormula f = "$" <> pretty (formulaLanguage f) <> parens (pretty f)
+      prettyFormula f = application (formulaName f) [pretty f]
+      formulaName f = DollarWord (name $ formulaLanguage f)
 
 instance Pretty GeneralTerm where
   pretty = \case
@@ -272,16 +279,14 @@ instance Pretty Source where
     Theory     n  i -> source "theory"     n i
     Creator    n  i -> source "creator"    n i
     Introduced n  i -> source "introduced" n i
-    Inference n i ps -> "inference" <> parens (args `sepBy` comma)
-      where args = [pretty n, pretty i, brackets (fmap pretty ps `sepBy` comma)]
+    Inference  n  i ps -> application (Atom "inference") [
+        pretty n, pretty i, brackets (fmap pretty ps `sepBy` comma)
+      ]
     UnknownSource -> "unknown"
     Sources ss -> prettyList (NEL.toList ss)
     Dag n -> pretty n
     where
       source :: (Pretty a, Pretty b) => Text -> a -> Maybe b -> Doc ann
-      source f n i = pretty f <> parens (pretty n <> optional i)
-
-      optional :: Pretty b => Maybe b -> Doc ann
-      optional = maybe mempty (\a -> comma <+> pretty a)
+      source f n i = application f (pretty n : maybeToList (fmap pretty i))
 
   prettyList ss = brackets (fmap pretty ss `sepBy` comma)
