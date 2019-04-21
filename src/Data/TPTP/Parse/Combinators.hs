@@ -79,7 +79,7 @@ comment = char '%' *> skipWhile (not . isEndOfLine)
 whitespace :: Parser ()
 whitespace = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace"
 
--- | 'lexem' makes a given parser consume trailing whitespace. This function is
+-- | @lexem@ makes a given parser consume trailing whitespace. This function is
 -- needed because off-the-shelf attoparsec parsers do not do it.
 lexem :: Parser a -> Parser a
 lexem p = p <* whitespace

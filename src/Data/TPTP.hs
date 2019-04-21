@@ -362,7 +362,7 @@ type UnsortedFirstOrder = FirstOrder Unsorted
 newtype Sorted s = Sorted (Maybe s)
   deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
 
--- | An alias for 'MonomorphicSortedFirstOrder'.
+-- | An alias for 'MonomorphicFirstOrder'.
 type SortedFirstOrder = MonomorphicFirstOrder
 
 -- | The formula in sorted monomorphic first-order logic.
