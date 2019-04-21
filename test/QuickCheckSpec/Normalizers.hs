@@ -14,6 +14,7 @@
 
 module Normalizers (
   reassociate,
+  normalizeType,
   normalizeUnit,
   normalizeDerivation,
   normalizeSource,
@@ -45,13 +46,22 @@ reassociate = \case
 
 normalizeFormula :: Formula -> Formula
 normalizeFormula = \case
-  CNF c  -> CNF c
-  FOF uf -> FOF (reassociate uf)
-  TFF sf -> TFF (reassociate sf)
+  CNF   c -> CNF c
+  FOF  uf -> FOF (reassociate uf)
+  TFF0 sf -> TFF0 (reassociate sf)
+  TFF1 sf -> case monomorphizeFirstOrder sf of
+    Nothing  -> TFF1 (reassociate sf)
+    Just sf' -> TFF0 (reassociate sf')
+
+normalizeType :: Type -> Type
+normalizeType = \case
+  TFF1Type vs ss s -> tff1Type vs ss s
+  t -> t
 
 normalizeDeclaration :: Declaration -> Declaration
 normalizeDeclaration = \case
   Formula r f -> Formula r (normalizeFormula f)
+  Typing  a t -> Typing  a (normalizeType t)
   d -> d
 
 normalizeUnit :: Unit -> Unit

@@ -74,8 +74,17 @@ prop_ipp_Function = ipp function
 prop_ipp_Predicate :: Name Predicate -> Property
 prop_ipp_Predicate = ipp predicate
 
+
+-- ** Sorts and types
+
 prop_ipp_Sort :: Name Sort -> Property
 prop_ipp_Sort = ipp sort
+
+prop_ipp_TFF1Sort :: TFF1Sort -> Property
+prop_ipp_TFF1Sort = ipp tff1Sort
+
+prop_ipp_Type :: Type -> Property
+prop_ipp_Type = ippModulo normalizeType type_
 
 
 -- ** First-order logic
@@ -95,8 +104,11 @@ prop_ipp_Clause = ipp clause
 prop_ipp_UnsortedFO :: UnsortedFirstOrder -> Property
 prop_ipp_UnsortedFO = ippModulo reassociate unsortedFirstOrder
 
-prop_ipp_SortedFO :: SortedFirstOrder -> Property
-prop_ipp_SortedFO = ippModulo reassociate sortedFirstOrder
+prop_ipp_MonomorphicFO :: MonomorphicFirstOrder -> Property
+prop_ipp_MonomorphicFO = ippModulo reassociate monomorphicFirstOrder
+
+prop_ipp_PolymorphicFO :: PolymorphicFirstOrder -> Property
+prop_ipp_PolymorphicFO = ippModulo reassociate polymorphicFirstOrder
 
 
 -- ** Units

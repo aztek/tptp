@@ -85,6 +85,35 @@ keyword = \case
   Defined a  -> pretty a
 
 
+-- * Sorts and types
+
+instance Pretty TFF1Sort where
+  pretty = \case
+    SortVariable v -> pretty v
+    TFF1Sort s [] -> pretty s
+    TFF1Sort f ss -> pretty f <> parens (fmap pretty ss `sepBy` comma)
+
+prettyMapping :: Pretty a => [a] -> a -> Doc ann
+prettyMapping as r = args <> pretty r
+  where
+    args = case as of
+      []  -> mempty
+      [a] -> pretty a <+> ">" <> space
+      _   -> parens (fmap pretty as `sepBy` (space <> "*")) <+> ">" <> space
+
+instance Pretty Type where
+  pretty = \case
+    Type as r -> prettyMapping as r
+    TFF1Type vs as r -> prefix <> if null as then matrix else parens matrix
+      where
+        prefix = case NEL.nonEmpty vs of
+          Nothing  -> mempty
+          Just vs' -> "!>" <+> brackets (vars vs') <> ":" <> space
+        vars vs' = fmap prettyVar vs' `sepBy1` comma
+        prettyVar v = pretty v <> ":" <+> "$tType"
+        matrix = prettyMapping as r
+
+
 -- * First-order logic
 
 instance Pretty Number where
@@ -128,10 +157,16 @@ instance Pretty Connective where
 instance Pretty Unsorted where
   pretty = const mempty
 
-instance Pretty Sorted where
+instance Pretty s => Pretty (Sorted s) where
   pretty = \case
     Sorted Nothing  -> mempty
     Sorted (Just s) -> ":" <+> pretty s
+
+instance Pretty QuantifiedSort where
+  pretty = const "$tType"
+
+instance Pretty (Either QuantifiedSort TFF1Sort) where
+  pretty = either pretty pretty
 
 unitary :: FirstOrder s -> Bool
 unitary = \case
@@ -169,31 +204,10 @@ instance Pretty Language where
 
 instance Pretty Formula where
   pretty = \case
-    CNF c -> pretty c
-    FOF f -> pretty f
-    TFF f -> pretty f
-
-instance Pretty (Either Var (Name Sort)) where
-  pretty = \case
-    Left v  -> pretty v
-    Right s -> pretty s
-
-prettyMapping :: Pretty a => [a] -> a -> Doc ann
-prettyMapping as r = args <+> pretty r
-  where
-    args = case as of
-      []  -> mempty
-      [a] -> pretty a <+> ">"
-      _   -> parens (fmap pretty as `sepBy` (space <> "*")) <+> ">"
-
-instance Pretty Type where
-  pretty = \case
-    Monomorphic    as r -> prettyMapping as r
-    Polymorphic vs as r -> prefix <+> if null as then matrix else parens matrix
-      where
-        prefix = "!>" <+> brackets (fmap prettyVar vs `sepBy1` comma) <> ":"
-        prettyVar v = pretty v <> ":" <+> "$tType"
-        matrix = prettyMapping as r
+    CNF  c -> pretty c
+    FOF  f -> pretty f
+    TFF0 f -> pretty f
+    TFF1 f -> pretty f
 
 instance Pretty Unit where
   pretty = \case

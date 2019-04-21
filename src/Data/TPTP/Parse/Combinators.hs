@@ -20,7 +20,11 @@ module Data.TPTP.Parse.Combinators (
   distinctObject,
   function,
   predicate,
+
+  -- * Sorts and types
   sort,
+  tff1Sort,
+  type_,
 
   -- * First-order logic
   number,
@@ -29,6 +33,8 @@ module Data.TPTP.Parse.Combinators (
   clause,
   unsortedFirstOrder,
   sortedFirstOrder,
+  monomorphicFirstOrder,
+  polymorphicFirstOrder,
 
   -- * Units
   unit,
@@ -95,6 +101,10 @@ op c = lexem (char c) <?> "operator " ++ [c]
 parens :: Parser a -> Parser a
 parens p = op '(' *> p <* op ')' <?> "parens"
 {-# INLINE parens #-}
+
+optionalParens :: Parser a -> Parser a
+optionalParens p = parens p <|> p
+{-# INLINE optionalParens #-}
 
 brackets :: Parser a -> Parser a
 brackets p = op '[' *> p <* op ']' <?> "brackets"
@@ -165,11 +175,32 @@ predicate :: Parser (Name Predicate)
 predicate = name <?> "predicate"
 {-# INLINE predicate #-}
 
+
+-- ** Sorts and typess
+
 -- | Parse a sort.
 sort :: Parser (Name Sort)
 sort = name <?> "sort"
 {-# INLINE sort #-}
 
+-- | Parse a sort in sorted polymorphic logic.
+tff1Sort :: Parser TFF1Sort
+tff1Sort =  SortVariable <$> var
+        <|> TFF1Sort <$> sort <*> option [] (parens (tff1Sort `sepBy1` op ','))
+        <?> "tff1 sort"
+
+mapping :: Parser a -> Parser ([a], a)
+mapping s = (,) <$> option [] (args <* op '>') <*> s
+  where
+    args = fmap (:[]) s <|> parens (s `sepBy1` op '*')
+
+-- | Parse a type.
+type_ :: Parser Type
+type_ = uncurry . tff1Type <$> option [] prefix <*> matrix <?> "type"
+  where
+    prefix = token "!>" *> brackets (sortVar `sepBy1` op ',') <* op ':'
+    sortVar = var <* op ':' <* token "$tType"
+    matrix = optionalParens (mapping tff1Sort)
 
 -- ** First-order logic
 
@@ -247,10 +278,24 @@ unsortedFirstOrder :: Parser UnsortedFirstOrder
 unsortedFirstOrder = firstOrder unsorted
   where unsorted = pure (Unsorted ()) <?> "unsorted"
 
--- | Parse a formula in unsorted first-order logic.
+sorted :: Parser s -> Parser (Sorted s)
+sorted s = Sorted <$> optional (op ':' *> s) <?> "sorted"
+
+-- | An alias for 'monomorphicFirstOrder'.
 sortedFirstOrder :: Parser SortedFirstOrder
-sortedFirstOrder = firstOrder sorted
-  where sorted = Sorted <$> optional (op ':' *> sort) <?> "sorted"
+sortedFirstOrder = monomorphicFirstOrder
+
+-- | Parse a formula in sorted monomorphic first-order logic.
+monomorphicFirstOrder :: Parser MonomorphicFirstOrder
+monomorphicFirstOrder = firstOrder (sorted sort) <?> "tff0"
+
+quantifiedSort :: Parser QuantifiedSort
+quantifiedSort = token "$tType" $> QuantifiedSort ()
+
+-- | Parse a formula in sorted polymorphic first-order logic.
+polymorphicFirstOrder :: Parser PolymorphicFirstOrder
+polymorphicFirstOrder =  firstOrder (sorted (eitherP quantifiedSort tff1Sort))
+                     <?> "tff1"
 
 
 -- ** Units
@@ -258,28 +303,13 @@ sortedFirstOrder = firstOrder sorted
 -- | Parse a formula in a given TPTP language.
 formula :: Language -> Parser Formula
 formula = \case
-  CNF_ -> CNF <$> clause
-  FOF_ -> FOF <$> unsortedFirstOrder
-  TFF_ -> TFF <$> sortedFirstOrder
-
-mapping :: Parser a -> Parser ([a], a)
-mapping s = (,) <$> option [] (args <* op '>') <*> s
-  where
-    args = fmap (:[]) s <|> parens (s `sepBy1` op '*')
-
--- | Parse a type in a given TPTP language.
-type_ :: Language -> Parser Type
-type_ _ =  do { p <- prefix
-              ; uncurry (Polymorphic p) <$> (parens matrix <|> matrix) }
-       <|> uncurry Monomorphic <$> mapping sort
-       <?> "type"
-  where
-    prefix = token "!>" *> brackets qvars <* op ':'
-      where
-        qvars = NEL.fromList <$> qvar `sepBy1` op ','
-        qvar = var <* op ':' <* token "$tType"
-
-    matrix = mapping (eitherP var sort)
+  CNF_ -> CNF <$> clause <?> "cnf"
+  FOF_ -> FOF <$> unsortedFirstOrder <?> "fof"
+  TFF_ -> do
+    f <- polymorphicFirstOrder
+    return $ case monomorphizeFirstOrder f of
+      Just f' -> TFF0 f'
+      Nothing -> TFF1 f
 
 -- | Parse a formula role.
 role :: Parser (Name Role)
@@ -293,22 +323,18 @@ lang = enum <?> "language"
 
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
-declaration l = typeDeclaration l <|> formulaDeclaration l <?> "declaration"
+declaration l =  token "type" *> op ',' *> optionalParens typeDeclaration
+             <|> (role <* op ',' >>= \r -> Formula r <$> formula l)
+             <?> "declaration"
 
 -- | Parse a declaration with the @type@ role - either a typing relation or
 -- a sort declaration.
-typeDeclaration :: Language -> Parser Declaration
-typeDeclaration l =  token "type" *> op ',' *> (parens tt <|> tt)
-                 <?> "type declaration"
+typeDeclaration :: Parser Declaration
+typeDeclaration =  Sort   <$> atom <* op ':' <*> arity
+               <|> Typing <$> atom <* op ':' <*> type_
+               <?> "type declaration"
   where
-    tt = atom <* op ':' >>= \s -> Sort   s <$> arity
-                              <|> Typing s <$> type_ l
     arity = L.genericLength . fst <$> mapping (token "$tType")
-
--- | Parse a formula declaration.
-formulaDeclaration :: Language -> Parser Declaration
-formulaDeclaration l =  Formula <$> role <* op ',' <*> formula l
-                    <?> "formula declaration"
 
 -- | Parse an @include@ statement.
 include :: Parser Unit

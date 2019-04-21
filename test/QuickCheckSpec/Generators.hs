@@ -70,9 +70,27 @@ deriving instance Generic Predicate
 instance Arbitrary Predicate where
   arbitrary = genericArbitraryU
 
+
+-- * Sorts and types
+
 deriving instance Generic Sort
 instance Arbitrary Sort where
   arbitrary = genericArbitraryU
+
+deriving instance Generic TFF1Sort
+instance Arbitrary TFF1Sort where
+  arbitrary = genericArbitraryRec (1 % 1 % ())
+  shrink = \case
+    SortVariable{} -> []
+    TFF1Sort f ss -> (TFF1Sort f <$> shrinkList shrink ss) ++ ss
+
+deriving instance Generic Type
+instance Arbitrary Type where
+  arbitrary = genericArbitraryU
+  shrink = \case
+    Type as r -> Type <$> shrinkList shrink as <*> pure r
+    TFF1Type vs as r ->
+      TFF1Type <$> shrink vs <*> shrinkList shrink as <*> shrink r
 
 
 -- * First-order logic
@@ -123,10 +141,15 @@ deriving instance Generic Unsorted
 instance Arbitrary Unsorted where
   arbitrary = genericArbitraryU
 
-deriving instance Generic Sorted
-instance Arbitrary Sorted where
+deriving instance Generic (Sorted s)
+instance Arbitrary s => Arbitrary (Sorted s) where
   arbitrary = genericArbitraryU
   shrink (Sorted s) = Sorted <$> shrinkMaybe shrink s
+
+deriving instance Generic QuantifiedSort
+instance Arbitrary QuantifiedSort where
+  arbitrary = genericArbitraryU
+  shrink _ = []
 
 deriving instance Generic (FirstOrder s)
 instance Arbitrary s => Arbitrary (FirstOrder s) where
@@ -144,22 +167,14 @@ deriving instance Generic Formula
 instance Arbitrary Formula where
   arbitrary = genericArbitraryU
   shrink = \case
-    CNF c -> CNF <$> shrink c
-    FOF f -> FOF <$> shrink f
-    TFF f -> TFF <$> shrink f
+    CNF  c -> CNF  <$> shrink c
+    FOF  f -> FOF  <$> shrink f
+    TFF0 f -> TFF0 <$> shrink f
+    TFF1 f -> TFF1 <$> shrink f
 
 deriving instance Generic Role
 instance Arbitrary Role where
   arbitrary = genericArbitraryU
-
-deriving instance Generic Type
-instance Arbitrary Type where
-  arbitrary = genericArbitraryU
-  shrink = \case
-    Monomorphic as r ->
-      Monomorphic <$> shrinkList shrink as <*> pure r
-    Polymorphic vs as r ->
-      Polymorphic <$> shrink vs <*> shrinkList shrink as <*> pure r
 
 deriving instance Generic Declaration
 instance Arbitrary Declaration where

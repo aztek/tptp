@@ -140,11 +140,12 @@ language = \case
 
 formulaLanguage :: Formula -> Language
 formulaLanguage = \case
-  CNF{} -> CNF_
-  FOF{} -> FOF_
-  TFF{} -> TFF_
+  CNF{}  -> CNF_
+  FOF{}  -> FOF_
+  TFF0{} -> TFF_
+  TFF1{} -> TFF_
 
 typeLanguage :: Type -> Language
 typeLanguage = \case
-  Monomorphic{} -> TFF_
-  Polymorphic{} -> TFF_
+  Type{} -> TFF_
+  TFF1Type{} -> TFF_

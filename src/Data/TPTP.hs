@@ -1,4 +1,6 @@
 {-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+{-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE LambdaCase #-}
 
 -- |
 -- Module       : Data.TPTP
@@ -30,7 +32,10 @@ module Data.TPTP (
 
   -- * Sorts and types
   Sort(..),
+  TFF1Sort(..),
+  monomorphizeTFF1Sort,
   Type(..),
+  tff1Type,
 
   -- * First-order logic
   Number(..),
@@ -43,8 +48,12 @@ module Data.TPTP (
   FirstOrder(..),
   Unsorted(..),
   Sorted(..),
+  QuantifiedSort(..),
   UnsortedFirstOrder,
   SortedFirstOrder,
+  MonomorphicFirstOrder,
+  PolymorphicFirstOrder,
+  monomorphizeFirstOrder,
 
   -- * Units
   Formula(..),
@@ -208,26 +217,54 @@ data Sort
   | Rat  -- ^ The sort of rational numbers.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
--- | The type of a function or a predicate symbol in a sorted logic.
+-- | The sort in sorted rank-1 polymorphic logic with sort constructors (TFF1) -
+-- an application of a sort constructor to zero or more sorts or a sort variable
+-- that comes from a sort quantifier. A zero-arity sort application is simply a
+-- sort.
+--
+-- Every TFF0 sort is also a TFF1 sort, but not the other way around.
+data TFF1Sort
+  = SortVariable Var
+  | TFF1Sort (Name Sort) [TFF1Sort]
+  deriving (Eq, Show, Ord)
+
+-- | Attempt to monorphize a TFF1 sort. This function succeeds iff the given
+-- sort is a sort constructor with zero arity.
+monomorphizeTFF1Sort :: TFF1Sort -> Maybe (Name Sort)
+monomorphizeTFF1Sort = \case
+  TFF1Sort f [] -> Just f
+  _ -> Nothing
+
+-- | The type of a function or a predicate symbol in a sorted first-order logic
+-- (TFF0 or TFF1). Each TFF0 type is also a TFF1 type, but not the other way
+-- around.
 data Type
   -- | The type of a function or a predicate symbol in the sorted monomorphic
-  -- first-order logic.
-  = Monomorphic [Name Sort]
-                -- ^ The list of argument sorts. Empty list corresponds to the
-                -- typing of a constant symbol.
-                (Name Sort)
-                -- ^ The result sort.
+  -- first-order logic (TFF0).
+  = Type [Name Sort]
+         -- ^ The list of argument sorts. Empty list corresponds to the
+         -- typing of a constant symbol.
+         (Name Sort)
+         -- ^ The result sort.
 
   -- | The type of a function or a predicate symbol in the sorted rank-1
-  -- polymorphic first-order logic.
-  | Polymorphic (NonEmpty Var)
-                -- ^ The list of quantified sort variables.
-                [Either Var (Name Sort)]
-                -- ^ The argument sorts, each one is either a sort or a
-                -- quantified sort variable.
-                (Either Var (Name Sort))
-                -- ^ The result sort that can be a quntified sort variable.
+  -- polymorphic first-order logic (TFF1).
+  | TFF1Type [Var]
+             -- ^ The list of quantified sort variables.
+             [TFF1Sort]
+             -- ^ The list of argument sorts. Empty list corresponds to the
+             -- typing of a constant symbol.
+             TFF1Sort
+             -- ^ The result sort.
   deriving (Eq, Show, Ord)
+
+-- | A smart constructor of a TFF1 type. 'tff1Type' constructs a TFF0 type with
+-- its arguments, if it is possible, and otherwise constructs a TFF1 type.
+tff1Type :: [Var] -> [TFF1Sort] -> TFF1Sort -> Type
+tff1Type [] ss s
+  | Just ss' <- traverse monomorphizeTFF1Sort ss
+  , Just s'  <- monomorphizeTFF1Sort s = Type ss' s'
+tff1Type vs ss s = TFF1Type vs ss s
 
 
 -- * First-order logic
@@ -322,11 +359,28 @@ type UnsortedFirstOrder = FirstOrder Unsorted
 -- | The sort annotation in sorted first-order logic. The TPTP language allows
 -- a sort annotation to be omitted, in such case the sort of the variable is
 -- assumed to be @$i@.
-newtype Sorted = Sorted (Maybe (Name Sort))
+newtype Sorted s = Sorted (Maybe s)
+  deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
+
+-- | An alias for 'MonomorphicSortedFirstOrder'.
+type SortedFirstOrder = MonomorphicFirstOrder
+
+-- | The formula in sorted monomorphic first-order logic.
+type MonomorphicFirstOrder = FirstOrder (Sorted (Name Sort))
+
+-- | The marker of quantified sort.
+newtype QuantifiedSort = QuantifiedSort ()
   deriving (Eq, Show, Ord)
 
--- | The formula in sorted first-order logic.
-type SortedFirstOrder = FirstOrder Sorted
+-- | The formula in sorted polymorphic first-order logic.
+type PolymorphicFirstOrder = FirstOrder (Sorted (Either QuantifiedSort TFF1Sort))
+
+-- | Attempt to monomorphize a polymorphic sorted first-order formula.
+-- This function succeeds iff each of the quantifiers only uses sort
+-- constructors with zero arity.
+monomorphizeFirstOrder :: PolymorphicFirstOrder -> Maybe MonomorphicFirstOrder
+monomorphizeFirstOrder = traverse . traverse
+                       $ either (const Nothing) monomorphizeTFF1Sort
 
 
 -- * Units
@@ -335,7 +389,8 @@ type SortedFirstOrder = FirstOrder Sorted
 data Formula
   = CNF Clause
   | FOF UnsortedFirstOrder
-  | TFF SortedFirstOrder
+  | TFF0 MonomorphicFirstOrder
+  | TFF1 PolymorphicFirstOrder
   deriving (Eq, Show, Ord)
 
 -- | The predefined role of a formula in a TPTP derivation. Theorem provers
