@@ -110,6 +110,10 @@ brackets :: Parser a -> Parser a
 brackets p = op '[' *> p <* op ']' <?> "brackets"
 {-# INLINE brackets #-}
 
+application :: Parser f -> Parser a -> Parser (f, [a])
+application f a = (,) <$> f <*> option [] (parens (a `sepBy1` op ','))
+{-# INLINE application #-}
+
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
      $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ T.unpack n)
@@ -186,7 +190,7 @@ sort = name <?> "sort"
 -- | Parse a sort in sorted polymorphic logic.
 tff1Sort :: Parser TFF1Sort
 tff1Sort =  SortVariable <$> var
-        <|> TFF1Sort <$> sort <*> option [] (parens (tff1Sort `sepBy1` op ','))
+        <|> uncurry TFF1Sort <$> application sort tff1Sort
         <?> "tff1 sort"
 
 mapping :: Parser a -> Parser ([a], a)
@@ -217,7 +221,7 @@ number =  RationalConstant <$> signed integer <* char '/' <*> integer
 -- | Parse a term.
 term :: Parser Term
 term =  parens term
-    <|> Function <$> function <*> option [] (parens (term `sepBy1` op ','))
+    <|> uncurry Function <$> application function term
     <|> Variable <$> var
     <|> Number   <$> number
     <|> DistinctTerm <$> distinctObject
@@ -231,8 +235,8 @@ sign = enum <?> "sign"
 -- | Parse a literal.
 literal :: Parser Literal
 literal =  parens literal
-       <|> Equality  <$> term <*> sign <*> term
-       <|> Predicate <$> predicate <*> option [] (parens (term `sepBy1` op ','))
+       <|> Equality <$> term <*> sign <*> term
+       <|> uncurry Predicate <$> application predicate term
        <|> token "$true"  $> Tautology
        <|> token "$false" $> Falsum
        <?> "literal"
@@ -370,15 +374,14 @@ info = Info <$> generalList <?> "info"
 
 generalData :: Parser GeneralData
 generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
-           <|> GeneralFunction <$> atom <*> generalTerms
+           <|> uncurry GeneralFunction <$> application atom generalTerm
            <|> GeneralVariable <$> var
            <|> GeneralNumber   <$> number
            <|> GeneralFormula  <$> form
            <|> GeneralDistinct <$> distinctObject
            <?> "general data"
   where
-    generalTerms = option [] (parens (generalTerm `sepBy1` op ','))
-    form = char '$' *> do { l <- lang; parens (formula l) }
+    form = char '$' *> (lang >>= parens . formula)
 
 generalTerm :: Parser GeneralTerm
 generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
