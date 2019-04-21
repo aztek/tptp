@@ -75,9 +75,16 @@ comment = char '%' *> skipWhile (not . isEndOfLine)
                    *> (endOfLine <|> endOfInput)
                   <?> "comment"
 
+-- | Consume a block comments - characters between /* and */.
+blockComment :: Parser ()
+blockComment = string "/*" *> bc <?> "block comment"
+  where
+    bc = skipWhile (/= '*') *> (string "*/" $> () <|> bc)
+
 -- | Consume white space and trailing comments.
 whitespace :: Parser ()
-whitespace = skipSpace *> skipMany (comment *> skipSpace) <?> "whitespace"
+whitespace =  skipSpace *> skipMany ((comment <|> blockComment) *> skipSpace)
+          <?> "whitespace"
 
 -- | @lexem@ makes a given parser consume trailing whitespace. This function is
 -- needed because off-the-shelf attoparsec parsers do not do it.
