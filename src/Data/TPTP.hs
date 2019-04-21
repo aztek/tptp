@@ -201,11 +201,11 @@ data Predicate
 
 -- | The standard sort in TPTP.
 data Sort
-  = I    -- ^ The type of individuals.
-  | O    -- ^ The type of booleans.
-  | Int  -- ^ The type of integers.
-  | Real -- ^ The type of real numbers.
-  | Rat  -- ^ The type of rational numbers.
+  = I    -- ^ The sort of individuals.
+  | O    -- ^ The sort of booleans.
+  | Int  -- ^ The sort of integers.
+  | Real -- ^ The sort of real numbers.
+  | Rat  -- ^ The sort of rational numbers.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 -- | The type of a function or a predicate symbol in a sorted logic.
