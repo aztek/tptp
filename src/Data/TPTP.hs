@@ -1,3 +1,5 @@
+{-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+
 -- |
 -- Module       : Data.TPTP
 -- Description  : Data type definitions for the syntax of the TPTP language.
@@ -308,7 +310,7 @@ data FirstOrder s
   | Negated (FirstOrder s)
   | Connected (FirstOrder s) Connective (FirstOrder s)
   | Quantified Quantifier (NonEmpty (Var, s)) (FirstOrder s)
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
 
 -- | The (empty) sort annotation in unsorted first-order logic.
 newtype Unsorted = Unsorted ()
