@@ -241,22 +241,17 @@ monomorphizeTFF1Sort = \case
 -- around.
 data Type
   -- | The type of a function or a predicate symbol in the sorted monomorphic
-  -- first-order logic (TFF0).
-  = Type [Name Sort]
-         -- ^ The list of argument sorts. Empty list corresponds to the
-         -- typing of a constant symbol.
-         (Name Sort)
-         -- ^ The result sort.
+  -- first-order logic (TFF0). It is a mapping of zero or more sorts to a sort.
+  -- The empty list of argument sorts marks the type of a constant symbol.
+  = Type [Name Sort] (Name Sort)
 
   -- | The type of a function or a predicate symbol in the sorted rank-1
-  -- polymorphic first-order logic (TFF1).
-  | TFF1Type [Var]
-             -- ^ The list of quantified sort variables.
-             [TFF1Sort]
-             -- ^ The list of argument sorts. Empty list corresponds to the
-             -- typing of a constant symbol.
-             TFF1Sort
-             -- ^ The result sort.
+  -- polymorphic first-order logic (TFF1). It is a (possibly quantified)
+  -- mapping of zero or more TFF1 sorts to a TFF1 sort. The empty list of sort
+  -- variables marks a monomorphic TFF1 type. The empty list of argument sorts
+  -- marks the type of a constant symbol.
+  | TFF1Type [Var] [TFF1Sort] TFF1Sort
+
   deriving (Eq, Show, Ord)
 
 -- | A smart constructor of a TFF1 type. 'tff1Type' constructs a TFF0 type with
