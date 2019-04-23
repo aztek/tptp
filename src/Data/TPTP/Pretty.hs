@@ -218,13 +218,18 @@ instance Pretty Formula where
     TFF0 f -> pretty f
     TFF1 f -> pretty f
 
+instance Pretty UnitName where
+  pretty = either pretty pretty
+
 instance Pretty Unit where
   pretty = \case
-    Include (Atom f) ->
-      application (Atom "include") [pretty (SingleQuoted f)] <> "."
+    Include (Atom f) ns -> application (Atom "include") args <> "."
+      where
+        args  = pretty (SingleQuoted f) : names
+        names = [brackets (fmap pretty ns `sepBy` comma) | not (null ns)]
     Unit n d a -> application (language d) (nm : decl ++ ann) <> "."
       where
-        nm = either pretty pretty n
+        nm = pretty n
 
         decl = case d of
           Sort   s ar -> ["type",    pretty s <> ":" <+> sortConstructor ar]

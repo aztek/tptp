@@ -192,7 +192,7 @@ deriving instance Generic Unit
 instance Arbitrary Unit where
   arbitrary = genericArbitraryU
   shrink = \case
-    Include _  -> []
+    Include f ns -> Include f <$> shrink ns
     Unit n d a -> Unit n <$> shrink d <*> shrinkAnnotation a
       where
         shrinkAnnotation = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)

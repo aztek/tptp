@@ -59,6 +59,7 @@ module Data.TPTP (
   Formula(..),
   Role(..),
   Declaration(..),
+  UnitName,
   Unit(..),
   Derivation(..),
 
@@ -424,11 +425,14 @@ data Declaration
   -- ^ Logical formula marked with its role.
   deriving (Eq, Show, Ord)
 
+-- | The name of a unit - either an atom or an integer.
+type UnitName = Either Atom Integer
+
 -- | The unit of TPTP input.
 data Unit
-  = Include Atom
+  = Include Atom [UnitName]
   -- ^ The @include@ statement.
-  | Unit (Either Atom Integer) Declaration (Maybe Annotation)
+  | Unit UnitName Declaration (Maybe Annotation)
   -- ^ THe named and possibly annotated logical declaration.
   deriving (Eq, Show, Ord)
 

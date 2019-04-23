@@ -347,15 +347,23 @@ typeDeclaration =  Sort   <$> atom <* op ':' <*> arity
   where
     arity = L.genericLength . fst <$> mapping (token "$tType")
 
+-- | Parse a unit name.
+unitName :: Parser (Either Atom Integer)
+unitName = eitherP atom (signed integer) <?> "unit name"
+{-# INLINE unitName #-}
+
 -- | Parse an @include@ statement.
 include :: Parser Unit
-include = token "include" *> parens (Include <$> atom) <* op '.' <?> "include"
+include =  token "include" *> parens (Include <$> atom <*> names) <* op '.'
+       <?> "include"
+  where
+    names = option [] (op ',' *> brackets (unitName `sepBy1` op ','))
 
 -- | Parse an annotated unit.
 annotatedUnit :: Parser Unit
 annotatedUnit = do
   l <- lang
-  let n = eitherP atom (signed integer)
+  let n = unitName
   let d = declaration l
   let a = maybeP annotation
   parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.'
