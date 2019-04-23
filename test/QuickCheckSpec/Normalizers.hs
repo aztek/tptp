@@ -66,7 +66,7 @@ normalizeDeclaration = \case
 
 normalizeUnit :: Unit -> Unit
 normalizeUnit = \case
-  Include f -> Include f
+  Include f ns -> Include f ns
   Unit n d a -> Unit n (normalizeDeclaration d) (normalizeAnn a)
     where
       normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap normalizeInfo i)
