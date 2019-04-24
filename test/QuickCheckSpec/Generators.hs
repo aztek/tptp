@@ -22,7 +22,7 @@ import Data.Bitraversable (bitraverse)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Scientific (Scientific)
 import qualified Data.Scientific as Sci
-import Data.Text (pack)
+import Data.Text (Text, pack, cons)
 
 import Data.TPTP
 import Data.TPTP.Internal
@@ -49,27 +49,29 @@ numeric      = choose ('0', '9')
 printable    = choose (' ', '~')
 alphaNumeric = oneof [pure '_', lowerAlpha, upperAlpha, numeric]
 
-lowerWord, upperWord :: Gen String
-lowerWord = (:) <$> lowerAlpha <*> listOf alphaNumeric
-upperWord = (:) <$> upperAlpha <*> listOf alphaNumeric
+lowerWord, upperWord, listOfPrintable, listOfPrintable1 :: Gen Text
+lowerWord = cons <$> lowerAlpha <*> (pack <$> listOf alphaNumeric)
+upperWord = cons <$> upperAlpha <*> (pack <$> listOf alphaNumeric)
+listOfPrintable  = pack <$> listOf  printable
+listOfPrintable1 = pack <$> listOf1 printable
 
 
 -- * Names
 
 instance Arbitrary Atom where
-  arbitrary = Atom . pack <$> oneof [lowerWord, listOf1 printable]
+  arbitrary = Atom <$> oneof [lowerWord, listOfPrintable1]
 
 instance Arbitrary Var where
-  arbitrary = Var . pack <$> upperWord
+  arbitrary = Var <$> upperWord
 
 instance Arbitrary DistinctObject where
-  arbitrary = DistinctObject . pack <$> listOf printable
+  arbitrary = DistinctObject <$> listOfPrintable
 
 deriving instance Generic (Reserved s)
 instance (Arbitrary s, Named s, Enum s, Bounded s) => Arbitrary (Reserved s) where
   arbitrary = oneof [
       Standard <$> arbitrary,
-      extended . pack <$> lowerWord
+      extended <$> lowerWord
     ]
 
 deriving instance Generic Function
