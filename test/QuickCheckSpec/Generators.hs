@@ -25,6 +25,8 @@ import qualified Data.Scientific as Sci
 import Data.Text (pack)
 
 import Data.TPTP
+import Data.TPTP.Internal
+
 
 -- * Helpers
 
@@ -32,7 +34,7 @@ instance Arbitrary s => Arbitrary (NonEmpty s) where
   arbitrary = genericArbitraryRec (1 % ())
 
 deriving instance Generic (Name s)
-instance Arbitrary s => Arbitrary (Name s) where
+instance (Named s, Enum s, Bounded s, Arbitrary s) => Arbitrary (Name s) where
   arbitrary = genericArbitraryU
 
 shrinkMaybe :: (a -> [a]) -> Maybe a -> [Maybe a]
@@ -47,20 +49,28 @@ numeric      = choose ('0', '9')
 printable    = choose (' ', '~')
 alphaNumeric = oneof [pure '_', lowerAlpha, upperAlpha, numeric]
 
+lowerWord, upperWord :: Gen String
+lowerWord = (:) <$> lowerAlpha <*> listOf alphaNumeric
+upperWord = (:) <$> upperAlpha <*> listOf alphaNumeric
+
 
 -- * Names
 
 instance Arbitrary Atom where
-  arbitrary = Atom . pack <$> oneof [
-      (:) <$> lowerAlpha <*> listOf alphaNumeric,
-      listOf1 printable
-    ]
+  arbitrary = Atom . pack <$> oneof [lowerWord, listOf1 printable]
 
 instance Arbitrary Var where
-  arbitrary = Var . pack <$> ((:) <$> upperAlpha <*> listOf alphaNumeric)
+  arbitrary = Var . pack <$> upperWord
 
 instance Arbitrary DistinctObject where
   arbitrary = DistinctObject . pack <$> listOf printable
+
+deriving instance Generic (Reserved s)
+instance (Arbitrary s, Named s, Enum s, Bounded s) => Arbitrary (Reserved s) where
+  arbitrary = oneof [
+      Standard <$> arbitrary,
+      extended . pack <$> lowerWord
+    ]
 
 deriving instance Generic Function
 instance Arbitrary Function where
@@ -118,7 +128,6 @@ instance Arbitrary Literal where
   shrink = \case
     Predicate p ts -> Predicate p <$> shrinkList shrink ts
     Equality a s b -> Equality <$> shrink a <*> pure s <*> shrink b
-    _ -> []
 
 deriving instance Generic Sign
 instance Arbitrary Sign where

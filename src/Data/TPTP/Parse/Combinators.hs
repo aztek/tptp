@@ -121,33 +121,25 @@ application :: Parser f -> Parser a -> Parser (f, [a])
 application f a = (,) <$> f <*> option [] (parens (a `sepBy1` op ','))
 {-# INLINE application #-}
 
+maybeP :: Parser a -> Parser (Maybe a)
+maybeP p = optional (op ',' *> p)
+
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
      $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ T.unpack n)
      $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
      $ fmap (\c -> (I.name c, c)) [minBound..]
 
-name :: (Named a, Enum a, Bounded a) => Parser (Name a)
-name =  Reserved <$> (char '$' *> enum)
-    <|> Defined  <$> atom
 
-keyword :: (Named a, Enum a, Bounded a) => Parser (Name a)
-keyword =  Reserved <$> enum
-       <|> Defined  <$> atom
+-- * Parser combinators
+
+-- ** Names
 
 isAlphaNumeric :: Char -> Bool
 isAlphaNumeric c = isAsciiLower c || isAsciiUpper c || isDigit c || c == '_'
 
 isAsciiPrint :: Char -> Bool
 isAsciiPrint c = isAscii c && isPrint c
-
-maybeP :: Parser a -> Parser (Maybe a)
-maybeP p = optional (op ',' *> p)
-
-
--- * Parser combinators
-
--- ** Names
 
 lowerWord, upperWord :: Parser Text
 lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
@@ -175,6 +167,16 @@ var = Var <$> lexem upperWord <?> "var"
 distinctObject :: Parser DistinctObject
 distinctObject = DistinctObject <$> lexem (quoted '"') <?> "distinct object"
 {-# INLINE distinctObject #-}
+
+-- | Parse a reserved word.
+reserved :: (Named a, Enum a, Bounded a) => Parser (Reserved a)
+reserved = extended <$> lexeme lowerWord <?> "reserved"
+{-# INLINE reserved #-}
+
+name :: (Named a, Enum a, Bounded a) => Parser (Name a)
+name =  Reserved <$> (char '$' *> reserved)
+    <|> Defined  <$> atom
+    <?> "name"
 
 -- | Parser a function name.
 function :: Parser (Name Function)
@@ -244,8 +246,6 @@ literal :: Parser Literal
 literal =  parens literal
        <|> Equality <$> term <*> sign <*> term
        <|> uncurry Predicate <$> application predicate term
-       <|> token "$true"  $> Tautology
-       <|> token "$false" $> Falsum
        <?> "literal"
 
 -- | Parse a signed literal.
@@ -323,8 +323,8 @@ formula = \case
       Nothing -> TFF1 f
 
 -- | Parse a formula role.
-role :: Parser (Name Role)
-role = keyword <?> "role"
+role :: Parser (Reserved Role)
+role = reserved <?> "role"
 {-# INLINE role #-}
 
 -- | Parse the name of a TPTP language.

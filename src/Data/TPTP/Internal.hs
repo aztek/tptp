@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
 
 -- |
@@ -11,6 +12,7 @@
 
 module Data.TPTP.Internal where
 
+import Data.List (find)
 import Data.Text (Text)
 
 import Data.TPTP
@@ -19,6 +21,11 @@ import Data.TPTP
 
 class Named a where
   name :: a -> Text
+
+instance Named s => Named (Reserved s) where
+  name = \case
+    Standard s -> name s
+    Extended w -> w
 
 instance Named Function where
   name = \case
@@ -43,6 +50,8 @@ instance Named Function where
 
 instance Named Predicate where
   name = \case
+    Tautology -> "true"
+    Falsum    -> "false"
     Distinct  -> "distinct"
     Less      -> "less"
     Lesseq    -> "lesseq"
@@ -114,6 +123,12 @@ instance Named Intro where
     AxiomOfChoice -> "axiom_of_choice"
     ByTautology   -> "tautology"
     ByAssumption  -> "assumption"
+
+extended :: (Named a, Enum a, Bounded a) => Text -> Reserved a
+extended t
+  | Just a <- find (\a -> name a == t) [minBound..] = Standard a
+  | otherwise = Extended t
+
 
 -- * TPTP languages
 

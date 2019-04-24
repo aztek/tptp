@@ -26,6 +26,9 @@ module Data.TPTP (
   DistinctObject(..),
   isValidDistinctObject,
 
+  Reserved(..),
+  isValidReserved,
+
   Name(..),
   Function(..),
   Predicate(..),
@@ -165,12 +168,6 @@ newtype DistinctObject = DistinctObject Text
 isValidDistinctObject :: Text -> Bool
 isValidDistinctObject = Text.all isAsciiPrint
 
--- | The name of a function symbol, a predicate symbol or a sort in TPTP.
-data Name s
-  = Reserved s   -- ^ The name reserved in the TPTP specification.
-  | Defined Atom -- ^ The name defined by the user.
-  deriving (Eq, Show, Ord)
-
 -- | The standard function symbol in TPTP.
 -- Represents an operation in a first-order theory of arithmetic.
 data Function
@@ -197,7 +194,9 @@ data Function
 -- | The standard predicate symbol in TPTP.
 -- Represents an operation in a first-order theory of arithmetic.
 data Predicate
-  = Distinct
+  = Tautology
+  | Falsum
+  | Distinct
   | Less
   | Lesseq
   | Greater
@@ -205,6 +204,40 @@ data Predicate
   | IsInt
   | IsRat
   deriving (Eq, Show, Ord, Enum, Bounded)
+
+-- | The identifier reserved in the TPTP specification and theorem proving
+-- systems that implement it. Reserved identifiers are used to represent
+-- function symbols, predicate symbols, sorts, formula roles and others.
+-- Reserved identifiers are non-empty strings that satisfy the regular
+-- expression @\$[a-z][a-zA-Z0-9_]*@. Reserved identifiers of functions,
+-- predicates, and sorts, used as names, are in addition prepended by @$@.
+data Reserved s
+  = Standard s    -- ^ The identifier contained in the TPTP specification.
+                  -- This identifier is parsed and pretty printed with the
+                  -- leading @$@ character.
+  | Extended Text -- ^ The identifier not contained in the standard TPTP but
+                  -- implemented by some theorem prover. For example, Vampire
+                  -- implements uses the sort constructor @$array@.
+  deriving (Eq, Show, Ord)
+
+-- | Check whether a given string is a valid reserved identifier.
+--
+-- prop> isValidReserved "" == False
+-- prop> isValidReserved "x" == True
+-- prop> isValidReserved "X" == False
+-- prop> isValidReserved "cat" == True
+-- prop> isValidReserved "c@t" == False
+-- prop> isValidReserved "$int" == False
+isValidReserved :: Text -> Bool
+isValidReserved t = not (Text.null t)
+                 && isAsciiLower (Text.head t)
+                 && Text.all isAlphaNumeric (Text.tail t)
+
+-- | The name of a function symbol, a predicate symbol or a sort in TPTP.
+data Name s
+  = Reserved (Reserved s) -- ^ The name reserved in the TPTP specification.
+  | Defined Atom          -- ^ The name defined by the user.
+  deriving (Eq, Show, Ord)
 
 
 -- * Sorts and types
@@ -297,15 +330,15 @@ data Sign
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 -- | The literal in first-order logic.
+-- The logical tautology is represented as
+-- 'Predicate (Reserved (Standard Tautology)) []'
+-- and the logical falsum is represented as
+-- 'Predicate (Reserved (Standard Falsum)) []'.
 data Literal
   = Predicate (Name Predicate) [Term]
     -- ^ Application of a predicate symbol.
   | Equality Term Sign Term
     -- ^ Equality or inequality.
-  | Tautology
-    -- ^ The logical truth, represented in TPTP as @$true@.
-  | Falsum
-    -- ^ The logical contradiction, represented in TPTP as @$false@.
   deriving (Eq, Show, Ord)
 
 -- | The clause in first-order logic - implicitly universally-quantified
@@ -416,7 +449,7 @@ data Declaration
   -- simply a sort.
   | Typing Atom Type
   -- ^ Assignment of a type to a symbol.
-  | Formula (Name Role) Formula
+  | Formula (Reserved Role) Formula
   -- ^ Logical formula marked with its role.
   deriving (Eq, Show, Ord)
 

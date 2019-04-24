@@ -91,12 +91,7 @@ tType = DollarWord "tType"
 instance Named s => Pretty (Name s) where
   pretty = \case
     Reserved s -> pretty (DollarWord (name s))
-    Defined a  -> pretty a
-
-keyword :: Named s => Name s -> Doc ann
-keyword = \case
-  Reserved s -> pretty (name s)
-  Defined a  -> pretty a
+    Defined  a -> pretty a
 
 
 -- * Sorts and types
@@ -146,8 +141,6 @@ instance Pretty Literal where
   pretty = \case
     Predicate p ts -> application p (fmap pretty ts)
     Equality a s b -> pretty a <+> pretty s <+> pretty b
-    Tautology      -> pretty (DollarWord "true")
-    Falsum         -> pretty (DollarWord "false")
 
 instance Pretty Sign where
   pretty = pretty . name
@@ -232,9 +225,9 @@ instance Pretty Unit where
         nm = pretty n
 
         decl = case d of
-          Sort   s ar -> ["type",    pretty s <> ":" <+> sortConstructor ar]
-          Typing  s t -> ["type",    pretty s <> ":" <+> pretty t]
-          Formula r f -> [keyword r, pretty f]
+          Sort   s ar -> ["type", pretty s <> ":" <+> sortConstructor ar]
+          Typing  s t -> ["type", pretty s <> ":" <+> pretty t]
+          Formula r f -> [pretty (name r), pretty f]
 
         sortConstructor ar = prettyMapping (genericReplicate ar tType) tType
 
