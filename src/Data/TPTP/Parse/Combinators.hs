@@ -86,23 +86,23 @@ whitespace :: Parser ()
 whitespace =  skipSpace *> skipMany ((comment <|> blockComment) *> skipSpace)
           <?> "whitespace"
 
--- | @lexem@ makes a given parser consume trailing whitespace. This function is
+-- | @lexeme@ makes a given parser consume trailing whitespace. This function is
 -- needed because off-the-shelf attoparsec parsers do not do it.
-lexem :: Parser a -> Parser a
-lexem p = p <* whitespace
-{-# INLINE lexem #-}
+lexeme :: Parser a -> Parser a
+lexeme p = p <* whitespace
+{-# INLINE lexeme #-}
 
 -- | Parse an unsigned integer.
 integer :: Parser Integer
-integer = lexem decimal <?> "integer"
+integer = lexeme decimal <?> "integer"
 {-# INLINE integer #-}
 
 token :: Text -> Parser Text
-token t = lexem (string t) <?> "token " ++ T.unpack t
+token t = lexeme (string t) <?> "token " ++ T.unpack t
 {-# INLINE token #-}
 
 op :: Char -> Parser Char
-op c = lexem (char c) <?> "operator " ++ [c]
+op c = lexeme (char c) <?> "operator " ++ [c]
 {-# INLINE op #-}
 
 parens :: Parser a -> Parser a
@@ -154,18 +154,18 @@ quoted q = T.pack <$> (char q *> manyTill escaped (char q)) <?> "quoted " ++ [q]
 -- | Parse an atomic word. Single-quoted atoms are parsed without the single
 -- quotes and with the characters @'@ and @\\@ unescaped.
 atom :: Parser Atom
-atom = Atom <$> lexem (quoted '\'' <|> lowerWord) <?> "atom"
+atom = Atom <$> lexeme (quoted '\'' <|> lowerWord) <?> "atom"
 {-# INLINE atom #-}
 
 -- | Parse a variable.
 var :: Parser Var
-var = Var <$> lexem upperWord <?> "var"
+var = Var <$> lexeme upperWord <?> "var"
 {-# INLINE var #-}
 
 -- | Parse a distinct object. Double quotes are not preserved and the characters
 -- @'@ and @\\@ are unescaped.
 distinctObject :: Parser DistinctObject
-distinctObject = DistinctObject <$> lexem (quoted '"') <?> "distinct object"
+distinctObject = DistinctObject <$> lexeme (quoted '"') <?> "distinct object"
 {-# INLINE distinctObject #-}
 
 -- | Parse a reserved word.
@@ -220,7 +220,7 @@ type_ = uncurry . tff1Type <$> option [] prefix <*> matrix <?> "type"
 -- | Parse a number.
 number :: Parser Number
 number =  RationalConstant <$> signed integer <* char '/' <*> integer
-      <|> real <$> lexem scientific
+      <|> real <$> lexeme scientific
       <?> "number"
   where
     real n
