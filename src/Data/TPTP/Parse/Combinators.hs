@@ -420,12 +420,12 @@ source =  token "unknown"  $> UnknownSource
       <|> app "creator"    (Creator    <$> atom     <*> maybeP info)
       <|> app "introduced" (Introduced <$> reserved <*> maybeP info)
       <|> app "inference"  (Inference  <$> atom     <*  op ','
-                                       <*> info     <*  op ',' <*> ss)
+                                       <*> info     <*  op ',' <*> ps)
       <|> UnitSource <$> unitName
       <?> "source"
   where
     app f as = token f *> parens as
-    ss = brackets (source `sepBy` op ',')
+    ps = brackets (parent `sepBy` op ',')
 
 -- | Parse an annotation.
 annotation :: Parser Annotation

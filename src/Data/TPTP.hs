@@ -484,7 +484,7 @@ data Source
   | Theory Atom (Maybe Info)
   | Creator Atom (Maybe Info)
   | Introduced (Reserved Intro) (Maybe Info)
-  | Inference Atom Info [Source]
+  | Inference Atom Info [Parent]
   | UnitSource UnitName
   | UnknownSource
   deriving (Eq, Show, Ord)
