@@ -89,11 +89,16 @@ normalizeParent :: Parent -> Parent
 normalizeParent (Parent s gts) =
   Parent (normalizeSource s) (fmap normalizeGeneralTerm gts)
 
+normalizeExpression :: Expression -> Expression
+normalizeExpression = \case
+  Logical f -> Logical (normalizeFormula f)
+  Term    t -> Term t
+
 normalizeGeneralData :: GeneralData -> GeneralData
 normalizeGeneralData = \case
   GeneralFunction f gts -> GeneralFunction f (fmap normalizeGeneralTerm gts)
-  GeneralFormula f -> GeneralFormula (normalizeFormula f)
-  GeneralBind v (Right f) -> GeneralBind v (Right $ normalizeFormula f)
+  GeneralExpression e -> GeneralExpression (normalizeExpression e)
+  GeneralBind v e -> GeneralBind v (normalizeExpression e)
   gd -> gd
 
 normalizeGeneralTerm :: GeneralTerm -> GeneralTerm

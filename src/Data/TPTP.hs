@@ -70,6 +70,7 @@ module Data.TPTP (
   Intro(..),
   Source(..),
   Parent(..),
+  Expression(..),
   GeneralTerm(..),
   GeneralData(..),
   Info(..),
@@ -492,12 +493,17 @@ data Source
 data Parent = Parent Source [GeneralTerm]
   deriving (Eq, Show, Ord)
 
+data Expression
+  = Logical Formula
+  | Term Term
+  deriving (Eq, Show, Ord)
+
 data GeneralData
   = GeneralFunction Atom [GeneralTerm]
   | GeneralVariable Var
   | GeneralNumber Number
-  | GeneralFormula Formula
-  | GeneralBind Var (Either Term Formula)
+  | GeneralExpression Expression
+  | GeneralBind Var Expression
   | GeneralDistinct DistinctObject
   deriving (Eq, Show, Ord)
 

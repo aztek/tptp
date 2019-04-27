@@ -239,14 +239,20 @@ instance Arbitrary Parent where
   arbitrary = genericArbitraryRec (1 % ())
   shrink (Parent s gts) = Parent <$> shrink s <*> shrinkList shrink gts
 
+deriving instance Generic Expression
+instance Arbitrary Expression where
+  arbitrary = genericArbitraryRec (2 % 1 % ())
+  shrink = \case
+    Logical f -> Logical <$> shrink f
+    Term    t -> Term    <$> shrink t
+
 deriving instance Generic GeneralData
 instance Arbitrary GeneralData where
   arbitrary = genericArbitraryRec (1 % 2 % 2 % 2 % 2 % 1 % ())
   shrink = \case
-    GeneralFunction   f gts -> GeneralFunction f <$> shrinkList shrink gts
-    GeneralFormula        f -> GeneralFormula <$> shrink f
-    GeneralBind v  (Left t) -> GeneralBind v . Left  <$> shrink t
-    GeneralBind v (Right f) -> GeneralBind v . Right <$> shrink f
+    GeneralFunction f gts -> GeneralFunction f <$> shrinkList shrink gts
+    GeneralExpression e -> GeneralExpression <$> shrink e
+    GeneralBind v e -> GeneralBind v <$> shrink e
     _ -> []
 
 deriving instance Generic GeneralTerm

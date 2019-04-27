@@ -245,19 +245,19 @@ instance Pretty Derivation where
 instance Pretty Intro where
   pretty = pretty . name
 
+instance Pretty Expression where
+  pretty = \case
+    Logical f -> application (DollarWord . name $ formulaLanguage f) [pretty f]
+    Term    t -> application (DollarWord "fot") [pretty t]
+
 instance Pretty GeneralData where
   pretty = \case
     GeneralFunction f gts -> application f (fmap pretty gts)
-    GeneralVariable v -> pretty v
-    GeneralNumber   n -> pretty n
-    GeneralFormula  f -> prettyFormula f
-    GeneralBind   v e -> application (Atom "bind") [pretty v, prettyExpr e]
-    GeneralDistinct d -> pretty d
-    where
-      prettyExpr = either prettyTerm prettyFormula
-      prettyTerm t = application (DollarWord "fot") [pretty t]
-      prettyFormula f = application (formulaName f) [pretty f]
-      formulaName f = DollarWord (name $ formulaLanguage f)
+    GeneralVariable   v -> pretty v
+    GeneralNumber     n -> pretty n
+    GeneralExpression e -> pretty e
+    GeneralBind     v e -> application (Atom "bind") [pretty v, pretty e]
+    GeneralDistinct   d -> pretty d
 
 instance Pretty GeneralTerm where
   pretty = \case

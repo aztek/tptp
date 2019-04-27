@@ -390,17 +390,19 @@ intro = enum <?> "intro"
 info :: Parser Info
 info = Info <$> generalList <?> "info"
 
+expr :: Parser Expression
+expr =  char '$' *> (Term    <$> (token "fot" *> parens term)
+                <|>  Logical <$> (lang >>= parens . formula))
+    <?> "expression"
+
 generalData :: Parser GeneralData
 generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> expr)
            <|> uncurry GeneralFunction <$> application atom generalTerm
-           <|> GeneralVariable <$> var
-           <|> GeneralNumber   <$> number
-           <|> GeneralFormula  <$> form
-           <|> GeneralDistinct <$> distinctObject
+           <|> GeneralVariable   <$> var
+           <|> GeneralNumber     <$> number
+           <|> GeneralExpression <$> expr
+           <|> GeneralDistinct   <$> distinctObject
            <?> "general data"
-  where
-    expr = eitherP (token "$fot" *> parens term) form
-    form = char '$' *> (lang >>= parens . formula)
 
 generalTerm :: Parser GeneralTerm
 generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
