@@ -352,12 +352,15 @@ unitName :: Parser (Either Atom Integer)
 unitName = eitherP atom (signed integer) <?> "unit name"
 {-# INLINE unitName #-}
 
+unitNames :: Parser [UnitName]
+unitNames = brackets (unitName `sepBy1` op ',')
+
 -- | Parse an @include@ statement.
 include :: Parser Unit
 include =  token "include" *> parens (Include <$> atom <*> names) <* op '.'
        <?> "include"
   where
-    names = option [] (op ',' *> brackets (unitName `sepBy1` op ','))
+    names = option [] (op ',' *> unitNames)
 
 -- | Parse an annotated unit.
 annotatedUnit :: Parser Unit
@@ -410,19 +413,18 @@ parent :: Parser Parent
 parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 
 source :: Parser Source
-source =  app "file"       (File       <$> atom  <*> maybeP atom)
-      <|> app "theory"     (Theory     <$> atom  <*> maybeP info)
-      <|> app "creator"    (Creator    <$> atom  <*> maybeP info)
-      <|> app "introduced" (Introduced <$> intro <*> maybeP info)
-      <|> app "inference"  (Inference  <$> atom <* op ','
-                                       <*> info <* op ',' <*> ps)
-      <|> token "unknown"  $> UnknownSource
-      <|> Sources <$> brackets (NEL.fromList <$> source `sepBy` op ',')
-      <|> Dag <$> atom
+source =  token "unknown"  $> UnknownSource
+      <|> app "file"       (File       <$> atom     <*> maybeP atom)
+      <|> app "theory"     (Theory     <$> atom     <*> maybeP info)
+      <|> app "creator"    (Creator    <$> atom     <*> maybeP info)
+      <|> app "introduced" (Introduced <$> reserved <*> maybeP info)
+      <|> app "inference"  (Inference  <$> atom     <*  op ','
+                                       <*> info     <*  op ',' <*> ss)
+      <|> UnitSource <$> unitName
       <?> "source"
   where
     app f as = token f *> parens as
-    ps = brackets (parent `sepBy` op ',')
+    ss = brackets (source `sepBy` op ',')
 
 -- | Parse an annotation.
 annotation :: Parser Annotation

@@ -20,6 +20,7 @@ import Test.QuickCheck hiding (Sorted, Function)
 
 import Data.Bitraversable (bitraverse)
 import Data.List.NonEmpty (NonEmpty(..))
+import Data.Maybe (maybeToList)
 import Data.Scientific (Scientific)
 import qualified Data.Scientific as Sci
 import Data.Text (Text, pack, cons)
@@ -222,14 +223,16 @@ instance Arbitrary Intro where
 
 deriving instance Generic Source
 instance Arbitrary Source where
-  arbitrary = genericArbitraryRec (2 % 2 % 2 % 2 % 2 % 2 % 2 % 1 % ())
+  arbitrary = genericArbitraryRec (1 % 1 % 1 % 1 % 1 % 1 % 1 % ())
   shrink = \case
+    UnknownSource -> []
+    UnitSource{} -> []
+    File{} -> []
     Theory  n info -> Theory  n <$> shrinkMaybe shrink info
     Creator n info -> Creator n <$> shrinkMaybe shrink info
     Introduced i info -> Introduced i <$> shrinkMaybe shrink info
-    Inference n i ps -> Inference n <$> shrink i <*> shrinkList shrink ps
-    Sources ss -> Sources <$> shrink ss
-    _ -> []
+    Inference n i ps ->
+      Inference n <$> shrink i <*> concatMap (shrinkList shrink) (shrink ps)
 
 deriving instance Generic Parent
 instance Arbitrary Parent where
@@ -249,8 +252,9 @@ deriving instance Generic GeneralTerm
 instance Arbitrary GeneralTerm where
   arbitrary = genericArbitraryRec (1 % 1 % ())
   shrink = \case
-    GeneralData gd gt -> GeneralData <$> shrink gd <*> shrinkMaybe shrink gt
-    GeneralList gts   -> GeneralList <$> shrinkList shrink gts
+    GeneralData gd gt ->
+      (GeneralData <$> shrink gd <*> shrinkMaybe shrink gt) ++ maybeToList gt
+    GeneralList gts   -> (GeneralList <$> shrinkList shrink gts) ++ gts
 
 deriving instance Generic Info
 instance Arbitrary Info where

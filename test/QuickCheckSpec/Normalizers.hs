@@ -82,8 +82,7 @@ normalizeSource = \case
   Theory f i -> Theory f (fmap normalizeInfo i)
   Creator f i -> Creator f (fmap normalizeInfo i)
   Introduced i inf -> Introduced i (fmap normalizeInfo inf)
-  Inference f i ps -> Inference f (normalizeInfo i) (fmap normalizeParent ps)
-  Sources ss -> Sources (fmap normalizeSource ss)
+  Inference f i ps -> Inference f (normalizeInfo i) (fmap normalizeSource ps)
   s -> s
 
 normalizeParent :: Parent -> Parent

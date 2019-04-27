@@ -483,11 +483,10 @@ data Source
   = File Atom (Maybe Atom)
   | Theory Atom (Maybe Info)
   | Creator Atom (Maybe Info)
-  | Introduced Intro (Maybe Info)
-  | Inference Atom Info [Parent]
-  | Dag Atom
+  | Introduced (Reserved Intro) (Maybe Info)
+  | Inference Atom Info [Source]
+  | UnitSource UnitName
   | UnknownSource
-  | Sources (NonEmpty Source)
   deriving (Eq, Show, Ord)
 
 data Parent = Parent Source [GeneralTerm]

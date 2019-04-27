@@ -276,13 +276,12 @@ instance Pretty Source where
     File (Atom n) i -> source "file"       (SingleQuoted n) i
     Theory     n  i -> source "theory"     n i
     Creator    n  i -> source "creator"    n i
-    Introduced n  i -> source "introduced" n i
+    Introduced n  i -> source "introduced" (name n) i
     Inference  n  i ps -> application (Atom "inference") [
         pretty n, pretty i, brackets (fmap pretty ps `sepBy` comma)
       ]
+    UnitSource un -> pretty un
     UnknownSource -> "unknown"
-    Sources ss -> prettyList (NEL.toList ss)
-    Dag n -> pretty n
     where
       source :: (Pretty a, Pretty b) => Text -> a -> Maybe b -> Doc ann
       source f n i = application f (pretty n : maybeToList (fmap pretty i))
