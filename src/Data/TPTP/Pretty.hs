@@ -251,9 +251,11 @@ instance Pretty GeneralData where
     GeneralVariable v -> pretty v
     GeneralNumber   n -> pretty n
     GeneralFormula  f -> prettyFormula f
-    GeneralBind   v f -> application (Atom "bind") [pretty v, prettyFormula f]
+    GeneralBind   v e -> application (Atom "bind") [pretty v, prettyExpr e]
     GeneralDistinct d -> pretty d
     where
+      prettyExpr = either prettyTerm prettyFormula
+      prettyTerm t = application (DollarWord "fot") [pretty t]
       prettyFormula f = application (formulaName f) [pretty f]
       formulaName f = DollarWord (name $ formulaLanguage f)
 

@@ -391,7 +391,7 @@ info :: Parser Info
 info = Info <$> generalList <?> "info"
 
 generalData :: Parser GeneralData
-generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
+generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> expr)
            <|> uncurry GeneralFunction <$> application atom generalTerm
            <|> GeneralVariable <$> var
            <|> GeneralNumber   <$> number
@@ -399,6 +399,7 @@ generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> form)
            <|> GeneralDistinct <$> distinctObject
            <?> "general data"
   where
+    expr = eitherP (token "$fot" *> parens term) form
     form = char '$' *> (lang >>= parens . formula)
 
 generalTerm :: Parser GeneralTerm

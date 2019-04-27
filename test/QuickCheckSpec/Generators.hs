@@ -243,9 +243,10 @@ deriving instance Generic GeneralData
 instance Arbitrary GeneralData where
   arbitrary = genericArbitraryRec (1 % 2 % 2 % 2 % 2 % 1 % ())
   shrink = \case
-    GeneralFunction f gts -> GeneralFunction f <$> shrinkList shrink gts
-    GeneralFormula f      -> GeneralFormula <$> shrink f
-    GeneralBind v f       -> GeneralBind v <$> shrink f
+    GeneralFunction   f gts -> GeneralFunction f <$> shrinkList shrink gts
+    GeneralFormula        f -> GeneralFormula <$> shrink f
+    GeneralBind v  (Left t) -> GeneralBind v . Left  <$> shrink t
+    GeneralBind v (Right f) -> GeneralBind v . Right <$> shrink f
     _ -> []
 
 deriving instance Generic GeneralTerm

@@ -497,7 +497,7 @@ data GeneralData
   | GeneralVariable Var
   | GeneralNumber Number
   | GeneralFormula Formula
-  | GeneralBind Var Formula
+  | GeneralBind Var (Either Term Formula)
   | GeneralDistinct DistinctObject
   deriving (Eq, Show, Ord)
 

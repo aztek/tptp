@@ -93,7 +93,7 @@ normalizeGeneralData :: GeneralData -> GeneralData
 normalizeGeneralData = \case
   GeneralFunction f gts -> GeneralFunction f (fmap normalizeGeneralTerm gts)
   GeneralFormula f -> GeneralFormula (normalizeFormula f)
-  GeneralBind v f -> GeneralBind v (normalizeFormula f)
+  GeneralBind v (Right f) -> GeneralBind v (Right $ normalizeFormula f)
   gd -> gd
 
 normalizeGeneralTerm :: GeneralTerm -> GeneralTerm
