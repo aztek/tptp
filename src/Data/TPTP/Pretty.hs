@@ -33,6 +33,7 @@ import Data.TPTP
 import Data.TPTP.Internal
 import Data.Text.Prettyprint.Doc
 
+
 -- * Helper functions
 
 sepBy :: [Doc ann] -> Doc ann -> Doc ann
@@ -92,6 +93,14 @@ instance Named s => Pretty (Name s) where
   pretty = \case
     Reserved s -> pretty (DollarWord (name s))
     Defined  a -> pretty a
+
+instance Named s => Named (Reserved s) where
+  name = \case
+    Standard s -> name s
+    Extended w -> w
+
+instance Named s => Pretty (Reserved s) where
+  pretty = pretty . name
 
 
 -- * Sorts and types

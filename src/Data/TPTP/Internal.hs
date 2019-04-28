@@ -17,15 +17,11 @@ import Data.Text (Text)
 
 import Data.TPTP
 
+
 -- * Names
 
 class Named a where
   name :: a -> Text
-
-instance Named s => Named (Reserved s) where
-  name = \case
-    Standard s -> name s
-    Extended w -> w
 
 instance Named Function where
   name = \case
@@ -137,7 +133,6 @@ data Language
   = CNF_ -- ^ Clausal normal form
   | FOF_ -- ^ Unsorted first-order form
   | TFF_ -- ^ Sorted first-order form
-  -- | THF_ -- ^ Higher-order form
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Language where
@@ -145,12 +140,11 @@ instance Named Language where
     CNF_ -> "cnf"
     FOF_ -> "fof"
     TFF_ -> "tff"
-    -- THF_ -> "thf"
 
 language :: Declaration -> Language
 language = \case
-  Sort    _ _ -> TFF_
-  Typing  _ t -> typeLanguage t
+  Sort{}      -> TFF_
+  Typing{}    -> TFF_
   Formula _ f -> formulaLanguage f
 
 formulaLanguage :: Formula -> Language
@@ -159,8 +153,3 @@ formulaLanguage = \case
   FOF{}  -> FOF_
   TFF0{} -> TFF_
   TFF1{} -> TFF_
-
-typeLanguage :: Type -> Language
-typeLanguage = \case
-  Type{} -> TFF_
-  TFF1Type{} -> TFF_
