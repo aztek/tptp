@@ -63,9 +63,8 @@ import qualified Data.Scientific as Sci
 import Data.Text (Text)
 import qualified Data.Text as T
 
-import Data.TPTP
-import Data.TPTP.Internal hiding (name)
-import qualified Data.TPTP.Internal as I
+import Data.TPTP hiding (name)
+import qualified Data.TPTP as TPTP
 
 
 -- * Helper functions
@@ -129,7 +128,7 @@ enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
      $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ T.unpack n)
      $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
-     $ fmap (\c -> (I.name c, c)) [minBound..]
+     $ fmap (\c -> (TPTP.name c, c)) [minBound..]
 
 
 -- * Parser combinators
@@ -329,9 +328,9 @@ role = reserved <?> "role"
 {-# INLINE role #-}
 
 -- | Parse the name of a TPTP language.
-lang :: Parser Language
-lang = enum <?> "language"
-{-# INLINE lang #-}
+language :: Parser Language
+language = enum <?> "language"
+{-# INLINE language #-}
 
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
@@ -367,7 +366,7 @@ include =  token "include" *> parens (Include <$> atom <*> names) <* op '.'
 -- | Parse an annotated unit.
 annotatedUnit :: Parser Unit
 annotatedUnit = do
-  l <- lang
+  l <- language
   let n = unitName
   let d = declaration l
   let a = maybeP annotation
@@ -396,7 +395,7 @@ info = Info <$> generalList <?> "info"
 -- | Parse and expression
 expr :: Parser Expression
 expr =  char '$' *> (Term    <$> (token "fot" *> parens term)
-                <|>  Logical <$> (lang >>= parens . formula))
+                <|>  Logical <$> (language >>= parens . formula))
     <?> "expression"
 
 -- | Parse general data.

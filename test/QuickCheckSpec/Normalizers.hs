@@ -25,7 +25,6 @@ module Normalizers (
 ) where
 
 import Data.TPTP
-import Data.TPTP.Internal
 
 
 -- * First-order logic

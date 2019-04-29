@@ -30,7 +30,7 @@ import Prelude hiding ((<>))
 #endif
 
 import Data.TPTP
-import Data.TPTP.Internal
+
 import Data.Text.Prettyprint.Doc
 
 
@@ -236,7 +236,7 @@ instance Pretty Unit where
       where
         args  = pretty (SingleQuoted f) : names
         names = [brackets (fmap pretty ns `sepBy` comma) | not (null ns)]
-    Unit nm decl a -> application (language decl) args <> "."
+    Unit nm decl a -> application (declarationLanguage decl) args <> "."
       where
         args = pretty nm : role : pretty decl : ann
 

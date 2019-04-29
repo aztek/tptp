@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
 
@@ -16,6 +17,9 @@
 --
 
 module Data.TPTP (
+  -- * Languages
+  Language(..),
+
   -- * Names
   Atom(..),
   isValidAtom,
@@ -27,11 +31,15 @@ module Data.TPTP (
   isValidDistinctObject,
 
   Reserved(..),
+  extended,
   isValidReserved,
 
-  Name(..),
+  Named(..),
+
   Function(..),
   Predicate(..),
+
+  Name(..),
 
   -- * Sorts and types
   Sort(..),
@@ -48,6 +56,7 @@ module Data.TPTP (
   Clause(..),
   Quantifier(..),
   Connective(..),
+  isAssociative,
   FirstOrder(..),
   Unsorted(..),
   Sorted(..),
@@ -60,8 +69,10 @@ module Data.TPTP (
 
   -- * Units
   Formula(..),
+  formulaLanguage,
   Role(..),
   Declaration(..),
+  declarationLanguage,
   UnitName,
   Unit(..),
   Derivation(..),
@@ -78,6 +89,7 @@ module Data.TPTP (
 ) where
 
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
+import Data.List (find)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific (Scientific)
 import qualified Data.Text as Text
@@ -87,6 +99,24 @@ import Data.Text (Text)
 -- >>> :set -XOverloadedStrings
 -- >>> :load Data.TPTP.Pretty
 -- >>> import Test.QuickCheck
+
+
+-- * Languages
+
+-- | The language of logical formulas available in TPTP.
+data Language
+  = CNF_ -- ^ __CNF__ - the language of clausal normal forms of
+         -- unsorted first-order logic.
+  | FOF_ -- ^ __FOF__ - the language of full unsorted first-order logic.
+  | TFF_ -- ^ __TFF__ - the language of full sorted first-order logic,
+         -- both monomorphic (TFF0) and polymorphic (TFF1).
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named Language where
+  name = \case
+    CNF_ -> "cnf"
+    FOF_ -> "fof"
+    TFF_ -> "tff"
 
 
 -- * Names
@@ -190,43 +220,6 @@ newtype DistinctObject = DistinctObject Text
 isValidDistinctObject :: Text -> Bool
 isValidDistinctObject = Text.all isAsciiPrint
 
--- | The standard function symbol in TPTP.
--- Represents an operation in a first-order theory of arithmetic.
-data Function
-  = Uminus
-  | Sum
-  | Difference
-  | Product
-  | Quotient
-  | QuotientE
-  | QuotientT
-  | QuotientF
-  | RemainderE
-  | RemainderT
-  | RemainderF
-  | Floor
-  | Ceiling
-  | Truncate
-  | Round
-  | ToInt
-  | ToRat
-  | ToReal
-  deriving (Eq, Show, Ord, Enum, Bounded)
-
--- | The standard predicate symbol in TPTP.
--- Represents an operation in a first-order theory of arithmetic.
-data Predicate
-  = Tautology
-  | Falsum
-  | Distinct
-  | Less
-  | Lesseq
-  | Greater
-  | Greatereq
-  | IsInt
-  | IsRat
-  deriving (Eq, Show, Ord, Enum, Bounded)
-
 -- | The identifier reserved in the TPTP specification and theorem proving
 -- systems that implement it. Reserved identifiers are used to represent
 -- function symbols, predicate symbols, sorts, formula roles and others.
@@ -248,6 +241,19 @@ data Reserved s
                   -- implemented by some theorem prover. For example, Vampire
                   -- implements uses the sort constructor @$array@.
   deriving (Eq, Show, Ord)
+
+-- | A smart 'Extended' constructor - only uses 'Extended' if the given string
+-- does not correspond to any of the standard identifiers.
+--
+-- >>> extended "int" :: Reserved Sort
+-- Standard Int
+--
+-- >>> extended "array" :: Reserved Sort
+-- Extended "array"
+extended :: (Named a, Enum a, Bounded a) => Text -> Reserved a
+extended t
+  | Just a <- find (\a -> name a == t) [minBound..] = Standard a
+  | otherwise = Extended t
 
 -- | Check whether a given string is a valid reserved identifier.
 --
@@ -273,6 +279,81 @@ isValidReserved :: Text -> Bool
 isValidReserved t = not (Text.null t)
                  && isAsciiLower (Text.head t)
                  && Text.all isAlphaNumeric (Text.tail t)
+
+-- | The class 'Named' allows assigning concrete names to reserved constants
+-- in the TPTP language.
+class Named a where
+  name :: a -> Text
+
+-- | The standard function symbol in TPTP.
+-- Represents an operation in a first-order theory of arithmetic.
+data Function
+  = Uminus
+  | Sum
+  | Difference
+  | Product
+  | Quotient
+  | QuotientE
+  | QuotientT
+  | QuotientF
+  | RemainderE
+  | RemainderT
+  | RemainderF
+  | Floor
+  | Ceiling
+  | Truncate
+  | Round
+  | ToInt
+  | ToRat
+  | ToReal
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named Function where
+  name = \case
+    Uminus     -> "uminus"
+    Sum        -> "sum"
+    Difference -> "difference"
+    Product    -> "product"
+    Quotient   -> "quotient"
+    QuotientE  -> "quotient_e"
+    QuotientT  -> "quotient_t"
+    QuotientF  -> "quotient_f"
+    RemainderE -> "remainder_e"
+    RemainderT -> "remainder_t"
+    RemainderF -> "remainder_f"
+    Floor      -> "floor"
+    Ceiling    -> "ceiling"
+    Truncate   -> "truncate"
+    Round      -> "round"
+    ToInt      -> "to_int"
+    ToRat      -> "to_rat"
+    ToReal     -> "to_real"
+
+-- | The standard predicate symbol in TPTP.
+-- Represents an operation in a first-order theory of arithmetic.
+data Predicate
+  = Tautology
+  | Falsum
+  | Distinct
+  | Less
+  | Lesseq
+  | Greater
+  | Greatereq
+  | IsInt
+  | IsRat
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named Predicate where
+  name = \case
+    Tautology -> "true"
+    Falsum    -> "false"
+    Distinct  -> "distinct"
+    Less      -> "less"
+    Lesseq    -> "lesseq"
+    Greater   -> "greater"
+    Greatereq -> "greatereq"
+    IsInt     -> "is_int"
+    IsRat     -> "is_rat"
 
 -- | The name of a function symbol, a predicate symbol or a sort.
 --
@@ -302,6 +383,14 @@ data Sort
   | Real -- ^ The sort of real numbers.
   | Rat  -- ^ The sort of rational numbers.
   deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named Sort where
+  name = \case
+    I    -> "i"
+    O    -> "o"
+    Int  -> "int"
+    Real -> "real"
+    Rat  -> "rat"
 
 -- | The sort in sorted rank-1 polymorphic logic with sort constructors (TFF1) -
 -- an application of a sort constructor to zero or more sorts or a sort variable
@@ -381,6 +470,11 @@ data Sign
   | Negative
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+instance Named Sign where
+  name = \case
+    Positive -> "="
+    Negative -> "!="
+
 -- | The literal in first-order logic.
 -- The logical tautology is represented as
 -- 'Predicate (Reserved (Standard Tautology)) []'
@@ -406,6 +500,11 @@ data Quantifier
   | Exists -- ^ The existential quantifier.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+instance Named Quantifier where
+  name = \case
+    Forall -> "!"
+    Exists -> "?"
+
 -- | The connective in full first-order logic.
 data Connective
   = Conjunction
@@ -417,6 +516,35 @@ data Connective
   | NegatedDisjunction
   | ReversedImplication
   deriving (Eq, Show, Ord, Enum, Bounded)
+
+-- | Check associativity of a given connective.
+--
+-- >>> isAssociative Implication
+-- False
+--
+-- >>> isAssociative Conjunction
+-- True
+isAssociative :: Connective -> Bool
+isAssociative = \case
+  Conjunction -> True
+  Disjunction -> True
+  Implication -> False
+  Equivalence -> False
+  ExclusiveOr -> False
+  NegatedConjunction  -> False
+  NegatedDisjunction  -> False
+  ReversedImplication -> False
+
+instance Named Connective where
+  name = \case
+    Conjunction -> "&"
+    Disjunction -> "|"
+    Implication -> "=>"
+    Equivalence -> "<=>"
+    ExclusiveOr -> "<~>"
+    NegatedConjunction  -> "~&"
+    NegatedDisjunction  -> "~|"
+    ReversedImplication -> "<="
 
 -- | The formula in sorted or unsorted first-order logic.
 -- Syntactically, the difference between sorted and unsorted formulas is that
@@ -474,6 +602,14 @@ data Formula
   | TFF1 PolymorphicFirstOrder
   deriving (Eq, Show, Ord)
 
+-- | The TPTP language of a given TPTP formula.
+formulaLanguage :: Formula -> Language
+formulaLanguage = \case
+  CNF{}  -> CNF_
+  FOF{}  -> FOF_
+  TFF0{} -> TFF_
+  TFF1{} -> TFF_
+
 -- | The predefined role of a formula in a derivation. Theorem provers might
 -- introduce other roles.
 data Role
@@ -493,6 +629,23 @@ data Role
   | Unknown
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+instance Named Role where
+  name = \case
+    Axiom             -> "axiom"
+    Hypothesis        -> "hypothesis"
+    Definition        -> "definition"
+    Assumption        -> "assumption"
+    Lemma             -> "lemma"
+    Theorem           -> "theorem"
+    Corollary         -> "corollary"
+    Conjecture        -> "conjecture"
+    NegatedConjecture -> "negated_conjecture"
+    Plain             -> "plain"
+    FiDomain          -> "fi_domain"
+    FiFunctors        -> "fi_functors"
+    FiPredicates      -> "fi_predicates"
+    Unknown           -> "unknown"
+
 -- | The logical declaration.
 data Declaration
   = Sort Atom Integer
@@ -504,6 +657,13 @@ data Declaration
   | Formula (Reserved Role) Formula
   -- ^ Logical formula marked with its role.
   deriving (Eq, Show, Ord)
+
+-- | The TPTP language of a given TPTP declaration.
+declarationLanguage :: Declaration -> Language
+declarationLanguage = \case
+  Sort{}      -> TFF_
+  Typing{}    -> TFF_
+  Formula _ f -> formulaLanguage f
 
 -- | The name of a unit - either an atom or an integer.
 type UnitName = Either Atom Integer
@@ -533,6 +693,13 @@ data Intro
   | ByTautology
   | ByAssumption
   deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named Intro where
+  name = \case
+    ByDefinition  -> "definition"
+    AxiomOfChoice -> "axiom_of_choice"
+    ByTautology   -> "tautology"
+    ByAssumption  -> "assumption"
 
 -- | The source of a unit in a TSTP proof. Most commonly a formula is either
 -- defined in a 'File' or is the result of an 'Inference'.

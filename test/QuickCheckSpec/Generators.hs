@@ -26,7 +26,6 @@ import qualified Data.Scientific as Sci
 import Data.Text (Text, pack, cons)
 
 import Data.TPTP
-import Data.TPTP.Internal
 
 
 -- * Helpers
