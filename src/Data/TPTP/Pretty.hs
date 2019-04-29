@@ -223,22 +223,27 @@ instance Pretty Formula where
 instance Pretty UnitName where
   pretty = either pretty pretty
 
+instance Pretty Declaration where
+  pretty = \case
+    Formula _ f -> pretty f
+    Typing  s t -> pretty s <> ":" <+> pretty t
+    Sort s ar ->
+      pretty s <> ":" <+> prettyMapping (genericReplicate ar tType) tType
+
 instance Pretty Unit where
   pretty = \case
     Include (Atom f) ns -> application (Atom "include") args <> "."
       where
         args  = pretty (SingleQuoted f) : names
         names = [brackets (fmap pretty ns `sepBy` comma) | not (null ns)]
-    Unit n d a -> application (language d) (nm : decl ++ ann) <> "."
+    Unit nm decl a -> application (language decl) args <> "."
       where
-        nm = pretty n
+        args = pretty nm : role : pretty decl : ann
 
-        decl = case d of
-          Sort   s ar -> ["type", pretty s <> ":" <+> sortConstructor ar]
-          Typing  s t -> ["type", pretty s <> ":" <+> pretty t]
-          Formula r f -> [pretty (name r), pretty f]
-
-        sortConstructor ar = prettyMapping (genericReplicate ar tType) tType
+        role = case decl of
+          Sort{}      -> "type"
+          Typing{}    -> "type"
+          Formula r _ -> pretty (name r)
 
         ann = case a of
           Just (s, Just i)  -> [pretty s, pretty i]
@@ -276,7 +281,7 @@ instance Pretty GeneralTerm where
   prettyList gts = brackets (fmap pretty gts `sepBy` comma)
 
 instance Pretty Info where
-  pretty (Info gts) = brackets (fmap pretty gts `sepBy` comma)
+  pretty (Info gts) = prettyList gts
 
 instance Pretty Parent where
   pretty (Parent s gts) = pretty s
