@@ -222,6 +222,7 @@ instance Pretty Formula where
 
 instance Pretty UnitName where
   pretty = either pretty pretty
+  prettyList ns = brackets (fmap pretty ns `sepBy` comma)
 
 instance Pretty Declaration where
   pretty = \case
@@ -234,8 +235,7 @@ instance Pretty Unit where
   pretty = \case
     Include (Atom f) ns -> application (Atom "include") args <> "."
       where
-        args  = pretty (SingleQuoted f) : names
-        names = [brackets (fmap pretty ns `sepBy` comma) | not (null ns)]
+        args = pretty (SingleQuoted f) : [prettyList ns | not (null ns)]
     Unit nm decl a -> application (declarationLanguage decl) args <> "."
       where
         args = pretty nm : role : pretty decl : ann
@@ -250,8 +250,10 @@ instance Pretty Unit where
           Just (s, Nothing) -> [pretty s]
           Nothing -> []
 
+  prettyList us = sep (fmap pretty us)
+
 instance Pretty Derivation where
-  pretty (Derivation us) = sep (fmap pretty us)
+  pretty (Derivation us) = prettyList us
 
 
 -- * Annotations
@@ -277,7 +279,6 @@ instance Pretty GeneralTerm where
   pretty = \case
     GeneralData gd gt -> pretty gd <> maybe mempty (\t -> ":" <> pretty t) gt
     GeneralList gts   -> prettyList gts
-
   prettyList gts = brackets (fmap pretty gts `sepBy` comma)
 
 instance Pretty Info where
@@ -286,6 +287,7 @@ instance Pretty Info where
 instance Pretty Parent where
   pretty (Parent s gts) = pretty s
                        <> if null gts then mempty else ":" <> prettyList gts
+  prettyList ps = brackets (fmap pretty ps `sepBy` comma)
 
 instance Pretty Source where
   pretty = \case
@@ -293,9 +295,8 @@ instance Pretty Source where
     Theory     n  i -> source "theory"     n i
     Creator    n  i -> source "creator"    n i
     Introduced n  i -> source "introduced" (name n) i
-    Inference  n  i ps -> application (Atom "inference") [
-        pretty n, pretty i, brackets (fmap pretty ps `sepBy` comma)
-      ]
+    Inference  n  i ps -> application (Atom "inference")
+                                      [pretty n, pretty i, prettyList ps]
     UnitSource un -> pretty un
     UnknownSource -> "unknown"
     where
