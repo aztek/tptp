@@ -17,9 +17,14 @@ import Data.Text (Text)
 
 import Data.TPTP
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+
 
 -- * Names
 
+-- | The class 'Named' allows assigning concrete names to reserved constants
+-- in the TPTP language.
 class Named a where
   name :: a -> Text
 
@@ -85,6 +90,7 @@ instance Named Connective where
     NegatedDisjunction  -> "~|"
     ReversedImplication -> "<="
 
+-- | Check whether a given logical connective is associative or nor.
 isAssociative :: Connective -> Bool
 isAssociative = \case
   Conjunction -> True
@@ -120,6 +126,14 @@ instance Named Intro where
     ByTautology   -> "tautology"
     ByAssumption  -> "assumption"
 
+-- | A smart 'Extended' constructor - only uses 'Extended' if the given string
+-- does not correspond to any of the standard identifiers.
+--
+-- >>> extended "int" :: Reserved Sort
+-- Standard Int
+--
+-- >>> extended "array" :: Reserved Sort
+-- Extended "array"
 extended :: (Named a, Enum a, Bounded a) => Text -> Reserved a
 extended t
   | Just a <- find (\a -> name a == t) [minBound..] = Standard a
@@ -130,9 +144,10 @@ extended t
 
 -- | The language of logical formulas supported by TPTP.
 data Language
-  = CNF_ -- ^ Clausal normal form
-  | FOF_ -- ^ Unsorted first-order form
-  | TFF_ -- ^ Sorted first-order form
+  = CNF_ -- ^ The language of clausal normal forms of unsorted first-order logic.
+  | FOF_ -- ^ The language of unsorted first-order logic.
+  | TFF_ -- ^ The language of sorted first-order logic, both monomorphic (TFF0)
+         -- and polymorphic (TFF1).
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Language where
@@ -141,12 +156,14 @@ instance Named Language where
     FOF_ -> "fof"
     TFF_ -> "tff"
 
+-- | The language of a given TPTP declaration.
 language :: Declaration -> Language
 language = \case
   Sort{}      -> TFF_
   Typing{}    -> TFF_
   Formula _ f -> formulaLanguage f
 
+-- | The language of a given TPTP formula.
 formulaLanguage :: Formula -> Language
 formulaLanguage = \case
   CNF{}  -> CNF_

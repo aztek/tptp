@@ -67,6 +67,7 @@ import Data.TPTP
 import Data.TPTP.Internal hiding (name)
 import qualified Data.TPTP.Internal as I
 
+
 -- * Helper functions
 
 -- | Consume a single line comment - characters between @%@ and newline.
@@ -352,6 +353,7 @@ unitName :: Parser (Either Atom Integer)
 unitName = eitherP atom (signed integer) <?> "unit name"
 {-# INLINE unitName #-}
 
+-- | Parse a list of unit names.
 unitNames :: Parser [UnitName]
 unitNames = brackets (unitName `sepBy1` op ',')
 
@@ -383,6 +385,7 @@ derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
 
 -- ** Annotations
 
+-- | Parse an introduction marking.
 intro :: Parser Intro
 intro = enum <?> "intro"
 {-# INLINE intro #-}
@@ -390,11 +393,13 @@ intro = enum <?> "intro"
 info :: Parser Info
 info = Info <$> generalList <?> "info"
 
+-- | Parse and expression
 expr :: Parser Expression
 expr =  char '$' *> (Term    <$> (token "fot" *> parens term)
                 <|>  Logical <$> (lang >>= parens . formula))
     <?> "expression"
 
+-- | Parse general data.
 generalData :: Parser GeneralData
 generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> expr)
            <|> uncurry GeneralFunction <$> application atom generalTerm
@@ -404,17 +409,21 @@ generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> expr)
            <|> GeneralDistinct   <$> distinctObject
            <?> "general data"
 
+-- | Parse a general term.
 generalTerm :: Parser GeneralTerm
 generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
            <|> GeneralList <$> generalList
            <?> "general term"
 
+-- | Parse a list of general terms.
 generalList :: Parser [GeneralTerm]
 generalList = brackets (generalTerm `sepBy` op ',') <?> "general list"
 
+-- | Parse a parent.
 parent :: Parser Parent
 parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 
+-- | Parse the source of a unit.
 source :: Parser Source
 source =  token "unknown"  $> UnknownSource
       <|> app "file"       (File       <$> atom     <*> maybeP atom)

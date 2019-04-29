@@ -112,10 +112,17 @@ isAsciiPrint c = isAscii c && isPrint c
 
 -- | Check whether a given string is a valid atom.
 --
--- prop> isValidAtom "" == False
--- prop> isValidAtom "\r\n" == False
--- prop> isValidAtom "fxYz42" == True
--- prop> isValidAtom "f-'function symbol'" == True
+-- >>> isValidAtom ""
+-- False
+--
+-- >>> isValidAtom "\r\n"
+-- False
+--
+-- >>> isValidAtom "fxYz42"
+-- True
+--
+-- >>> isValidAtom "f-'function symbol'"
+-- True
 isValidAtom :: Text -> Bool
 isValidAtom t = not (Text.null t)
              && Text.all isAsciiPrint t
@@ -132,11 +139,20 @@ isAlphaNumeric c = isAsciiLower c || isAsciiUpper c || isDigit c || c == '_'
 
 -- | Check whether a given string is a valid variable.
 --
--- prop> isValidVar "" == False
--- prop> isValidVar "x" == False
--- prop> isValidVar "X" == True
--- prop> isValidVar "Cat" == True
--- prop> isValidVar "C@t" == False
+-- >>> isValidVar ""
+-- False
+--
+-- >>> isValidVar "x"
+-- False
+--
+-- >>> isValidVar "X"
+-- True
+--
+-- >>> isValidVar "Cat"
+-- True
+--
+-- >>> isValidVar "C@t"
+-- False
 isValidVar :: Text -> Bool
 isValidVar t = not (Text.null t)
             && isAsciiUpper (Text.head t)
@@ -163,9 +179,14 @@ newtype DistinctObject = DistinctObject Text
 
 -- | Check whether a given string is a valid distinct object.
 --
--- prop> isValidDistinctObject "" == True
--- prop> isValidDistinctObject "Godel's incompleteness theorem" == True
--- prop> isValidDistinctObject "\r\n" == False
+-- >>> isValidDistinctObject ""
+-- True
+--
+-- >>> isValidDistinctObject "Godel's incompleteness theorem"
+-- True
+--
+-- >>> isValidDistinctObject "\r\n"
+-- False
 isValidDistinctObject :: Text -> Bool
 isValidDistinctObject = Text.all isAsciiPrint
 
@@ -210,12 +231,19 @@ data Predicate
 -- systems that implement it. Reserved identifiers are used to represent
 -- function symbols, predicate symbols, sorts, formula roles and others.
 -- Reserved identifiers are non-empty strings that satisfy the regular
--- expression @\$[a-z][a-zA-Z0-9_]*@. Reserved identifiers of functions,
+-- expression @[a-z][a-zA-Z0-9_]*@. Reserved identifiers of functions,
 -- predicates, and sorts, used as names, are in addition prepended by @$@.
+--
+-- >>> print (pretty (Standard I))
+-- i
+--
+-- >>> print (pretty (Standard Axiom))
+-- axiom
+--
+-- >>> print (pretty (Extended "negated_lemma" :: Reserved Role))
+-- negated_lemma
 data Reserved s
   = Standard s    -- ^ The identifier contained in the TPTP specification.
-                  -- This identifier is parsed and pretty printed with the
-                  -- leading @$@ character.
   | Extended Text -- ^ The identifier not contained in the standard TPTP but
                   -- implemented by some theorem prover. For example, Vampire
                   -- implements uses the sort constructor @$array@.
@@ -223,20 +251,43 @@ data Reserved s
 
 -- | Check whether a given string is a valid reserved identifier.
 --
--- prop> isValidReserved "" == False
--- prop> isValidReserved "x" == True
--- prop> isValidReserved "X" == False
--- prop> isValidReserved "cat" == True
--- prop> isValidReserved "c@t" == False
--- prop> isValidReserved "$int" == False
+-- >>> isValidReserved ""
+-- False
+--
+-- >>> isValidReserved "x"
+-- True
+--
+-- >>> isValidReserved "X"
+-- False
+--
+-- >>> isValidReserved "cat"
+-- True
+--
+-- >>> isValidReserved "c@t"
+-- False
+--
+-- >>> isValidReserved "$int"
+-- False
+--
 isValidReserved :: Text -> Bool
 isValidReserved t = not (Text.null t)
                  && isAsciiLower (Text.head t)
                  && Text.all isAlphaNumeric (Text.tail t)
 
--- | The name of a function symbol, a predicate symbol or a sort in TPTP.
+-- | The name of a function symbol, a predicate symbol or a sort.
+--
+-- > >>> print (pretty (Reserved (Standard I)))
+-- > $i
+--
+-- > >>> print (pretty (Reserved (Extended "array" :: Reserved Sort)))
+-- > $array
+--
+-- >>> print (pretty (Defined (Atom "array") :: Name Sort))
+-- array
 data Name s
   = Reserved (Reserved s) -- ^ The name reserved in the TPTP specification.
+                          -- This name is parsed and pretty printed with the
+                          -- leading @$@ character.
   | Defined Atom          -- ^ The name defined by the user.
   deriving (Eq, Show, Ord)
 
@@ -263,8 +314,8 @@ data TFF1Sort
   | TFF1Sort (Name Sort) [TFF1Sort]
   deriving (Eq, Show, Ord)
 
--- | Attempt to monorphize a TFF1 sort. This function succeeds iff the given
--- sort is a sort constructor with zero arity.
+-- | Attempt to convert a given TFF1 sort to TFF0. This function succeeds iff
+-- the given sort is a sort constructor with zero arity.
 monomorphizeTFF1Sort :: TFF1Sort -> Maybe (Name Sort)
 monomorphizeTFF1Sort = \case
   TFF1Sort f [] -> Just f
@@ -423,8 +474,8 @@ data Formula
   | TFF1 PolymorphicFirstOrder
   deriving (Eq, Show, Ord)
 
--- | The predefined role of a formula in a TPTP derivation. Theorem provers
--- might introduce other roles.
+-- | The predefined role of a formula in a derivation. Theorem provers might
+-- introduce other roles.
 data Role
   = Axiom
   | Hypothesis
@@ -457,15 +508,15 @@ data Declaration
 -- | The name of a unit - either an atom or an integer.
 type UnitName = Either Atom Integer
 
--- | The unit of TPTP input.
+-- | The unit of the TPTP input.
 data Unit
   = Include Atom [UnitName]
   -- ^ The @include@ statement.
   | Unit UnitName Declaration (Maybe Annotation)
-  -- ^ THe named and possibly annotated logical declaration.
+  -- ^ The named and possibly annotated logical declaration.
   deriving (Eq, Show, Ord)
 
--- | The derivation in TPTP - the list of zero or more units.
+-- | The derivation - a list of zero or more units.
 newtype Derivation = Derivation {
   units :: [Unit]
 } deriving (Eq, Show, Ord)
@@ -473,6 +524,9 @@ newtype Derivation = Derivation {
 
 -- * Annotations
 
+-- | The marking of the way a formula is introduced in a TSTP proof.
+-- TPTP recognizes several standard intros and theorem proving systems might use
+-- other ones.
 data Intro
   = ByDefinition
   | AxiomOfChoice
@@ -480,6 +534,8 @@ data Intro
   | ByAssumption
   deriving (Eq, Show, Ord, Enum, Bounded)
 
+-- | The source of a unit in a TSTP proof. Most commonly a formula is either
+-- defined in a 'File' or is the result of an 'Inference'.
 data Source
   = File Atom (Maybe Atom)
   | Theory Atom (Maybe Info)
@@ -490,9 +546,12 @@ data Source
   | UnknownSource
   deriving (Eq, Show, Ord)
 
+-- | The parent of a formula in an inference.
 data Parent = Parent Source [GeneralTerm]
   deriving (Eq, Show, Ord)
 
+-- | An expression is either a formula or a term.
+-- Expressions occur in TSTP proofs.
 data Expression
   = Logical Formula
   | Term Term
@@ -502,9 +561,9 @@ data GeneralData
   = GeneralFunction Atom [GeneralTerm]
   | GeneralVariable Var
   | GeneralNumber Number
+  | GeneralDistinct DistinctObject
   | GeneralExpression Expression
   | GeneralBind Var Expression
-  | GeneralDistinct DistinctObject
   deriving (Eq, Show, Ord)
 
 data GeneralTerm
@@ -515,4 +574,6 @@ data GeneralTerm
 newtype Info = Info [GeneralTerm]
   deriving (Eq, Show, Ord)
 
+-- | The annotation of a unit. Most commonly, annotations are attached to units
+-- in TSTP proofs.
 type Annotation = (Source, Maybe Info)
