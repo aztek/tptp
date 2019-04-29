@@ -689,17 +689,17 @@ newtype Derivation = Derivation {
 -- other ones.
 data Intro
   = ByDefinition
-  | AxiomOfChoice
+  | ByAxiomOfChoice
   | ByTautology
   | ByAssumption
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Intro where
   name = \case
-    ByDefinition  -> "definition"
-    AxiomOfChoice -> "axiom_of_choice"
-    ByTautology   -> "tautology"
-    ByAssumption  -> "assumption"
+    ByDefinition    -> "definition"
+    ByAxiomOfChoice -> "axiom_of_choice"
+    ByTautology     -> "tautology"
+    ByAssumption    -> "assumption"
 
 -- | The source of a unit in a TSTP proof. Most commonly a formula is either
 -- defined in a 'File' or is the result of an 'Inference'.
