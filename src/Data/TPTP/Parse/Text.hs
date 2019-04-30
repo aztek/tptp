@@ -8,22 +8,22 @@
 --
 
 module Data.TPTP.Parse.Text (
-  -- * Runners for the parser for TPTP units.
+  -- * Runners of parsers for TPTP units.
   parseUnit,
   parseUnitOnly,
   parseUnitWith,
 
-  -- * Runners for parsers for TPTP derivations.
-  parseDerivation,
-  parseDerivationOnly,
-  parseDerivationWith
+  -- * Runners of parsers for TPTP inputs.
+  parseTPTP,
+  parseTPTPOnly,
+  parseTPTPWith
 ) where
 
 import Data.Attoparsec.Text
 import Data.Text (Text)
 
-import Data.TPTP (Unit, Derivation)
-import Data.TPTP.Parse.Combinators (whitespace, unit, derivation)
+import Data.TPTP (Unit, TPTP)
+import Data.TPTP.Parse.Combinators (whitespace, unit, tptp)
 
 -- | Run a parser for a single TPTP unit on 'Text'.
 parseUnit :: Text -> Result Unit
@@ -39,16 +39,16 @@ parseUnitOnly = parseOnly (whitespace *> unit <* endOfInput)
 parseUnitWith :: Monad m => m Text -> Text -> m (Result Unit)
 parseUnitWith m = parseWith m (whitespace *> unit <* endOfInput)
 
--- | Run a parser for a TPTP derivation on 'Text'.
-parseDerivation :: Text -> Result Derivation
-parseDerivation = parse (whitespace *> derivation <* endOfInput)
+-- | Run a parser for a TPTP input on 'Text'.
+parseTPTP :: Text -> Result TPTP
+parseTPTP = parse (whitespace *> tptp <* endOfInput)
 
--- | Run a parser for a TPTP derivation that cannot be resupplied
+-- | Run a parser for a TPTP input that cannot be resupplied
 -- via a 'Partial' result.
-parseDerivationOnly :: Text -> Either String Derivation
-parseDerivationOnly = parseOnly (whitespace *> derivation <* endOfInput)
+parseTPTPOnly :: Text -> Either String TPTP
+parseTPTPOnly = parseOnly (whitespace *> tptp <* endOfInput)
 
--- | Run a parser for a TPTP derivation with an initial input string,
+-- | Run a parser for a TPTP input with an initial input string,
 -- and a monadic action that can supply more input if needed.
-parseDerivationWith :: Monad m => m Text -> Text -> m (Result Derivation)
-parseDerivationWith m = parseWith m (whitespace *> derivation <* endOfInput)
+parseTPTPWith :: Monad m => m Text -> Text -> m (Result TPTP)
+parseTPTPWith m = parseWith m (whitespace *> tptp <* endOfInput)

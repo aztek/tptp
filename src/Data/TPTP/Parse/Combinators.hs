@@ -38,7 +38,7 @@ module Data.TPTP.Parse.Combinators (
 
   -- * Units
   unit,
-  derivation,
+  tptp,
 
   -- * Annotations
   intro,
@@ -377,9 +377,9 @@ annotatedUnit = do
 unit :: Parser Unit
 unit = include <|> annotatedUnit <?> "unit"
 
--- | Parse a TPTP derivation.
-derivation :: Parser Derivation
-derivation = Derivation <$> manyTill unit endOfInput <?> "derivation"
+-- | Parse a TPTP input.
+tptp :: Parser TPTP
+tptp = TPTP <$> manyTill unit endOfInput <?> "derivation"
 
 
 -- ** Annotations

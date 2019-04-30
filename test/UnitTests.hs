@@ -33,7 +33,7 @@ readTestFile :: FilePath -> IO Text
 readTestFile f = Text.IO.readFile (testDataDir ++ "/" ++ f)
 
 parseFile :: FilePath -> IO Result
-parseFile path = buildResult . parseDerivationOnly <$> readTestFile path
+parseFile path = buildResult . parseTPTPOnly <$> readTestFile path
   where
     buildResult (Left e)  = Error e
     buildResult (Right _) = Pass

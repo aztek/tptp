@@ -252,8 +252,8 @@ instance Pretty Unit where
 
   prettyList us = sep (fmap pretty us)
 
-instance Pretty Derivation where
-  pretty (Derivation us) = prettyList us
+instance Pretty TPTP where
+  pretty (TPTP us) = prettyList us
 
 
 -- * Annotations

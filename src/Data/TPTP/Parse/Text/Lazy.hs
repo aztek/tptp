@@ -8,23 +8,23 @@
 --
 
 module Data.TPTP.Parse.Text.Lazy (
-  -- * Parsers for TPTP units from different sources.
+  -- * Runners of parsers for TPTP units.
   parseUnit,
 
-  -- * Parsers for TPTP derivations from different sources.
-  parseDerivation
+  -- * Runners of parsers for TPTP inputs.
+  parseTPTP
 ) where
 
 import Data.Attoparsec.Text.Lazy
 import Data.Text.Lazy (Text)
 
-import Data.TPTP (Unit, Derivation)
-import Data.TPTP.Parse.Combinators (whitespace, unit, derivation)
+import Data.TPTP (Unit, TPTP)
+import Data.TPTP.Parse.Combinators (whitespace, unit, tptp)
 
 -- | Parse a single TPTP unit from 'Lazy.Text'.
 parseUnit :: Text -> Result Unit
 parseUnit = parse (whitespace *> unit)
 
 -- | Parse a TPTP derivation from 'Lazy.Text'.
-parseDerivation :: Text -> Result Derivation
-parseDerivation = parse (whitespace *> derivation)
+parseTPTP :: Text -> Result TPTP
+parseTPTP = parse (whitespace *> tptp)

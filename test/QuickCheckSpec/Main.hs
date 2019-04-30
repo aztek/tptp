@@ -116,8 +116,8 @@ prop_ipp_PolymorphicFO = ippModulo reassociate polymorphicFirstOrder
 prop_ipp_Unit :: Unit -> Property
 prop_ipp_Unit = ippModulo normalizeUnit unit
 
-prop_ipp_Derivation :: Derivation -> Property
-prop_ipp_Derivation = ippModulo normalizeDerivation derivation
+prop_ipp_TPTP :: TPTP -> Property
+prop_ipp_TPTP = ippModulo normalizeTPTP tptp
 
 
 -- ** Annotations

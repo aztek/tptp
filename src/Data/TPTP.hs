@@ -76,7 +76,7 @@ module Data.TPTP (
   declarationLanguage,
   UnitName,
   Unit(..),
-  Derivation(..),
+  TPTP(..),
 
   -- * Annotations
   Intro(..),
@@ -681,8 +681,8 @@ data Unit
   -- ^ The named and possibly annotated logical declaration.
   deriving (Eq, Show, Ord)
 
--- | The derivation - a list of zero or more units.
-newtype Derivation = Derivation {
+-- | The TPTP input - zero or more TPTP units.
+newtype TPTP = TPTP {
   units :: [Unit]
 } deriving (Eq, Show, Ord)
 

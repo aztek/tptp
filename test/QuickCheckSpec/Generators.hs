@@ -208,10 +208,10 @@ instance Arbitrary Unit where
       where
         shrinkAnnotation = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)
 
-deriving instance Generic Derivation
-instance Arbitrary Derivation where
+deriving instance Generic TPTP
+instance Arbitrary TPTP where
   arbitrary = genericArbitraryU
-  shrink (Derivation us) = Derivation <$> shrinkList shrink us
+  shrink (TPTP us) = TPTP <$> shrinkList shrink us
 
 
 -- * Annotations

@@ -16,7 +16,7 @@ module Normalizers (
   reassociate,
   normalizeType,
   normalizeUnit,
-  normalizeDerivation,
+  normalizeTPTP,
   normalizeSource,
   normalizeParent,
   normalizeGeneralData,
@@ -70,8 +70,8 @@ normalizeUnit = \case
     where
       normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap normalizeInfo i)
 
-normalizeDerivation :: Derivation -> Derivation
-normalizeDerivation (Derivation us) = Derivation (fmap normalizeUnit us)
+normalizeTPTP :: TPTP -> TPTP
+normalizeTPTP (TPTP us) = TPTP (fmap normalizeUnit us)
 
 
 -- * Annotations
