@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
@@ -92,6 +93,7 @@ import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.List (find)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific (Scientific)
+import Data.String (IsString, fromString)
 import qualified Data.Text as Text
 import Data.Text (Text)
 
@@ -134,7 +136,7 @@ instance Named Language where
 -- 'f-\'function symbol\''
 --
 newtype Atom = Atom Text
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Show, Ord, IsString)
 
 -- | Check whether a given character is in the ASCII range 0x20 to 0x7E.
 isAsciiPrint :: Char -> Bool
@@ -160,7 +162,7 @@ isValidAtom t = not (Text.null t)
 -- | The variable in the TPTP language - a string that satisfies the regular
 -- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Show, Ord, IsString)
 
 -- | Check whether a given character matches the regular expression
 -- @[a-zA-Z0-9_]@.
@@ -205,7 +207,7 @@ isValidVar t = not (Text.null t)
 -- /are always interpreted as themselves, so if they are different they are/
 -- /unequal, e.g.,/ @\"Apple\" != \"Microsoft\"@ /is implicit./
 newtype DistinctObject = DistinctObject Text
-  deriving (Eq, Show, Ord)
+  deriving (Eq, Show, Ord, IsString)
 
 -- | Check whether a given string is a valid distinct object.
 --
@@ -241,6 +243,9 @@ data Reserved s
                   -- implemented by some theorem prover. For example, Vampire
                   -- implements uses the sort constructor @$array@.
   deriving (Eq, Show, Ord)
+
+instance IsString (Reserved s) where
+  fromString = Extended . fromString
 
 -- | A smart 'Extended' constructor - only uses 'Extended' if the given string
 -- does not correspond to any of the standard identifiers.
