@@ -52,19 +52,19 @@ module Data.TPTP.Parse.Combinators (
 
 import Control.Applicative ((<|>), optional)
 
-import Data.Attoparsec.Text as A hiding (Number, number)
+import Data.Attoparsec.Text as Atto hiding (Number, number)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Functor (($>))
-import qualified Data.List as L
-import qualified Data.List.NonEmpty as NEL
+import Data.List (sortBy, genericLength)
+import qualified Data.List.NonEmpty as NEL (fromList)
 
-import qualified Data.Scientific as Sci
+import qualified Data.Scientific as Sci (base10Exponent, coefficient)
 
 import Data.Text (Text)
-import qualified Data.Text as T
+import qualified Data.Text as Text (pack, unpack, cons)
 
 import Data.TPTP hiding (name)
-import qualified Data.TPTP as TPTP
+import qualified Data.TPTP as TPTP (name)
 
 
 -- * Helper functions
@@ -98,7 +98,7 @@ integer = lexeme decimal <?> "integer"
 {-# INLINE integer #-}
 
 token :: Text -> Parser Text
-token t = lexeme (string t) <?> "token " ++ T.unpack t
+token t = lexeme (string t) <?> "token " ++ Text.unpack t
 {-# INLINE token #-}
 
 op :: Char -> Parser Char
@@ -126,8 +126,8 @@ maybeP p = optional (op ',' *> p)
 
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
-     $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ T.unpack n)
-     $ L.sortBy (\(a, _) (b, _) -> b `compare` a)
+     $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ Text.unpack n)
+     $ sortBy (\(a, _) (b, _) -> b `compare` a)
      $ fmap (\c -> (TPTP.name c, c)) [minBound..]
 
 
@@ -142,14 +142,15 @@ isAsciiPrint :: Char -> Bool
 isAsciiPrint c = isAscii c && isPrint c
 
 lowerWord, upperWord :: Parser Text
-lowerWord = T.cons <$> A.satisfy isAsciiLower <*> A.takeWhile isAlphaNumeric
-upperWord = T.cons <$> A.satisfy isAsciiUpper <*> A.takeWhile isAlphaNumeric
+lowerWord = Text.cons <$> satisfy isAsciiLower <*> Atto.takeWhile isAlphaNumeric
+upperWord = Text.cons <$> satisfy isAsciiUpper <*> Atto.takeWhile isAlphaNumeric
 
 quoted :: Char -> Parser Text
-quoted q = T.pack <$> (char q *> manyTill escaped (char q)) <?> "quoted " ++ [q]
+quoted q =  Text.pack <$> (char q *> manyTill escaped (char q))
+        <?> "quoted " ++ [q]
   where
     escaped =  char '\\' *> (char q $> q <|> char '\\' $> '\\')
-           <|> A.satisfy isAsciiPrint
+           <|> satisfy isAsciiPrint
 
 -- | Parse an atomic word. Single-quoted atoms are parsed without the single
 -- quotes and with the characters @'@ and @\\@ unescaped.
@@ -345,7 +346,7 @@ typeDeclaration =  Sort   <$> atom <* op ':' <*> arity
                <|> Typing <$> atom <* op ':' <*> type_
                <?> "type declaration"
   where
-    arity = L.genericLength . fst <$> mapping (token "$tType")
+    arity = genericLength . fst <$> mapping (token "$tType")
 
 -- | Parse a unit name.
 unitName :: Parser (Either Atom Integer)

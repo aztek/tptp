@@ -12,14 +12,15 @@
 
 module UnitTests (tests) where
 
-import Distribution.TestSuite
+import Distribution.TestSuite (Test(..), TestInstance(..),
+                               Progress(..), Result(..))
 
-import System.Directory
+import System.Directory (listDirectory)
 
 import Data.Text (Text)
-import qualified Data.Text.IO as Text.IO
-import Data.List
-import Control.Monad.Extra
+import qualified Data.Text.IO as Text.IO (readFile)
+import Data.List (intercalate)
+import Control.Monad.Extra (concatMapM)
 
 import Data.TPTP.Parse.Text
 

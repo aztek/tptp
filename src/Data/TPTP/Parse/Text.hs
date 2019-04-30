@@ -8,18 +8,18 @@
 --
 
 module Data.TPTP.Parse.Text (
-  -- * Runners of parsers for TPTP units.
+  -- * Runners of parsers for TPTP units
   parseUnit,
   parseUnitOnly,
   parseUnitWith,
 
-  -- * Runners of parsers for TPTP inputs.
+  -- * Runners of parsers for TPTP inputs
   parseTPTP,
   parseTPTPOnly,
   parseTPTPWith
 ) where
 
-import Data.Attoparsec.Text
+import Data.Attoparsec.Text (Result, parse, parseOnly, parseWith, endOfInput)
 import Data.Text (Text)
 
 import Data.TPTP (Unit, TPTP)
@@ -30,7 +30,7 @@ parseUnit :: Text -> Result Unit
 parseUnit = parse (whitespace *> unit <* endOfInput)
 
 -- | Run a parser for a single TPTP unit that cannot be resupplied
--- via a 'Partial' result.
+-- via a 'Data.Attoparsec.Text.Partial' result.
 parseUnitOnly :: Text -> Either String Unit
 parseUnitOnly = parseOnly (whitespace *> unit <* endOfInput)
 
@@ -44,7 +44,7 @@ parseTPTP :: Text -> Result TPTP
 parseTPTP = parse (whitespace *> tptp <* endOfInput)
 
 -- | Run a parser for a TPTP input that cannot be resupplied
--- via a 'Partial' result.
+-- via a 'Data.Attoparsec.Text.Partial' result.
 parseTPTPOnly :: Text -> Either String TPTP
 parseTPTPOnly = parseOnly (whitespace *> tptp <* endOfInput)
 

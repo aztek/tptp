@@ -20,10 +20,11 @@ module Data.TPTP.Pretty (
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.List (genericReplicate)
 import Data.List.NonEmpty (NonEmpty)
-import qualified Data.List.NonEmpty as NEL
+import qualified Data.List.NonEmpty as NEL (nonEmpty, toList)
 import Data.Maybe (maybeToList)
 import Data.Text (Text)
-import qualified Data.Text as T
+import qualified Data.Text as Text (all, head, tail, cons, snoc,
+                                    pack, singleton, replace)
 
 #if __GLASGOW_HASKELL__ >= 803
 import Prelude hiding ((<>))
@@ -31,7 +32,8 @@ import Prelude hiding ((<>))
 
 import Data.TPTP
 
-import Data.Text.Prettyprint.Doc
+import Data.Text.Prettyprint.Doc (Doc, Pretty(..), hsep, sep, (<>), (<+>),
+                                  brackets, parens, punctuate, comma, space)
 
 
 -- * Helper functions
@@ -50,9 +52,9 @@ application f as = pretty f <> parens (as `sepBy` comma)
 -- * Names
 
 quoted :: Char -> Text -> Text
-quoted q = T.cons q . flip T.snoc q
-         . T.replace (T.singleton q) (T.pack ['\\', q])
-         . T.replace "\\" "\\\\"
+quoted q = Text.cons q . flip Text.snoc q
+         . Text.replace (Text.singleton q) (Text.pack ['\\', q])
+         . Text.replace "\\" "\\\\"
 
 newtype SingleQuoted = SingleQuoted Text
   deriving (Eq, Show, Ord)
@@ -65,7 +67,8 @@ instance Pretty Atom where
     | isLowerWord s = pretty s
     | otherwise = pretty (SingleQuoted s)
     where
-      isLowerWord w = isAsciiLower (T.head w) && T.all isAlphaNum (T.tail w)
+      isLowerWord w = isAsciiLower (Text.head w)
+                   && Text.all isAlphaNum (Text.tail w)
       isAlphaNum c = isAsciiLower c || isAsciiUpper c || isDigit c || c == '_'
 
 instance Pretty Var where
@@ -84,7 +87,7 @@ newtype DollarWord = DollarWord Text
   deriving (Eq, Show, Ord)
 
 instance Pretty DollarWord where
-  pretty (DollarWord w) = pretty (T.cons '$' w)
+  pretty (DollarWord w) = pretty (Text.cons '$' w)
 
 tType :: DollarWord
 tType = DollarWord "tType"

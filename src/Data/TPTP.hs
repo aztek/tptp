@@ -94,7 +94,7 @@ import Data.List (find)
 import Data.List.NonEmpty (NonEmpty)
 import Data.Scientific (Scientific)
 import Data.String (IsString, fromString)
-import qualified Data.Text as Text
+import qualified Data.Text as Text (all, null, head, tail)
 import Data.Text (Text)
 
 -- $setup

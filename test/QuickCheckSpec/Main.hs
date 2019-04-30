@@ -14,11 +14,11 @@
 
 module Main where
 
-import Test.QuickCheck hiding (Function, function, Positive)
-
 import Data.Attoparsec.Text (Parser, parseOnly, endOfInput)
 import Data.Text.Prettyprint.Doc (layoutPretty, defaultLayoutOptions)
 import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
+import Test.QuickCheck (Property, Args(..), stdArgs, (===), whenFail,
+                        forAllProperties, quickCheckWithResult)
 
 import Data.TPTP
 import Data.TPTP.Parse.Combinators

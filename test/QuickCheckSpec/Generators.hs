@@ -14,16 +14,15 @@
 
 module Generators () where
 
-import GHC.Generics
-import Generic.Random
-import Test.QuickCheck hiding (Sorted, Function)
-
+import GHC.Generics (Generic)
+import Generic.Random (genericArbitraryU, genericArbitraryRec, (%))
 import Data.Bitraversable (bitraverse)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (maybeToList)
-import Data.Scientific (Scientific)
-import qualified Data.Scientific as Sci
+import Data.Scientific (Scientific, scientific)
 import Data.Text (Text, pack, cons)
+import Test.QuickCheck (Arbitrary(..), shrinkList, Gen,
+                        oneof, choose, suchThat, listOf, listOf1)
 
 import Data.TPTP
 
@@ -108,7 +107,7 @@ instance Arbitrary Type where
 -- * First-order logic
 
 instance Arbitrary Scientific where
-  arbitrary = Sci.scientific <$> arbitrary <*> arbitrary
+  arbitrary = scientific <$> arbitrary <*> arbitrary
 
 instance Arbitrary Number where
   arbitrary = oneof [
