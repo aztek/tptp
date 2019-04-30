@@ -47,14 +47,14 @@ library
   if flag(Werror)
     ghc-options: -Werror
   build-depends:
-    base >= 4.5 && < 5.0,
-    text,
-    attoparsec,
-    scientific,
-    prettyprinter
+    base          >= 4.5    && < 5.0,
+    text          >= 1.2.3  && < 1.3,
+    attoparsec    >= 0.13.2 && < 0.14,
+    scientific    >= 0.3.6  && < 0.4,
+    prettyprinter >= 1.2.1  && < 1.3,
   if impl(ghc < 8)
     build-depends:
-      semigroups
+      semigroups  >= 0.16.1 && < 0.19
 
 test-suite quickcheck-spec
   type: exitcode-stdio-1.0
@@ -69,20 +69,20 @@ test-suite quickcheck-spec
   if flag(Werror)
     ghc-options: -Werror
   build-depends:
-    base >= 4.5 && < 5.0,
+    base,
     text,
     attoparsec,
     scientific,
     prettyprinter,
-    tptp,
-    generic-random,
-    QuickCheck
+    generic-random >= 1.2.0.0 && < 1.3,
+    QuickCheck     >= 2.4     && < 3.0,
+    tptp
   if impl(ghc < 8)
     build-depends:
       semigroups
   if impl(ghc < 8.2)
     build-depends:
-      bifunctors
+      bifunctors   >= 3.0.1   && < 6
 
 test-suite unit-tests
   type: detailed-0.9
@@ -98,12 +98,12 @@ test-suite unit-tests
   if (impl(ghc >= 8.0.0)) && (impl(ghc < 8.1.0))
     buildable: False
   build-depends:
-    Cabal,
-    base >= 4.5 && < 5.0,
-    extra,
+    base,
     text,
-    tptp,
-    directory >= 1.2.5
+    Cabal     >= 1.16.0,
+    extra     >= 1.4.4 && < 1.7,
+    directory >= 1.2.5 && < 1.4,
+    tptp
 
 test-suite doctests
   type: exitcode-stdio-1.0
@@ -118,6 +118,6 @@ test-suite doctests
   if impl(ghc < 8.4)
     buildable: False
   build-depends:
-    base >= 4.5 && < 5.0,
+    base,
     QuickCheck,
     doctest
