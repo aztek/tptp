@@ -23,8 +23,8 @@ import Data.TPTP.Parse.Combinators (whitespace, unit, tptp)
 
 -- | Parse a single TPTP unit from 'Lazy.Text'.
 parseUnit :: Text -> Result Unit
-parseUnit = parse (whitespace *> unit)
+parseUnit = parse (whitespace *> unit <* endOfInput)
 
--- | Parse a TPTP derivation from 'Lazy.Text'.
+-- | Parse a TPTP input from 'Lazy.Text'.
 parseTPTP :: Text -> Result TPTP
-parseTPTP = parse (whitespace *> tptp)
+parseTPTP = parse (whitespace *> tptp <* endOfInput)
