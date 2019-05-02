@@ -219,6 +219,10 @@ deriving instance Generic Intro
 instance Arbitrary Intro where
   arbitrary = genericArbitraryU
 
+deriving instance Generic Status
+instance Arbitrary Status where
+  arbitrary = genericArbitraryU
+
 deriving instance Generic Source
 instance Arbitrary Source where
   arbitrary = genericArbitraryRec (1 % 1 % 1 % 1 % 1 % 1 % 1 % ())

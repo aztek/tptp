@@ -81,6 +81,7 @@ module Data.TPTP (
   -- * Annotations
   Intro(..),
   Source(..),
+  Status(..),
   Parent(..),
   Expression(..),
   GeneralTerm(..),
@@ -716,6 +717,81 @@ data Source
   | UnitSource UnitName
   | UnknownSource
   deriving (Eq, Show, Ord)
+
+-- | The status of an inference.
+data Status
+  = SUC
+  | UNP
+  | SAP
+  | ESA
+  | SAT
+  | FSA
+  | THM
+  | EQV
+  | TAC
+  | WEC
+  | ETH
+  | TAU
+  | WTC
+  | WTH
+  | CAX
+  | SCA
+  | TCA
+  | WCA
+  | CUP
+  | CSP
+  | ECS
+  | CSA
+  | CTH
+  | CEQ
+  | UNC
+  | WCC
+  | ECT
+  | FUN
+  | UNS
+  | WUC
+  | WCT
+  | SCC
+  | UCA
+  | NOC
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named Status where
+  name = \case
+    SUC -> "suc"
+    UNP -> "unp"
+    SAP -> "sap"
+    ESA -> "esa"
+    SAT -> "sat"
+    FSA -> "fsa"
+    THM -> "thm"
+    EQV -> "eqv"
+    TAC -> "tac"
+    WEC -> "wec"
+    ETH -> "eth"
+    TAU -> "tau"
+    WTC -> "wtc"
+    WTH -> "wth"
+    CAX -> "cax"
+    SCA -> "sca"
+    TCA -> "tca"
+    WCA -> "wca"
+    CUP -> "cup"
+    CSP -> "csp"
+    ECS -> "ecs"
+    CSA -> "csa"
+    CTH -> "cth"
+    CEQ -> "ceq"
+    UNC -> "unc"
+    WCC -> "wcc"
+    ECT -> "ect"
+    FUN -> "fun"
+    UNS -> "uns"
+    WUC -> "wuc"
+    WCT -> "wct"
+    SCC -> "scc"
+    UCA -> "uca"
+    NOC -> "noc"
 
 -- | The parent of a formula in an inference.
 data Parent = Parent Source [GeneralTerm]

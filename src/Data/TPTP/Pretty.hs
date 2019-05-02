@@ -263,6 +263,9 @@ instance Pretty TPTP where
 instance Pretty Intro where
   pretty = pretty . name
 
+instance Pretty Status where
+  pretty = pretty . name
+
 instance Pretty Expression where
   pretty = \case
     Logical f -> application (DollarWord . name $ formulaLanguage f) [pretty f]
