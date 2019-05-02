@@ -709,7 +709,7 @@ instance Named Intro where
 -- | The source of a unit in a TSTP proof. Most commonly a formula is either
 -- defined in a 'File' or is the result of an 'Inference'.
 data Source
-  = File Atom (Maybe Atom)
+  = File Atom (Maybe UnitName)
   | Theory Atom (Maybe Info)
   | Creator Atom (Maybe Info)
   | Introduced (Reserved Intro) (Maybe Info)

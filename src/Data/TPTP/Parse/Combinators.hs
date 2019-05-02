@@ -426,7 +426,7 @@ parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 -- | Parse the source of a unit.
 source :: Parser Source
 source =  token "unknown"  $> UnknownSource
-      <|> app "file"       (File       <$> atom     <*> maybeP atom)
+      <|> app "file"       (File       <$> atom     <*> maybeP unitName)
       <|> app "theory"     (Theory     <$> atom     <*> maybeP info)
       <|> app "creator"    (Creator    <$> atom     <*> maybeP info)
       <|> app "introduced" (Introduced <$> reserved <*> maybeP info)
