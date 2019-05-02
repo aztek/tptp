@@ -260,8 +260,3 @@ instance Arbitrary GeneralTerm where
     GeneralData gd gt ->
       (GeneralData <$> shrink gd <*> shrinkMaybe shrink gt) ++ maybeToList gt
     GeneralList gts   -> (GeneralList <$> shrinkList shrink gts) ++ gts
-
-deriving instance Generic Info
-instance Arbitrary Info where
-  arbitrary = genericArbitraryRec (1 % ())
-  shrink (Info gts) = Info <$> shrinkList shrink gts

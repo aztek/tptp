@@ -249,8 +249,7 @@ instance Pretty Unit where
           Formula r _ -> pretty (name r)
 
         ann = case a of
-          Just (s, Just i)  -> [pretty s, pretty i]
-          Just (s, Nothing) -> [pretty s]
+          Just (s, i) -> pretty s : maybeToList (fmap prettyList i)
           Nothing -> []
 
   prettyList us = sep (fmap pretty us)
@@ -284,9 +283,6 @@ instance Pretty GeneralTerm where
     GeneralList gts   -> prettyList gts
   prettyList gts = brackets (fmap pretty gts `sepBy` comma)
 
-instance Pretty Info where
-  pretty (Info gts) = prettyList gts
-
 instance Pretty Parent where
   pretty (Parent s gts) = pretty s
                        <> if null gts then mempty else ":" <> prettyList gts
@@ -294,16 +290,15 @@ instance Pretty Parent where
 
 instance Pretty Source where
   pretty = \case
-    File (Atom n) i -> source "file"       (SingleQuoted n) i
-    Theory     n  i -> source "theory"     n i
-    Creator    n  i -> source "creator"    n i
-    Introduced n  i -> source "introduced" (name n) i
-    Inference  n  i ps -> application (Atom "inference")
-                                      [pretty n, pretty i, prettyList ps]
     UnitSource un -> pretty un
     UnknownSource -> "unknown"
+    File (Atom n) i -> source "file" (SingleQuoted n) (pretty     <$> i)
+    Theory     n  i -> source "theory"             n  (prettyList <$> i)
+    Creator    n  i -> source "creator"            n  (prettyList <$> i)
+    Introduced n  i -> source "introduced"         n  (prettyList <$> i)
+    Inference  n  i ps ->
+      application (Atom "inference") [pretty n, pretty i, prettyList ps]
     where
-      source :: (Pretty a, Pretty b) => Text -> a -> Maybe b -> Doc ann
-      source f n i = application f (pretty n : maybeToList (fmap pretty i))
+      source f n i = application (Atom f) (pretty n : maybeToList i)
 
   prettyList ss = brackets (fmap pretty ss `sepBy` comma)

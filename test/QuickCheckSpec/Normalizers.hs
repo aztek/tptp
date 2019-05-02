@@ -20,8 +20,7 @@ module Normalizers (
   normalizeSource,
   normalizeParent,
   normalizeGeneralData,
-  normalizeGeneralTerm,
-  normalizeInfo
+  normalizeGeneralTerm
 ) where
 
 import Data.TPTP
@@ -106,5 +105,5 @@ normalizeGeneralTerm = \case
                                    (fmap normalizeGeneralTerm gt)
   GeneralList gts -> GeneralList (fmap normalizeGeneralTerm gts)
 
-normalizeInfo :: Info -> Info
-normalizeInfo (Info gts) = Info (fmap normalizeGeneralTerm gts)
+normalizeInfo :: [GeneralTerm] -> [GeneralTerm]
+normalizeInfo = fmap normalizeGeneralTerm

@@ -85,7 +85,6 @@ module Data.TPTP (
   Expression(..),
   GeneralTerm(..),
   GeneralData(..),
-  Info(..),
   Annotation
 ) where
 
@@ -710,10 +709,10 @@ instance Named Intro where
 -- defined in a 'File' or is the result of an 'Inference'.
 data Source
   = File Atom (Maybe UnitName)
-  | Theory Atom (Maybe Info)
-  | Creator Atom (Maybe Info)
-  | Introduced (Reserved Intro) (Maybe Info)
-  | Inference Atom Info [Parent]
+  | Theory Atom (Maybe [GeneralTerm])
+  | Creator Atom (Maybe [GeneralTerm])
+  | Introduced (Reserved Intro) (Maybe [GeneralTerm])
+  | Inference Atom [GeneralTerm] [Parent]
   | UnitSource UnitName
   | UnknownSource
   deriving (Eq, Show, Ord)
@@ -743,9 +742,6 @@ data GeneralTerm
   | GeneralList [GeneralTerm]
   deriving (Eq, Show, Ord)
 
-newtype Info = Info [GeneralTerm]
-  deriving (Eq, Show, Ord)
-
 -- | The annotation of a unit. Most commonly, annotations are attached to units
 -- in TSTP proofs.
-type Annotation = (Source, Maybe Info)
+type Annotation = (Source, Maybe [GeneralTerm])

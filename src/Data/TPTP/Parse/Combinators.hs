@@ -42,7 +42,6 @@ module Data.TPTP.Parse.Combinators (
 
   -- * Annotations
   intro,
-  info,
   generalData,
   generalTerm,
   generalList,
@@ -390,9 +389,6 @@ intro :: Parser Intro
 intro = enum <?> "intro"
 {-# INLINE intro #-}
 
-info :: Parser Info
-info = Info <$> generalList <?> "info"
-
 -- | Parse and expression
 expr :: Parser Expression
 expr =  char '$' *> (Term    <$> (token "fot" *> parens term)
@@ -426,12 +422,12 @@ parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 -- | Parse the source of a unit.
 source :: Parser Source
 source =  token "unknown"  $> UnknownSource
-      <|> app "file"       (File       <$> atom     <*> maybeP unitName)
-      <|> app "theory"     (Theory     <$> atom     <*> maybeP info)
-      <|> app "creator"    (Creator    <$> atom     <*> maybeP info)
-      <|> app "introduced" (Introduced <$> reserved <*> maybeP info)
-      <|> app "inference"  (Inference  <$> atom     <*  op ','
-                                       <*> info     <*  op ',' <*> ps)
+      <|> app "file"       (File       <$> atom        <*> maybeP unitName)
+      <|> app "theory"     (Theory     <$> atom        <*> maybeP generalList)
+      <|> app "creator"    (Creator    <$> atom        <*> maybeP generalList)
+      <|> app "introduced" (Introduced <$> reserved    <*> maybeP generalList)
+      <|> app "inference"  (Inference  <$> atom        <*  op ','
+                                       <*> generalList <*  op ',' <*> ps)
       <|> UnitSource <$> unitName
       <?> "source"
   where
@@ -440,4 +436,4 @@ source =  token "unknown"  $> UnknownSource
 
 -- | Parse an annotation.
 annotation :: Parser Annotation
-annotation = (,) <$> source <*> maybeP info <?> "annotation"
+annotation = (,) <$> source <*> maybeP generalList <?> "annotation"
