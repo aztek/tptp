@@ -114,7 +114,7 @@ instance Named s => Pretty (Reserved s) where
 instance Pretty TFF1Sort where
   pretty = \case
     SortVariable v -> pretty v
-    TFF1Sort f ss -> application f (fmap pretty ss)
+    TFF1Sort  f ss -> application f (fmap pretty ss)
 
 prettyMapping :: Pretty a => [a] -> a -> Doc ann
 prettyMapping as r = args <> pretty r
@@ -141,15 +141,15 @@ instance Pretty Type where
 
 instance Pretty Number where
   pretty = \case
-    IntegerConstant i    -> pretty i
+    IntegerConstant    i -> pretty i
     RationalConstant n d -> pretty n <> "/" <> pretty d
-    RealConstant r       -> pretty (show r)
+    RealConstant       r -> pretty (show r)
 
 instance Pretty Term where
   pretty = \case
-    Function f ts  -> application f (fmap pretty ts)
-    Variable v     -> pretty v
-    Number i       -> pretty i
+    Function  f ts -> application f (fmap pretty ts)
+    Variable     v -> pretty v
+    Number       i -> pretty i
     DistinctTerm d -> pretty d
 
 instance Pretty Literal where
@@ -277,21 +277,22 @@ instance Pretty Expression where
 instance Pretty GeneralData where
   pretty = \case
     GeneralFunction f gts -> application f (fmap pretty gts)
-    GeneralVariable   v -> pretty v
-    GeneralNumber     n -> pretty n
-    GeneralExpression e -> pretty e
-    GeneralBind     v e -> application (Atom "bind") [pretty v, pretty e]
-    GeneralDistinct   d -> pretty d
+    GeneralVariable     v -> pretty v
+    GeneralNumber       n -> pretty n
+    GeneralExpression   e -> pretty e
+    GeneralBind       v e -> application (Atom "bind") [pretty v, pretty e]
+    GeneralDistinct     d -> pretty d
 
 instance Pretty GeneralTerm where
   pretty = \case
     GeneralData gd gt -> pretty gd <> maybe mempty (\t -> ":" <> pretty t) gt
-    GeneralList gts   -> prettyList gts
+    GeneralList   gts -> prettyList gts
   prettyList = bracketList
 
 instance Pretty Parent where
-  pretty (Parent s gts) = pretty s
-                       <> if null gts then mempty else ":" <> prettyList gts
+  pretty = \case
+    Parent s  [] -> pretty s
+    Parent s gts -> pretty s <> ":" <> prettyList gts
   prettyList = bracketList
 
 instance Pretty Source where

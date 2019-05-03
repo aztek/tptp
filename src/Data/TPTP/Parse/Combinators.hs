@@ -132,8 +132,13 @@ labeled :: Text -> Parser a -> Parser a
 labeled l p = token l *> parens p
 {-# INLINE labeled #-}
 
+comma :: Parser a -> Parser a
+comma p = op ',' *> p
+{-# INLINE comma #-}
+
 maybeP :: Parser a -> Parser (Maybe a)
-maybeP p = optional (op ',' *> p)
+maybeP = optional . comma
+{-# INLINE maybeP #-}
 
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
@@ -243,27 +248,32 @@ number =  RationalConstant <$> signed integer <* char '/' <*> integer
 term :: Parser Term
 term =  parens term
     <|> uncurry Function <$> application function term
-    <|> Variable <$> var
-    <|> Number   <$> number
-    <|> DistinctTerm <$> distinctObject
+    <|> Variable         <$> var
+    <|> Number           <$> number
+    <|> DistinctTerm     <$> distinctObject
     <?> "term"
 
--- | Parse the equality and unequality sign.
-sign :: Parser Sign
-sign = enum <?> "sign"
-{-# INLINE sign #-}
+-- | Parse the equality and the unequality sign.
+eq :: Parser Sign
+eq = enum <?> "eq"
+{-# INLINE eq #-}
 
 -- | Parse a literal.
 literal :: Parser Literal
 literal =  parens literal
-       <|> Equality <$> term <*> sign <*> term
+       <|> Equality <$> term <*> eq <*> term
        <|> uncurry Predicate <$> application predicate term
        <?> "literal"
 
+-- | Parse the negation sign.
+sign :: Parser Sign
+sign = option Positive (op '~' $> Negative)
+{-# INLINE sign #-}
+
 -- | Parse a signed literal.
 signedLiteral :: Parser (Sign, Literal)
-signedLiteral =  (,) <$> option Positive (op '~' $> Negative) <*> literal
-             <?> "signed literal"
+signedLiteral = (,) <$> sign <*> literal <?> "signed literal"
+{-# INLINE signedLiteral #-}
 
 -- | Parse a clause.
 clause :: Parser Clause
@@ -288,9 +298,9 @@ firstOrder p = do
   option f (Connected f <$> connective <*> firstOrder p)
   where
     unitary =  parens (firstOrder p)
-           <|> Atomic <$> literal
+           <|> Atomic     <$> literal
            <|> Quantified <$> quantifier <*> vs <* op ':' <*> unitary
-           <|> Negated <$> (op '~' *> unitary)
+           <|> Negated    <$> (op '~' *> unitary)
            <?> "unitary first order"
 
     vs = NEL.fromList <$> bracketList1 v
@@ -328,11 +338,11 @@ formula :: Language -> Parser Formula
 formula = \case
   CNF_ -> CNF <$> clause <?> "cnf"
   FOF_ -> FOF <$> unsortedFirstOrder <?> "fof"
-  TFF_ -> do
-    f <- polymorphicFirstOrder
-    return $ case monomorphizeFirstOrder f of
-      Just f' -> TFF0 f'
-      Nothing -> TFF1 f
+  TFF_ -> tff <$> polymorphicFirstOrder <?> "tff"
+  where
+    tff f = case monomorphizeFirstOrder f of
+     Just f' -> TFF0 f'
+     Nothing -> TFF1 f
 
 -- | Parse a formula role.
 role :: Parser (Reserved Role)
@@ -346,8 +356,8 @@ language = enum <?> "language"
 
 -- | Parse a TPTP declaration in a given language.
 declaration :: Language -> Parser Declaration
-declaration l =  token "type" *> op ',' *> optionalParens typeDeclaration
-             <|> (role <* op ',' >>= \r -> Formula r <$> formula l)
+declaration l =  token "type" *> comma (optionalParens typeDeclaration)
+             <|> Formula <$> role <*> comma (formula l)
              <?> "declaration"
 
 -- | Parse a declaration with the @type@ role - either a typing relation or
@@ -373,7 +383,7 @@ unitNames = bracketList1 unitName <?> "unit names"
 include :: Parser Unit
 include = labeled "include" (Include <$> atom <*> names) <* op '.' <?> "include"
   where
-    names = option [] (op ',' *> unitNames)
+    names = option [] (comma unitNames)
 
 -- | Parse an annotated unit.
 annotatedUnit :: Parser Unit
@@ -382,7 +392,7 @@ annotatedUnit = do
   let n = unitName
   let d = declaration l
   let a = maybeP annotation
-  parens (Unit <$> n <* op ',' <*> d <*> a) <* op '.'
+  parens (Unit <$> n <*> comma d <*> a) <* op '.'
   <?> "annotated unit"
 
 -- | Parse a TPTP unit.
@@ -409,7 +419,7 @@ expr =  char '$' *> (labeled "fot" (Term <$> term)
 
 -- | Parse general data.
 generalData :: Parser GeneralData
-generalData =  labeled "bind" (GeneralBind <$> var <* op ',' <*> expr)
+generalData =  labeled "bind" (GeneralBind <$> var <*> comma expr)
            <|> uncurry GeneralFunction <$> application atom generalTerm
            <|> GeneralVariable   <$> var
            <|> GeneralNumber     <$> number
@@ -439,12 +449,10 @@ source =  token "unknown" $> UnknownSource
       <|> labeled "theory"     (Theory     <$> atom     <*> maybeP generalList)
       <|> labeled "creator"    (Creator    <$> atom     <*> maybeP generalList)
       <|> labeled "introduced" (Introduced <$> reserved <*> maybeP generalList)
-      <|> labeled "inference"  (Inference  <$> atom <* op ',' <*> generalList
-                                           <*  op ',' <*> ps)
+      <|> labeled "inference"  (Inference  <$> atom     <*> comma  generalList
+                                           <*> comma (bracketList parent))
       <|> UnitSource <$> unitName
       <?> "source"
-  where
-    ps = bracketList parent
 
 -- | Parse an annotation.
 annotation :: Parser Annotation
