@@ -174,7 +174,7 @@ instance Pretty Connective where
   pretty = pretty . name
 
 instance Pretty Unsorted where
-  pretty = const mempty
+  pretty = mempty
 
 instance Pretty s => Pretty (Sorted s) where
   pretty (Sorted s) = maybe mempty (\a -> ":" <+> pretty a) s
