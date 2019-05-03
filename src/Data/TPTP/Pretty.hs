@@ -48,6 +48,9 @@ application :: Pretty f => f -> [Doc ann] -> Doc ann
 application f [] = pretty f
 application f as = pretty f <> parens (as `sepBy` comma)
 
+bracketList :: Pretty a => [a] -> Doc ann
+bracketList as = brackets (fmap pretty as `sepBy` comma)
+
 
 -- * Names
 
@@ -225,14 +228,14 @@ instance Pretty Formula where
 
 instance Pretty UnitName where
   pretty = either pretty pretty
-  prettyList ns = brackets (fmap pretty ns `sepBy` comma)
+  prettyList = bracketList
 
 instance Pretty Declaration where
   pretty = \case
     Formula _ f -> pretty f
     Typing  s t -> pretty s <> ":" <+> pretty t
-    Sort s ar ->
-      pretty s <> ":" <+> prettyMapping (genericReplicate ar tType) tType
+    Sort    s n -> pretty s <> ":" <+> prettyMapping tTypes tType
+      where tTypes = genericReplicate n tType
 
 instance Pretty Unit where
   pretty = \case
@@ -284,12 +287,12 @@ instance Pretty GeneralTerm where
   pretty = \case
     GeneralData gd gt -> pretty gd <> maybe mempty (\t -> ":" <> pretty t) gt
     GeneralList gts   -> prettyList gts
-  prettyList gts = brackets (fmap pretty gts `sepBy` comma)
+  prettyList = bracketList
 
 instance Pretty Parent where
   pretty (Parent s gts) = pretty s
                        <> if null gts then mempty else ":" <> prettyList gts
-  prettyList ps = brackets (fmap pretty ps `sepBy` comma)
+  prettyList = bracketList
 
 instance Pretty Source where
   pretty = \case
@@ -304,4 +307,4 @@ instance Pretty Source where
     where
       source f n i = application (Atom f) (pretty n : maybeToList i)
 
-  prettyList ss = brackets (fmap pretty ss `sepBy` comma)
+  prettyList = bracketList

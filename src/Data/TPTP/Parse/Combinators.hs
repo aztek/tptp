@@ -116,6 +116,14 @@ brackets :: Parser a -> Parser a
 brackets p = op '[' *> p <* op ']' <?> "brackets"
 {-# INLINE brackets #-}
 
+bracketList :: Parser a -> Parser [a]
+bracketList p = brackets (p `sepBy` op ',') <?> "bracket list"
+{-# INLINE bracketList #-}
+
+bracketList1 :: Parser a -> Parser [a]
+bracketList1 p = brackets (p `sepBy1` op ',') <?> "bracket list 1"
+{-# INLINE bracketList1 #-}
+
 application :: Parser f -> Parser a -> Parser (f, [a])
 application f a = (,) <$> f <*> option [] (parens (a `sepBy1` op ','))
 {-# INLINE application #-}
@@ -211,7 +219,7 @@ mapping s = (,) <$> option [] (args <* op '>') <*> s
 type_ :: Parser Type
 type_ = uncurry . tff1Type <$> option [] prefix <*> matrix <?> "type"
   where
-    prefix = token "!>" *> brackets (sortVar `sepBy1` op ',') <* op ':'
+    prefix = token "!>" *> bracketList1 sortVar <* op ':'
     sortVar = var <* op ':' <* token "$tType"
     matrix = optionalParens (mapping tff1Sort)
 
@@ -281,7 +289,7 @@ firstOrder p = do
            <|> Negated <$> (op '~' *> unitary)
            <?> "unitary first order"
 
-    vs = brackets (NEL.fromList <$> v `sepBy1` op ',')
+    vs = NEL.fromList <$> bracketList1 v
     v = (,) <$> var <*> p
 
 -- | Parse a formula in unsorted first-order logic.
@@ -354,7 +362,8 @@ unitName = eitherP atom (signed integer) <?> "unit name"
 
 -- | Parse a list of unit names.
 unitNames :: Parser [UnitName]
-unitNames = brackets (unitName `sepBy1` op ',')
+unitNames = bracketList1 unitName <?> "unit names"
+{-# INLINE unitNames #-}
 
 -- | Parse an @include@ statement.
 include :: Parser Unit
@@ -413,7 +422,8 @@ generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
 
 -- | Parse a list of general terms.
 generalList :: Parser [GeneralTerm]
-generalList = brackets (generalTerm `sepBy` op ',') <?> "general list"
+generalList = bracketList generalTerm <?> "general list"
+{-# INLINE generalList #-}
 
 -- | Parse a parent.
 parent :: Parser Parent
@@ -432,7 +442,7 @@ source =  token "unknown"  $> UnknownSource
       <?> "source"
   where
     app f as = token f *> parens as
-    ps = brackets (parent `sepBy` op ',')
+    ps = bracketList parent
 
 -- | Parse an annotation.
 annotation :: Parser Annotation
