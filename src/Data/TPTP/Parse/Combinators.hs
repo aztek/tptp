@@ -128,6 +128,10 @@ application :: Parser f -> Parser a -> Parser (f, [a])
 application f a = (,) <$> f <*> option [] (parens (a `sepBy1` op ','))
 {-# INLINE application #-}
 
+labeled :: Text -> Parser a -> Parser a
+labeled l p = token l *> parens p
+{-# INLINE labeled #-}
+
 maybeP :: Parser a -> Parser (Maybe a)
 maybeP p = optional (op ',' *> p)
 
@@ -367,8 +371,7 @@ unitNames = bracketList1 unitName <?> "unit names"
 
 -- | Parse an @include@ statement.
 include :: Parser Unit
-include =  token "include" *> parens (Include <$> atom <*> names) <* op '.'
-       <?> "include"
+include = labeled "include" (Include <$> atom <*> names) <* op '.' <?> "include"
   where
     names = option [] (op ',' *> unitNames)
 
@@ -400,13 +403,13 @@ intro = enum <?> "intro"
 
 -- | Parse and expression
 expr :: Parser Expression
-expr =  char '$' *> (Term    <$> (token "fot" *> parens term)
+expr =  char '$' *> (labeled "fot" (Term <$> term)
                 <|>  Logical <$> (language >>= parens . formula))
     <?> "expression"
 
 -- | Parse general data.
 generalData :: Parser GeneralData
-generalData =  token "bind" *> parens (GeneralBind <$> var <* op ',' <*> expr)
+generalData =  labeled "bind" (GeneralBind <$> var <* op ',' <*> expr)
            <|> uncurry GeneralFunction <$> application atom generalTerm
            <|> GeneralVariable   <$> var
            <|> GeneralNumber     <$> number
@@ -431,17 +434,16 @@ parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
 
 -- | Parse the source of a unit.
 source :: Parser Source
-source =  token "unknown"  $> UnknownSource
-      <|> app "file"       (File       <$> atom        <*> maybeP unitName)
-      <|> app "theory"     (Theory     <$> atom        <*> maybeP generalList)
-      <|> app "creator"    (Creator    <$> atom        <*> maybeP generalList)
-      <|> app "introduced" (Introduced <$> reserved    <*> maybeP generalList)
-      <|> app "inference"  (Inference  <$> atom        <*  op ','
-                                       <*> generalList <*  op ',' <*> ps)
+source =  token "unknown" $> UnknownSource
+      <|> labeled "file"       (File       <$> atom     <*> maybeP unitName)
+      <|> labeled "theory"     (Theory     <$> atom     <*> maybeP generalList)
+      <|> labeled "creator"    (Creator    <$> atom     <*> maybeP generalList)
+      <|> labeled "introduced" (Introduced <$> reserved <*> maybeP generalList)
+      <|> labeled "inference"  (Inference  <$> atom <* op ',' <*> generalList
+                                           <*  op ',' <*> ps)
       <|> UnitSource <$> unitName
       <?> "source"
   where
-    app f as = token f *> parens as
     ps = bracketList parent
 
 -- | Parse an annotation.
