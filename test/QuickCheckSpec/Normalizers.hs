@@ -18,9 +18,8 @@ module Normalizers (
   normalizeUnit,
   normalizeTPTP,
   normalizeSource,
-  normalizeParent,
-  normalizeGeneralData,
-  normalizeGeneralTerm
+  normalizeInfo,
+  normalizeParent
 ) where
 
 import Data.TPTP
@@ -67,7 +66,7 @@ normalizeUnit = \case
   Include f ns -> Include f ns
   Unit n d a -> Unit n (normalizeDeclaration d) (normalizeAnn a)
     where
-      normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap normalizeInfo i)
+      normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap (fmap normalizeInfo) i)
 
 normalizeTPTP :: TPTP -> TPTP
 normalizeTPTP (TPTP us) = TPTP (fmap normalizeUnit us)
@@ -77,33 +76,24 @@ normalizeTPTP (TPTP us) = TPTP (fmap normalizeUnit us)
 
 normalizeSource :: Source -> Source
 normalizeSource = \case
-  Theory f i -> Theory f (fmap normalizeInfo i)
-  Creator f i -> Creator f (fmap normalizeInfo i)
-  Introduced i inf -> Introduced i (fmap normalizeInfo inf)
-  Inference f i ps -> Inference f (normalizeInfo i) (fmap normalizeParent ps)
-  s -> s
+  Theory       f i -> Theory  f (fmap (fmap normalizeInfo) i)
+  Creator      f i -> Creator f (fmap (fmap normalizeInfo) i)
+  Introduced i inf -> Introduced i (fmap (fmap normalizeInfo) inf)
+  Inference f i ps -> Inference f (fmap normalizeInfo i) (fmap normalizeParent ps)
+  s                -> s
 
 normalizeParent :: Parent -> Parent
-normalizeParent (Parent s gts) =
-  Parent (normalizeSource s) (fmap normalizeGeneralTerm gts)
+normalizeParent (Parent s i) = Parent (normalizeSource s) (fmap normalizeInfo i)
 
 normalizeExpression :: Expression -> Expression
 normalizeExpression = \case
   Logical f -> Logical (normalizeFormula f)
   Term    t -> Term t
 
-normalizeGeneralData :: GeneralData -> GeneralData
-normalizeGeneralData = \case
-  GeneralFunction f gts -> GeneralFunction f (fmap normalizeGeneralTerm gts)
-  GeneralExpression e -> GeneralExpression (normalizeExpression e)
-  GeneralBind v e -> GeneralBind v (normalizeExpression e)
-  gd -> gd
-
-normalizeGeneralTerm :: GeneralTerm -> GeneralTerm
-normalizeGeneralTerm = \case
-  GeneralData gd gt -> GeneralData (normalizeGeneralData gd)
-                                   (fmap normalizeGeneralTerm gt)
-  GeneralList gts -> GeneralList (fmap normalizeGeneralTerm gts)
-
-normalizeInfo :: [GeneralTerm] -> [GeneralTerm]
-normalizeInfo = fmap normalizeGeneralTerm
+normalizeInfo :: Info -> Info
+normalizeInfo = \case
+  Expression     e -> Expression (normalizeExpression e)
+  Bind         v e -> Bind v (normalizeExpression e)
+  Application f is -> Application f (fmap normalizeInfo is)
+  Infos         is -> Infos (fmap normalizeInfo is)
+  i                -> i

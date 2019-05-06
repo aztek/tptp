@@ -18,7 +18,6 @@ import GHC.Generics (Generic)
 import Generic.Random (genericArbitraryU, genericArbitraryRec, (%))
 import Data.Bitraversable (bitraverse)
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.Maybe (maybeToList)
 import Data.Scientific (Scientific, scientific)
 import Data.Text (Text, pack, cons)
 import Test.QuickCheck (Arbitrary(..), shrinkList, Gen,
@@ -223,23 +222,39 @@ deriving instance Generic Status
 instance Arbitrary Status where
   arbitrary = genericArbitraryU
 
+deriving instance Generic Info
+instance Arbitrary Info where
+  arbitrary = genericArbitraryRec (1 % 1 % 1 % 1 % 1 % 1 % 1 % 1 % 1 % 1 % 1 % ())
+  shrink = \case
+    Description{}    -> []
+    Iquote{}         -> []
+    Status{}         -> []
+    Refutation{}     -> []
+    InfoNumber{}     -> []
+    Assumptions   un -> Assumptions   <$> shrink un
+    NewSymbols  n ss -> NewSymbols  n <$> shrink ss
+    Expression     e -> Expression    <$> shrink e
+    Bind         v e -> Bind        v <$> shrink e
+    Application f as -> Application f <$> shrinkList shrink as
+    Infos         is -> Infos         <$> shrinkList shrink is
+
 deriving instance Generic Source
 instance Arbitrary Source where
   arbitrary = genericArbitraryRec (1 % 1 % 1 % 1 % 1 % 1 % 1 % ())
   shrink = \case
-    UnknownSource -> []
-    UnitSource{} -> []
-    File{} -> []
-    Theory  n info -> Theory  n <$> shrinkMaybe shrink info
-    Creator n info -> Creator n <$> shrinkMaybe shrink info
-    Introduced i info -> Introduced i <$> shrinkMaybe shrink info
-    Inference n i ps ->
-      Inference n <$> shrink i <*> concatMap (shrinkList shrink) (shrink ps)
+    UnknownSource    -> []
+    UnitSource{}     -> []
+    File{}           -> []
+    Theory      n is -> Theory     n <$> shrinkMaybe shrink is
+    Creator     n is -> Creator    n <$> shrinkMaybe shrink is
+    Introduced  i is -> Introduced i <$> shrinkMaybe shrink is
+    Inference n i ps -> Inference  n <$> shrink i <*> ps'
+      where ps' = concatMap (shrinkList shrink) (shrink ps)
 
 deriving instance Generic Parent
 instance Arbitrary Parent where
   arbitrary = genericArbitraryRec (1 % ())
-  shrink (Parent s gts) = Parent <$> shrink s <*> shrinkList shrink gts
+  shrink (Parent s i) = Parent <$> shrink s <*> shrinkList shrink i
 
 deriving instance Generic Expression
 instance Arbitrary Expression where
@@ -247,20 +262,3 @@ instance Arbitrary Expression where
   shrink = \case
     Logical f -> Logical <$> shrink f
     Term    t -> Term    <$> shrink t
-
-deriving instance Generic GeneralData
-instance Arbitrary GeneralData where
-  arbitrary = genericArbitraryRec (1 % 2 % 2 % 2 % 2 % 1 % ())
-  shrink = \case
-    GeneralFunction f gts -> GeneralFunction f <$> shrinkList shrink gts
-    GeneralExpression e -> GeneralExpression <$> shrink e
-    GeneralBind v e -> GeneralBind v <$> shrink e
-    _ -> []
-
-deriving instance Generic GeneralTerm
-instance Arbitrary GeneralTerm where
-  arbitrary = genericArbitraryRec (1 % 1 % ())
-  shrink = \case
-    GeneralData gd gt ->
-      (GeneralData <$> shrink gd <*> shrinkMaybe shrink gt) ++ maybeToList gt
-    GeneralList gts   -> (GeneralList <$> shrinkList shrink gts) ++ gts

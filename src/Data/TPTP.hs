@@ -84,8 +84,7 @@ module Data.TPTP (
   Status(..),
   Parent(..),
   Expression(..),
-  GeneralTerm(..),
-  GeneralData(..),
+  Info(..),
   Annotation
 ) where
 
@@ -710,50 +709,21 @@ instance Named Intro where
 -- defined in a 'File' or is the result of an 'Inference'.
 data Source
   = File Atom (Maybe UnitName)
-  | Theory Atom (Maybe [GeneralTerm])
-  | Creator Atom (Maybe [GeneralTerm])
-  | Introduced (Reserved Intro) (Maybe [GeneralTerm])
-  | Inference Atom [GeneralTerm] [Parent]
+  | Theory Atom (Maybe [Info])
+  | Creator Atom (Maybe [Info])
+  | Introduced (Reserved Intro) (Maybe [Info])
+  | Inference Atom [Info] [Parent]
   | UnitSource UnitName
   | UnknownSource
   deriving (Eq, Show, Ord)
 
 -- | The status of an inference.
+-- See <http://www.tptp.org/Seminars/SZSOntologies/Summary.html The SZS Ontologies>
+-- for details.
 data Status
-  = SUC
-  | UNP
-  | SAP
-  | ESA
-  | SAT
-  | FSA
-  | THM
-  | EQV
-  | TAC
-  | WEC
-  | ETH
-  | TAU
-  | WTC
-  | WTH
-  | CAX
-  | SCA
-  | TCA
-  | WCA
-  | CUP
-  | CSP
-  | ECS
-  | CSA
-  | CTH
-  | CEQ
-  | UNC
-  | WCC
-  | ECT
-  | FUN
-  | UNS
-  | WUC
-  | WCT
-  | SCC
-  | UCA
-  | NOC
+  = SUC | UNP | SAP | ESA | SAT | FSA | THM | EQV | TAC | WEC | ETH | TAU | WTC
+  | WTH | CAX | SCA | TCA | WCA | CUP | CSP | ECS | CSA | CTH | CEQ | UNC | WCC
+  | ECT | FUN | UNS | WUC | WCT | SCC | UCA | NOC
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Status where
@@ -794,7 +764,7 @@ instance Named Status where
     NOC -> "noc"
 
 -- | The parent of a formula in an inference.
-data Parent = Parent Source [GeneralTerm]
+data Parent = Parent Source [Info]
   deriving (Eq, Show, Ord)
 
 -- | An expression is either a formula or a term.
@@ -804,20 +774,21 @@ data Expression
   | Term Term
   deriving (Eq, Show, Ord)
 
-data GeneralData
-  = GeneralFunction Atom [GeneralTerm]
-  | GeneralVariable Var
-  | GeneralNumber Number
-  | GeneralDistinct DistinctObject
-  | GeneralExpression Expression
-  | GeneralBind Var Expression
-  deriving (Eq, Show, Ord)
-
-data GeneralTerm
-  = GeneralData GeneralData (Maybe GeneralTerm)
-  | GeneralList [GeneralTerm]
+-- | The information about a formula.
+data Info
+  = Description Atom
+  | Iquote Atom
+  | Status (Reserved Status)
+  | Assumptions [UnitName]
+  | NewSymbols Atom [Either Var Atom]
+  | Refutation Atom
+  | Expression Expression
+  | Bind Var Expression
+  | Application Atom [Info]
+  | InfoNumber Number
+  | Infos [Info]
   deriving (Eq, Show, Ord)
 
 -- | The annotation of a unit. Most commonly, annotations are attached to units
 -- in TSTP proofs.
-type Annotation = (Source, Maybe [GeneralTerm])
+type Annotation = (Source, Maybe [Info])

@@ -125,14 +125,11 @@ prop_ipp_TPTP = ippModulo normalizeTPTP tptp
 prop_ipp_Parent :: Parent -> Property
 prop_ipp_Parent = ippModulo normalizeParent parent
 
-prop_ipp_GeneralData :: GeneralData -> Property
-prop_ipp_GeneralData = ippModulo normalizeGeneralData generalData
-
-prop_ipp_GeneralTerm :: GeneralTerm -> Property
-prop_ipp_GeneralTerm = ippModulo normalizeGeneralTerm generalTerm
-
 prop_ipp_Source :: Source -> Property
 prop_ipp_Source = ippModulo normalizeSource source
+
+prop_ipp_Info :: Info -> Property
+prop_ipp_Info = ippModulo normalizeInfo info
 
 
 -- * Runner

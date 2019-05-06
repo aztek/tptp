@@ -270,26 +270,30 @@ instance Pretty Intro where
 instance Pretty Status where
   pretty = pretty . name
 
+instance Pretty (Either Var Atom) where
+  pretty = either pretty pretty
+  prettyList = bracketList
+
+instance Pretty Info where
+  pretty = \case
+    Description    a -> application (Atom "description") [pretty a]
+    Iquote         a -> application (Atom "iquote")      [pretty a]
+    Status         s -> application (Atom "status")      [pretty s]
+    Assumptions    u -> application (Atom "assumptions") [prettyList u]
+    NewSymbols  n ss -> application (Atom "new_symbols") [pretty n, prettyList ss]
+    Refutation     a -> application (Atom "refutation")  [pretty a]
+    Bind         v e -> application (Atom "bind")        [pretty v, pretty e]
+    Application f as -> application f                    (fmap pretty as)
+    Expression     e -> pretty e
+    InfoNumber     n -> pretty n
+    Infos         is -> prettyList is
+
+  prettyList = bracketList
+
 instance Pretty Expression where
   pretty = \case
     Logical f -> application (DollarWord . name $ formulaLanguage f) [pretty f]
     Term    t -> application (DollarWord "fot") [pretty t]
-
-instance Pretty GeneralData where
-  pretty = \case
-    GeneralFunction f gts -> application f (fmap pretty gts)
-    GeneralVariable     v -> pretty v
-    GeneralNumber       n -> pretty n
-    GeneralExpression   e -> pretty e
-    GeneralBind       v e -> application (Atom "bind") [pretty v, pretty e]
-    GeneralDistinct     d -> pretty d
-
-instance Pretty GeneralTerm where
-  pretty = \case
-    GeneralData gd Nothing  -> pretty gd
-    GeneralData gd (Just t) -> pretty gd <> ":" <> pretty t
-    GeneralList gts -> prettyList gts
-  prettyList = bracketList
 
 instance Pretty Parent where
   pretty = \case

@@ -42,11 +42,9 @@ module Data.TPTP.Parse.Combinators (
 
   -- * Annotations
   intro,
-  generalData,
-  generalTerm,
-  generalList,
   parent,
-  source
+  source,
+  info
 ) where
 
 import Control.Applicative ((<|>), optional)
@@ -412,49 +410,48 @@ intro :: Parser Intro
 intro = enum <?> "intro"
 {-# INLINE intro #-}
 
+-- | Parse a unit of information about a formula.
+info :: Parser Info
+info =  labeled "description" (Description <$> atom)
+    <|> labeled "iquote"      (Iquote      <$> atom)
+    <|> labeled "status"      (Status      <$> reserved)
+    <|> labeled "assumptions" (Assumptions <$> unitNames)
+    <|> labeled "refutation"  (Refutation  <$> atom)
+    <|> labeled "new_symbols" (NewSymbols  <$> atom <*> comma symbols)
+    <|> labeled "bind"        (Bind <$> var <*> comma expr)
+    <|> Expression <$> expr
+    <|> uncurry Application <$> application atom info
+    <|> InfoNumber <$> number
+    <|> Infos <$> infos
+  where
+    symbols = bracketList (eitherP var atom)
+
+infos :: Parser [Info]
+infos = bracketList info <?> "infos"
+{-# INLINE infos #-}
+
 -- | Parse and expression
 expr :: Parser Expression
 expr =  char '$' *> (labeled "fot" (Term <$> term)
                 <|>  Logical <$> (language >>= parens . formula))
     <?> "expression"
 
--- | Parse general data.
-generalData :: Parser GeneralData
-generalData =  labeled "bind" (GeneralBind <$> var <*> comma expr)
-           <|> uncurry GeneralFunction <$> application atom generalTerm
-           <|> GeneralVariable   <$> var
-           <|> GeneralNumber     <$> number
-           <|> GeneralExpression <$> expr
-           <|> GeneralDistinct   <$> distinctObject
-           <?> "general data"
-
--- | Parse a general term.
-generalTerm :: Parser GeneralTerm
-generalTerm =  GeneralData <$> generalData <*> optional (op ':' *> generalTerm)
-           <|> GeneralList <$> generalList
-           <?> "general term"
-
--- | Parse a list of general terms.
-generalList :: Parser [GeneralTerm]
-generalList = bracketList generalTerm <?> "general list"
-{-# INLINE generalList #-}
-
 -- | Parse a parent.
 parent :: Parser Parent
-parent = Parent <$> source <*> option [] (op ':' *> generalList) <?> "parent"
+parent = Parent <$> source <*> option [] (op ':' *> infos) <?> "parent"
 
 -- | Parse the source of a unit.
 source :: Parser Source
 source =  token "unknown" $> UnknownSource
       <|> labeled "file"       (File       <$> atom     <*> maybeP unitName)
-      <|> labeled "theory"     (Theory     <$> atom     <*> maybeP generalList)
-      <|> labeled "creator"    (Creator    <$> atom     <*> maybeP generalList)
-      <|> labeled "introduced" (Introduced <$> reserved <*> maybeP generalList)
-      <|> labeled "inference"  (Inference  <$> atom     <*> comma  generalList
+      <|> labeled "theory"     (Theory     <$> atom     <*> maybeP infos)
+      <|> labeled "creator"    (Creator    <$> atom     <*> maybeP infos)
+      <|> labeled "introduced" (Introduced <$> reserved <*> maybeP infos)
+      <|> labeled "inference"  (Inference  <$> atom     <*> comma  infos
                                            <*> comma (bracketList parent))
       <|> UnitSource <$> unitName
       <?> "source"
 
 -- | Parse an annotation.
 annotation :: Parser Annotation
-annotation = (,) <$> source <*> maybeP generalList <?> "annotation"
+annotation = (,) <$> source <*> maybeP infos <?> "annotation"
