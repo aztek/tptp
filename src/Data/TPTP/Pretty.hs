@@ -177,7 +177,9 @@ instance Pretty Unsorted where
   pretty = mempty
 
 instance Pretty s => Pretty (Sorted s) where
-  pretty (Sorted s) = maybe mempty (\a -> ":" <+> pretty a) s
+  pretty = \case
+    Sorted Nothing  -> mempty
+    Sorted (Just s) -> ":" <+> pretty s
 
 instance Pretty QuantifiedSort where
   pretty = const (pretty tType)
@@ -205,8 +207,7 @@ instance Pretty s => Pretty (FirstOrder s) where
       where
         -- Nested applications of associative connectives do not require
         -- parenthesis. Otherwise, the connectives do not have precedence
-        pretty'' e@(Connected _ c' _)
-          | c' == c && isAssociative c = pretty e
+        pretty'' e@(Connected _ c' _) | c' == c && isAssociative c = pretty e
         pretty'' e = pretty' e
     Quantified q vs f -> pretty q <+> vs' <> ":" <+> pretty' f
       where
@@ -285,8 +286,9 @@ instance Pretty GeneralData where
 
 instance Pretty GeneralTerm where
   pretty = \case
-    GeneralData gd gt -> pretty gd <> maybe mempty (\t -> ":" <> pretty t) gt
-    GeneralList   gts -> prettyList gts
+    GeneralData gd Nothing  -> pretty gd
+    GeneralData gd (Just t) -> pretty gd <> ":" <> pretty t
+    GeneralList gts -> prettyList gts
   prettyList = bracketList
 
 instance Pretty Parent where
