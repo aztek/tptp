@@ -12,9 +12,8 @@
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
--- The implementation of this module follows the
--- [BNF grammar](http://tptp.cs.miami.edu/TPTP/SyntaxBNF.html)
--- definition of the TPTP language.
+-- See [the BNF grammar](http://tptp.cs.miami.edu/TPTP/SyntaxBNF.html)
+-- definition of the TPTP language for details.
 --
 
 module Data.TPTP (
@@ -334,7 +333,6 @@ instance Named Function where
     ToReal     -> "to_real"
 
 -- | The standard predicate symbol in TPTP.
--- Represents an operation in a first-order theory of arithmetic.
 data Predicate
   = Tautology
   | Falsum
@@ -359,7 +357,8 @@ instance Named Predicate where
     IsInt     -> "is_int"
     IsRat     -> "is_rat"
 
--- | The name of a function symbol, a predicate symbol or a sort.
+-- | The name of a function symbol, a predicate symbol, a sort, a formula role
+-- or other.
 --
 -- > >>> print (pretty (Reserved (Standard I)))
 -- > $i
