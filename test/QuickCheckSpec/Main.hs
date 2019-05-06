@@ -20,7 +20,7 @@ import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import Test.QuickCheck (Property, Args(..), stdArgs, (===), whenFail,
                         forAllProperties, quickCheckWithResult)
 
-import Data.TPTP
+import Data.TPTP hiding (clause)
 import Data.TPTP.Parse.Combinators
 import Data.TPTP.Pretty
 
