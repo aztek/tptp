@@ -62,7 +62,7 @@ import qualified Data.Scientific as Sci (base10Exponent, coefficient)
 import Data.Text (Text)
 import qualified Data.Text as Text (pack, unpack, cons)
 
-import Data.TPTP hiding (name)
+import Data.TPTP hiding (name, clause)
 import qualified Data.TPTP as TPTP (name)
 
 

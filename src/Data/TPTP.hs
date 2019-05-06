@@ -54,10 +54,12 @@ module Data.TPTP (
   Literal(..),
   Sign(..),
   Clause(..),
+  clause,
   Quantifier(..),
   Connective(..),
   isAssociative,
   FirstOrder(..),
+  quantified,
   Unsorted(..),
   Sorted(..),
   QuantifiedSort(..),
@@ -89,7 +91,7 @@ module Data.TPTP (
 
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.List (find)
-import Data.List.NonEmpty (NonEmpty)
+import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Scientific (Scientific)
 import Data.String (IsString, fromString)
 import qualified Data.Text as Text (all, null, head, tail)
@@ -501,6 +503,16 @@ data Literal
 newtype Clause = Clause (NonEmpty (Sign, Literal))
   deriving (Eq, Show, Ord)
 
+-- | A smart constructor for 'Clause'. 'clause' constructs a clause from a
+-- possibly empty list of signed literals. If the provided list is empty,
+-- the unit clause @$false@ is constructed instead.
+clause :: [(Sign, Literal)] -> Clause
+clause ls
+  | Just ls' <- nonEmpty ls = Clause ls'
+  | otherwise = Clause ((Positive, falsum) :| [])
+  where
+    falsum = Predicate (Reserved (Standard Falsum)) []
+
 -- | The quantifier in first-order logic.
 data Quantifier
   = Forall -- ^ The universal quantifier.
@@ -564,6 +576,14 @@ data FirstOrder s
   | Connected (FirstOrder s) Connective (FirstOrder s)
   | Quantified Quantifier (NonEmpty (Var, s)) (FirstOrder s)
   deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
+
+-- | A smart constructor for 'Quantified' - constructs a quantified first-order
+-- formula with a possibly empty list of variables under the quantifier. If the
+-- provided list is empty, the underlying formula is returned instead.
+quantified :: Quantifier -> [(Var, s)] -> FirstOrder s -> FirstOrder s
+quantified q vs f
+  | Just vs' <- nonEmpty vs = Quantified q vs' f
+  | otherwise = f
 
 -- | The (empty) sort annotation in unsorted first-order logic.
 newtype Unsorted = Unsorted ()
