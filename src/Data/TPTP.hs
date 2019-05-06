@@ -376,6 +376,10 @@ data Name s
   | Defined Atom          -- ^ The name defined by the user.
   deriving (Eq, Show, Ord)
 
+-- | The 'IsString' instance of 'Name' opts for using the 'Defined' constructor.
+instance IsString (Name s) where
+  fromString = Defined . fromString
+
 
 -- * Sorts and types
 
