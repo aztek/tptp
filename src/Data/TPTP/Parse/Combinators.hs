@@ -53,6 +53,7 @@ import Control.Applicative ((<|>), optional)
 
 import Data.Attoparsec.Text as Atto hiding (Number, number)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
+import Data.Function (on)
 import Data.Functor (($>))
 import Data.List (sortBy, genericLength)
 import qualified Data.List.NonEmpty as NEL (fromList)
@@ -143,7 +144,7 @@ maybeP = optional . comma
 enum :: (Named a, Enum a, Bounded a) => Parser a
 enum = choice
      $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ Text.unpack n)
-     $ sortBy (\(a, _) (b, _) -> b `compare` a)
+     $ sortBy (flip compare `on` fst)
      $ fmap (\c -> (TPTP.name c, c)) [minBound..]
 
 
