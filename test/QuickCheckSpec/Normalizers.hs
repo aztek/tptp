@@ -31,12 +31,12 @@ import Data.TPTP
 -- left associative
 reassociate :: FirstOrder s -> FirstOrder s
 reassociate = \case
-  Atomic l -> Atomic l
-  Negated f -> Negated (reassociate f)
+  Atomic          l -> Atomic l
+  Negated         f -> Negated (reassociate f)
   Quantified q vs f -> Quantified q vs (reassociate f)
   Connected f c (Connected g c' h) | c == c' && isAssociative c ->
     reassociate (Connected (Connected f c g) c h)
-  Connected f c g -> Connected (reassociate f) c (reassociate g)
+  Connected   f c g -> Connected (reassociate f) c (reassociate g)
 
 
 -- * Units
@@ -64,7 +64,7 @@ normalizeDeclaration = \case
 normalizeUnit :: Unit -> Unit
 normalizeUnit = \case
   Include f ns -> Include f ns
-  Unit n d a -> Unit n (normalizeDeclaration d) (normalizeAnn a)
+  Unit   n d a -> Unit n (normalizeDeclaration d) (normalizeAnn a)
     where
       normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap (fmap normalizeInfo) i)
 
@@ -76,11 +76,11 @@ normalizeTPTP (TPTP us) = TPTP (fmap normalizeUnit us)
 
 normalizeSource :: Source -> Source
 normalizeSource = \case
-  Theory       f i -> Theory  f (fmap (fmap normalizeInfo) i)
-  Creator      f i -> Creator f (fmap (fmap normalizeInfo) i)
+  Theory       f i -> Theory     f (fmap (fmap normalizeInfo) i)
+  Creator      f i -> Creator    f (fmap (fmap normalizeInfo) i)
   Introduced i inf -> Introduced i (fmap (fmap normalizeInfo) inf)
-  Inference f i ps -> Inference f (fmap normalizeInfo i) (fmap normalizeParent ps)
-  s                -> s
+  Inference f i ps -> Inference  f (fmap normalizeInfo i) (fmap normalizeParent ps)
+  s -> s
 
 normalizeParent :: Parent -> Parent
 normalizeParent (Parent s i) = Parent (normalizeSource s) (fmap normalizeInfo i)
@@ -96,4 +96,4 @@ normalizeInfo = \case
   Bind         v e -> Bind v (normalizeExpression e)
   Application f is -> Application f (fmap normalizeInfo is)
   Infos         is -> Infos (fmap normalizeInfo is)
-  i                -> i
+  i -> i

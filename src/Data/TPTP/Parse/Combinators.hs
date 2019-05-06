@@ -307,8 +307,7 @@ firstOrder p = do
            <|> Negated    <$> (op '~' *> unitary)
            <?> "unitary first order"
 
-    vs = bracketList1 v
-    v = (,) <$> var <*> p
+    vs = bracketList1 $ (,) <$> var <*> p
 
 -- | Parse a formula in unsorted first-order logic.
 unsortedFirstOrder :: Parser UnsortedFirstOrder

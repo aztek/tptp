@@ -92,15 +92,14 @@ instance Arbitrary TFF1Sort where
   arbitrary = genericArbitraryRec (1 % 1 % ())
   shrink = \case
     SortVariable{} -> []
-    TFF1Sort f ss -> (TFF1Sort f <$> shrinkList shrink ss) ++ ss
+    TFF1Sort  f ss -> ss ++ (TFF1Sort f <$> shrinkList shrink ss)
 
 deriving instance Generic Type
 instance Arbitrary Type where
   arbitrary = genericArbitraryU
   shrink = \case
-    Type as r -> Type <$> shrinkList shrink as <*> pure r
-    TFF1Type vs as r ->
-      TFF1Type <$> shrink vs <*> shrinkList shrink as <*> shrink r
+    Type        as r -> Type     <$>               shrinkList shrink as <*> shrink r
+    TFF1Type vs as r -> TFF1Type <$> shrink vs <*> shrinkList shrink as <*> shrink r
 
 
 -- * First-order logic
@@ -164,10 +163,10 @@ deriving instance Generic (FirstOrder s)
 instance Arbitrary s => Arbitrary (FirstOrder s) where
   arbitrary = genericArbitraryRec (3 % 2 % 2 % 1 % ())
   shrink = \case
-    Atomic l -> Atomic <$> shrink l
-    Negated f -> f : (Negated <$> shrink f)
+    Atomic          l -> Atomic <$> shrink l
+    Negated         f -> f : (Negated <$> shrink f)
     Quantified q vs f -> f : (Quantified q vs <$> shrink f)
-    Connected f c g -> f : g : (Connected <$> shrink f <*> pure c <*> shrink g)
+    Connected   f c g -> f : g : (Connected <$> shrink f <*> pure c <*> shrink g)
 
 
 -- * Units
@@ -202,7 +201,7 @@ instance Arbitrary Unit where
   arbitrary = genericArbitraryU
   shrink = \case
     Include f ns -> Include f <$> shrink ns
-    Unit n d a -> Unit n <$> shrink d <*> shrinkAnnotation a
+    Unit   n d a -> Unit    n <$> shrink d <*> shrinkAnnotation a
       where
         shrinkAnnotation = shrinkMaybe $ bitraverse shrink (shrinkMaybe shrink)
 
