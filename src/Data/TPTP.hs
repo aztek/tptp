@@ -242,9 +242,6 @@ data Reserved s
                   -- implements uses the sort constructor @$array@.
   deriving (Eq, Show, Ord)
 
-instance IsString (Reserved s) where
-  fromString = Extended . fromString
-
 -- | A smart 'Extended' constructor - only uses 'Extended' if the given string
 -- does not correspond to any of the standard identifiers.
 --
@@ -257,6 +254,9 @@ extended :: (Named a, Enum a, Bounded a) => Text -> Reserved a
 extended t
   | Just a <- find (\a -> name a == t) [minBound..] = Standard a
   | otherwise = Extended t
+
+instance (Named a, Enum a, Bounded a) => IsString (Reserved a) where
+  fromString = extended . fromString
 
 -- | Check whether a given string is a valid reserved identifier.
 --
