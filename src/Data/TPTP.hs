@@ -674,7 +674,7 @@ type UnitName = Either Atom Integer
 
 -- | The unit of the TPTP input.
 data Unit
-  = Include Atom [UnitName]
+  = Include Atom (Maybe (NonEmpty UnitName))
   -- ^ The @include@ statement.
   | Unit UnitName Declaration (Maybe Annotation)
   -- ^ The named and possibly annotated logical declaration.
@@ -779,7 +779,7 @@ data Info
   = Description Atom
   | Iquote Atom
   | Status (Reserved Status)
-  | Assumptions [UnitName]
+  | Assumptions (NonEmpty UnitName)
   | NewSymbols Atom [Either Var Atom]
   | Refutation Atom
   | Expression Expression

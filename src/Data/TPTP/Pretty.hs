@@ -51,6 +51,9 @@ application f as = pretty f <> parens (as `sepBy` comma)
 bracketList :: Pretty a => [a] -> Doc ann
 bracketList as = brackets (fmap pretty as `sepBy` comma)
 
+bracketList1 :: Pretty a => NonEmpty a -> Doc ann
+bracketList1 as = brackets (fmap pretty as `sepBy1` comma)
+
 
 -- * Names
 
@@ -242,7 +245,7 @@ instance Pretty Unit where
   pretty = \case
     Include (Atom f) ns -> application (Atom "include") args <> "."
       where
-        args = pretty (SingleQuoted f) : [prettyList ns | not (null ns)]
+        args = pretty (SingleQuoted f) : maybeToList (fmap bracketList1 ns)
     Unit nm decl a -> application (declarationLanguage decl) args <> "."
       where
         args = pretty nm : role : pretty decl : ann
@@ -279,7 +282,7 @@ instance Pretty Info where
     Description    a -> application (Atom "description") [pretty a]
     Iquote         a -> application (Atom "iquote")      [pretty a]
     Status         s -> application (Atom "status")      [pretty s]
-    Assumptions    u -> application (Atom "assumptions") [prettyList u]
+    Assumptions    u -> application (Atom "assumptions") [bracketList1 u]
     NewSymbols  n ss -> application (Atom "new_symbols") [pretty n, prettyList ss]
     Refutation     a -> application (Atom "refutation")  [pretty a]
     Bind         v e -> application (Atom "bind")        [pretty v, pretty e]

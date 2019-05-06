@@ -54,7 +54,8 @@ import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Function (on)
 import Data.Functor (($>))
 import Data.List (sortBy, genericLength)
-import qualified Data.List.NonEmpty as NEL (fromList)
+import Data.List.NonEmpty (NonEmpty)
+import qualified Data.List.NonEmpty as NEL (fromList, toList)
 
 import qualified Data.Scientific as Sci (base10Exponent, coefficient)
 
@@ -119,8 +120,9 @@ bracketList :: Parser a -> Parser [a]
 bracketList p = brackets (p `sepBy` op ',') <?> "bracket list"
 {-# INLINE bracketList #-}
 
-bracketList1 :: Parser a -> Parser [a]
-bracketList1 p = brackets (p `sepBy1` op ',') <?> "bracket list 1"
+bracketList1 :: Parser a -> Parser (NonEmpty a)
+bracketList1 p =  NEL.fromList <$> brackets (p `sepBy1` op ',')
+              <?> "bracket list 1"
 {-# INLINE bracketList1 #-}
 
 application :: Parser f -> Parser a -> Parser (f, [a])
@@ -225,11 +227,14 @@ mapping s = (,) <$> option [] (args <* op '>') <*> s
 
 -- | Parse a type.
 type_ :: Parser Type
-type_ = uncurry . tff1Type <$> option [] prefix <*> matrix <?> "type"
+type_ =  uncurry . tff1Type
+     <$> (maybe [] NEL.toList <$> optional prefix) <*> matrix
+     <?> "type"
   where
     prefix = token "!>" *> bracketList1 sortVar <* op ':'
     sortVar = var <* op ':' <* token "$tType"
     matrix = optionalParens (mapping tff1Sort)
+
 
 -- ** First-order logic
 
@@ -302,7 +307,7 @@ firstOrder p = do
            <|> Negated    <$> (op '~' *> unitary)
            <?> "unitary first order"
 
-    vs = NEL.fromList <$> bracketList1 v
+    vs = bracketList1 v
     v = (,) <$> var <*> p
 
 -- | Parse a formula in unsorted first-order logic.
@@ -374,15 +379,14 @@ unitName = eitherP atom (signed integer) <?> "unit name"
 {-# INLINE unitName #-}
 
 -- | Parse a list of unit names.
-unitNames :: Parser [UnitName]
+unitNames :: Parser (NonEmpty UnitName)
 unitNames = bracketList1 unitName <?> "unit names"
 {-# INLINE unitNames #-}
 
 -- | Parse an @include@ statement.
 include :: Parser Unit
-include = labeled "include" (Include <$> atom <*> names) <* op '.' <?> "include"
-  where
-    names = option [] (comma unitNames)
+include =  labeled "include" (Include <$> atom <*> maybeP unitNames) <* op '.'
+       <?> "include"
 
 -- | Parse an annotated unit.
 annotatedUnit :: Parser Unit
