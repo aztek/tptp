@@ -1,3 +1,5 @@
+{-# LANGUAGE CPP #-}
+
 -- |
 -- Module       : Data.TPTP.Parse.Text.Lazy
 -- Description  : An attoparsec-based parser for the TPTP language.
@@ -14,6 +16,10 @@ module Data.TPTP.Parse.Text.Lazy (
   -- * Runners of parsers for TPTP inputs
   parseTPTP
 ) where
+
+#if !MIN_VERSION_base(4, 8, 0)
+import Control.Applicative ((*>), (<*))
+#endif
 
 import Data.Attoparsec.Text.Lazy (Result, parse, endOfInput)
 import Data.Text.Lazy (Text)

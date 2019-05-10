@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 -- |
 -- Module       : Data.TPTP.Parse.Combinators
@@ -47,10 +48,14 @@ module Data.TPTP.Parse.Combinators (
   info
 ) where
 
-import Control.Applicative ((<|>), optional)
+#if MIN_VERSION_base(4, 8, 0)
+import Prelude hiding (pure, (<$>), (<*>), (*>), (<*))
+#endif
+
+import Control.Applicative (pure, (<*>), (*>), (<*), (<|>), optional)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Function (on)
-import Data.Functor (($>))
+import Data.Functor ((<$>), ($>))
 import Data.List (sortBy, genericLength)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL (fromList, toList)

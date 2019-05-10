@@ -1,5 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 -- |
 -- Module       : Main
@@ -13,6 +14,12 @@
 --
 
 module Main where
+
+#if MIN_VERSION_base(4, 8, 0)
+import Prelude hiding ((<*))
+#endif
+
+import Control.Applicative ((<*))
 
 import Data.Attoparsec.Text (Parser, parseOnly, endOfInput)
 import Data.Text.Prettyprint.Doc (layoutPretty, defaultLayoutOptions)

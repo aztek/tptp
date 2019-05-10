@@ -3,6 +3,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 -- |
 -- Module       : Data.TPTP
@@ -96,6 +97,11 @@ import Data.Scientific (Scientific)
 import Data.String (IsString, fromString)
 import qualified Data.Text as Text (all, null, head, tail)
 import Data.Text (Text)
+
+#if !MIN_VERSION_base(4, 8, 0)
+import Data.Foldable (Foldable)
+import Data.Traversable (Traversable, traverse)
+#endif
 
 -- $setup
 -- >>> :set -XOverloadedStrings

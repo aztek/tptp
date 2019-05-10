@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE CPP #-}
 
 -- |
 -- Module       : UnitTests
@@ -16,6 +17,10 @@ import Distribution.TestSuite (Test(..), TestInstance(..),
                                Progress(..), Result(..))
 
 import System.Directory (listDirectory)
+
+#if !MIN_VERSION_base(4, 8, 0)
+import Data.Functor ((<$>))
+#endif
 
 import Data.Text (Text)
 import qualified Data.Text.IO as Text.IO (readFile)

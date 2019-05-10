@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE CPP #-}
 
 -- |
 -- Module       : Generators
@@ -13,6 +14,11 @@
 --
 
 module Generators () where
+
+#if !MIN_VERSION_base(4, 8, 0)
+import Data.Functor ((<$>))
+import Control.Applicative (pure, (<*>))
+#endif
 
 import GHC.Generics (Generic)
 import Generic.Random (genericArbitraryU, genericArbitraryRec, (%))
