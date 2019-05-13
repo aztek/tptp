@@ -48,8 +48,6 @@ module Data.TPTP.Parse.Combinators (
 ) where
 
 import Control.Applicative ((<|>), optional)
-
-import Data.Attoparsec.Text as Atto hiding (Number, number)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Function (on)
 import Data.Functor (($>))
@@ -61,6 +59,13 @@ import qualified Data.Scientific as Sci (base10Exponent, coefficient)
 
 import Data.Text (Text)
 import qualified Data.Text as Text (pack, unpack, cons)
+
+import Data.Attoparsec.Text as Atto (
+    Parser,
+    (<?>), char, string, decimal, scientific, signed, isEndOfLine, endOfLine,
+    satisfy, option, eitherP, choice, manyTill, takeWhile, skipSpace, skipMany,
+    skipWhile, endOfInput, sepBy, sepBy1
+  )
 
 import Data.TPTP hiding (name, clause)
 import qualified Data.TPTP as TPTP (name)

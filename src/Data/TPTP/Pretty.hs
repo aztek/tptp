@@ -17,23 +17,25 @@ module Data.TPTP.Pretty (
   Pretty(..)
 ) where
 
+#if __GLASGOW_HASKELL__ >= 803
+import Prelude hiding ((<>))
+#endif
+
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import Data.List (genericReplicate)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL (nonEmpty, toList)
 import Data.Maybe (maybeToList)
 import Data.Text (Text)
-import qualified Data.Text as Text (all, head, tail, cons, snoc,
-                                    pack, singleton, replace)
-
-#if __GLASGOW_HASKELL__ >= 803
-import Prelude hiding ((<>))
-#endif
+import qualified Data.Text as Text (
+    all, head, tail, cons, snoc, pack, singleton, replace
+  )
+import Data.Text.Prettyprint.Doc (
+    Doc, Pretty(..),
+    hsep, sep, (<>), (<+>), brackets, parens, punctuate, comma, space
+  )
 
 import Data.TPTP
-
-import Data.Text.Prettyprint.Doc (Doc, Pretty(..), hsep, sep, (<>), (<+>),
-                                  brackets, parens, punctuate, comma, space)
 
 
 -- * Helper functions
