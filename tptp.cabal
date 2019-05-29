@@ -61,8 +61,14 @@ library
     scientific    >= 0.3.6  && < 0.4,
     prettyprinter >= 1.2.1  && < 1.3,
   if impl(ghc < 8)
+    ghc-options:
+      -fwarn-incomplete-record-updates -fwarn-incomplete-uni-patterns
     build-depends:
       semigroups  >= 0.16.1 && < 0.19
+  if impl(ghc >= 8)
+    ghc-options:
+      -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns
+      -Wredundant-constraints
 
 test-suite quickcheck-spec
   type: exitcode-stdio-1.0
