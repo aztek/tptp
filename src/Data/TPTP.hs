@@ -1,5 +1,4 @@
 {-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
@@ -142,7 +141,10 @@ instance Named Language where
 -- 'f-\'function symbol\''
 --
 newtype Atom = Atom Text
-  deriving (Eq, Show, Ord, IsString)
+  deriving (Eq, Show, Ord)
+
+instance IsString Atom where
+  fromString = Atom . fromString
 
 -- | Check whether a given character is in the ASCII range 0x20 to 0x7E.
 isAsciiPrint :: Char -> Bool
@@ -168,7 +170,10 @@ isValidAtom t = not (Text.null t)
 -- | The variable in the TPTP language - a string that satisfies the regular
 -- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
-  deriving (Eq, Show, Ord, IsString)
+  deriving (Eq, Show, Ord)
+
+instance IsString Var where
+  fromString = Var . fromString
 
 -- | Check whether a given character matches the regular expression
 -- @[a-zA-Z0-9_]@.
@@ -213,7 +218,10 @@ isValidVar t = not (Text.null t)
 -- /are always interpreted as themselves, so if they are different they are/
 -- /unequal, e.g.,/ @\"Apple\" != \"Microsoft\"@ /is implicit./
 newtype DistinctObject = DistinctObject Text
-  deriving (Eq, Show, Ord, IsString)
+  deriving (Eq, Show, Ord)
+
+instance IsString DistinctObject where
+  fromString = DistinctObject . fromString
 
 -- | Check whether a given string is a valid distinct object.
 --
