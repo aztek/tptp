@@ -1,6 +1,6 @@
 cabal-version: 2.4
 name: tptp
-version: 0.1.0.2
+version: 0.1.0.3
 synopsis: A parser and a pretty printer for the TPTP language
 description:
   <http://www.tptp.org TPTP> (Thousands of Problems for Theorem Provers)
