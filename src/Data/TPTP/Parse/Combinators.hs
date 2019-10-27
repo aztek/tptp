@@ -107,8 +107,6 @@ lexeme p = p <* whitespace
 input :: Parser a -> Parser a
 input p = whitespace *> p <* endOfInput <?> "input"
 {-# INLINE input #-}
-{-# SPECIALIZE INLINE input :: Parser Unit -> Parser Unit #-}
-{-# SPECIALIZE INLINE input :: Parser TPTP -> Parser TPTP #-}
 
 -- | Parse an unsigned integer.
 integer :: Parser Integer
