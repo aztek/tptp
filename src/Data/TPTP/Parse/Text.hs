@@ -1,5 +1,3 @@
-{-# LANGUAGE CPP #-}
-
 -- |
 -- Module       : Data.TPTP.Parse.Text
 -- Description  : An attoparsec-based parser for the TPTP language.
@@ -20,10 +18,6 @@ module Data.TPTP.Parse.Text (
   parseTPTPOnly,
   parseTPTPWith
 ) where
-
-#if !MIN_VERSION_base(4, 8, 0)
-import Control.Applicative ((*>), (<*))
-#endif
 
 import Data.Attoparsec.Text (Result, parse, parseOnly, parseWith)
 import Data.Text (Text)
