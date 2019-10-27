@@ -84,7 +84,7 @@ comment = char '%' *> skipWhile (not . isEndOfLine)
                    *> (endOfLine <|> endOfInput)
                   <?> "comment"
 
--- | Consume a block comments - characters between /* and */.
+-- | Consume a block comment - characters between /* and */.
 blockComment :: Parser ()
 blockComment = string "/*" *> bc <?> "block comment"
   where
@@ -206,7 +206,7 @@ name =  Reserved <$> (char '$' *> reserved)
     <|> Defined  <$> atom
     <?> "name"
 
--- | Parser a function name.
+-- | Parse a function name.
 function :: Parser (Name Function)
 function = name <?> "function"
 {-# INLINE function #-}
