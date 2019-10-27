@@ -14,6 +14,7 @@
 module Data.TPTP.Parse.Combinators (
   -- * Whitespace
   whitespace,
+  input,
 
   -- * Names
   atom,
@@ -100,6 +101,14 @@ whitespace =  skipSpace *> skipMany ((comment <|> blockComment) *> skipSpace)
 lexeme :: Parser a -> Parser a
 lexeme p = p <* whitespace
 {-# INLINE lexeme #-}
+
+-- | @input@ runs a given parser skipping leading whitespace. The function
+-- succeeds if the parser consumes the entire input.
+input :: Parser a -> Parser a
+input p = whitespace *> p <* endOfInput <?> "input"
+{-# INLINE input #-}
+{-# SPECIALIZE INLINE input :: Parser Unit -> Parser Unit #-}
+{-# SPECIALIZE INLINE input :: Parser TPTP -> Parser TPTP #-}
 
 -- | Parse an unsigned integer.
 integer :: Parser Integer
