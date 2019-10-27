@@ -22,6 +22,8 @@ module Normalizers (
   normalizeParent
 ) where
 
+import Data.Bifunctor (bimap)
+
 import Data.TPTP
 
 
@@ -64,9 +66,9 @@ normalizeDeclaration = \case
 normalizeUnit :: Unit -> Unit
 normalizeUnit = \case
   Include f ns -> Include f ns
-  Unit   n d a -> Unit n (normalizeDeclaration d) (normalizeAnn a)
+  Unit   n d a -> Unit n (normalizeDeclaration d) (fmap normalizeAnn a)
     where
-      normalizeAnn = fmap $ \(s, i) -> (normalizeSource s, fmap (fmap normalizeInfo) i)
+      normalizeAnn = bimap normalizeSource (fmap (fmap normalizeInfo))
 
 normalizeTPTP :: TPTP -> TPTP
 normalizeTPTP (TPTP us) = TPTP (fmap normalizeUnit us)
