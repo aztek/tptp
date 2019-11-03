@@ -112,12 +112,19 @@ import Data.Traversable (Traversable, traverse)
 -- * Languages
 
 -- | The language of logical formulas available in TPTP.
+-- 
+-- The languages of TPTP form a hierarchy displayed on the following diagram,
+-- where arrows indicate inclusion. E.g. each formula in FOF is syntactically a
+-- formula in TFF0, but not the other way around.
+--
+-- > CNF --> FOF --> TFF0 --> TFF1
+--
 data Language
   = CNF_ -- ^ __CNF__ - the language of clausal normal forms of
          -- unsorted first-order logic.
   | FOF_ -- ^ __FOF__ - the language of full unsorted first-order logic.
   | TFF_ -- ^ __TFF__ - the language of full sorted first-order logic,
-         -- both monomorphic (TFF0) and polymorphic (TFF1).
+         -- both monomorphic (__TFF0__) and polymorphic (__TFF1__).
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Language where
@@ -131,7 +138,7 @@ instance Named Language where
 
 -- | The atomic word in the TPTP language - a non-empty string of space or
 -- visible characters from the ASCII range 0x20 to 0x7E. If the string satisfies
--- the regular expression @[a-z][a-zA-Z0-9_]*@ it is displayed in the TPTP
+-- the regular expression @[a-z][a-zA-Z0-9_]*@, then it is displayed in the TPTP
 -- language as is, otherwise it is displayed in single quotes with the
 -- characters @'@ and @\\@ escaped using @\\@.
 --
@@ -247,7 +254,7 @@ data Reserved s
   = Standard s    -- ^ The identifier contained in the TPTP specification.
   | Extended Text -- ^ The identifier not contained in the standard TPTP but
                   -- implemented by some theorem prover. For example, Vampire
-                  -- implements uses the sort constructor @$array@.
+                  -- implements the sort constructor @$array@.
   deriving (Eq, Show, Ord)
 
 -- | A smart 'Extended' constructor - only uses 'Extended' if the given string
@@ -492,9 +499,9 @@ instance Named Sign where
 
 -- | The literal in first-order logic.
 -- The logical tautology is represented as
--- 'Predicate (Reserved (Standard Tautology)) []'
+-- @Predicate (Reserved (Standard Tautology)) []@
 -- and the logical falsum is represented as
--- 'Predicate (Reserved (Standard Falsum)) []'.
+-- @Predicate (Reserved (Standard Falsum)) []@.
 data Literal
   = Predicate (Name Predicate) [Term]
     -- ^ Application of a predicate symbol.
@@ -750,9 +757,40 @@ data Source
 -- See <http://www.tptp.org/Seminars/SZSOntologies/Summary.html The SZS Ontologies>
 -- for details.
 data Status
-  = SUC | UNP | SAP | ESA | SAT | FSA | THM | EQV | TAC | WEC | ETH | TAU | WTC
-  | WTH | CAX | SCA | TCA | WCA | CUP | CSP | ECS | CSA | CTH | CEQ | UNC | WCC
-  | ECT | FUN | UNS | WUC | WCT | SCC | UCA | NOC
+  = SUC -- ^ Success.
+  | UNP -- ^ UnsatisfiabilityPreserving.
+  | SAP -- ^ SatisfiabilityPreserving.
+  | ESA -- ^ EquiSatisfiable.
+  | SAT -- ^ Satisfiable.
+  | FSA -- ^ FinitelySatisfiable.
+  | THM -- ^ Theorem.
+  | EQV -- ^ Equivalent.
+  | TAC -- ^ TautologousConclusion.
+  | WEC -- ^ WeakerConclusion.
+  | ETH -- ^ EquivalentTheorem.
+  | TAU -- ^ Tautology.
+  | WTC -- ^ WeakerTautologousConclusion.
+  | WTH -- ^ WeakerTheorem.
+  | CAX -- ^ ContradictoryAxioms.
+  | SCA -- ^ SatisfiableConclusionContradictoryAxioms.
+  | TCA -- ^ TautologousConclusionContradictoryAxioms.
+  | WCA -- ^ WeakerConclusionContradictoryAxioms.
+  | CUP -- ^ CounterUnsatisfiabilityPreserving.
+  | CSP -- ^ CounterSatisfiabilityPreserving.
+  | ECS -- ^ EquiCounterSatisfiable.
+  | CSA -- ^ CounterSatisfiable.
+  | CTH -- ^ CounterTheorem.
+  | CEQ -- ^ CounterEquivalent.
+  | UNC -- ^ UnsatisfiableConclusion.
+  | WCC -- ^ WeakerCounterConclusion.
+  | ECT -- ^ EquivalentCounterTheorem.
+  | FUN -- ^ FinitelyUnsatisfiable.
+  | UNS -- ^ Unsatisfiable.
+  | WUC -- ^ WeakerUnsatisfiableConclusion.
+  | WCT -- ^ WeakerCounterTheorem.
+  | SCC -- ^ SatisfiableCounterConclusionContradictoryAxioms.
+  | UCA -- ^ UnsatisfiableConclusionContradictoryAxioms.
+  | NOC -- ^ NoConsequence.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Status where
