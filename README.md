@@ -4,4 +4,4 @@
 
 [TPTP](http://www.tptp.org) (Thousands of Problems for Theorem Provers) is the standard language of problems, proofs, and models, used by automated theorem provers.
 
-This library provides definitions of data types, a pretty printer and an [attoparsec](http://hackage.haskell.org/package/attoparsec) parser for (currently, a subset of) the TPTP language.
+This library provides definitions of data types, a pretty printer and an [attoparsec](http://hackage.haskell.org/package/attoparsec) parser for the CNF, FOF, TFF0 and TFF1 subsets of the TPTP language.
