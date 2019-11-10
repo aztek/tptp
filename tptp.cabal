@@ -7,9 +7,10 @@ description:
   is the standard language of problems, proofs, and models, used by automated
   theorem provers.
   .
-  This library provides definitions of data types, a pretty printer and an
-  <http://hackage.haskell.org/package/attoparsec attoparsec> parser for
-  (currently, a subset of) the TPTP language.
+  This library provides definitions of data types, a
+  <https://hackage.haskell.org/package/prettyprinter pretty printer> and an
+  <https://hackage.haskell.org/package/attoparsec attoparsec> parser for the
+  CNF, FOF, TFF0 and TFF1 subsets of the TPTP language.
 homepage: https://github.com/aztek/tptp
 bug-reports: https://github.com/aztek/tptp/issues
 license: GPL-3.0-only
