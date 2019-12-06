@@ -158,11 +158,15 @@ maybeP :: Parser a -> Parser (Maybe a)
 maybeP = optional . comma
 {-# INLINE maybeP #-}
 
+named :: (Named a, Enum a, Bounded a) => Parser a
+named = choice
+      $ fmap (\(n, c) -> string n $> c <?> "named " ++ Text.unpack n)
+      $ sortBy (flip compare `on` fst)
+      $ fmap (\c -> (TPTP.name c, c)) [minBound..]
+
 enum :: (Named a, Enum a, Bounded a) => Parser a
-enum = choice
-     $ fmap (\(n, c) -> token n $> c <?> "reserved " ++ Text.unpack n)
-     $ sortBy (flip compare `on` fst)
-     $ fmap (\c -> (TPTP.name c, c)) [minBound..]
+enum = lexeme named
+{-# INLINE enum #-}
 
 
 -- * Parser combinators
