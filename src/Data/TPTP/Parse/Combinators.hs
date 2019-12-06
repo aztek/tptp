@@ -61,9 +61,15 @@ import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Function (on)
 import Data.Functor ((<$>), ($>))
 import Data.Maybe (fromMaybe)
+#if !MIN_VERSION_base(4, 8, 0)
+import Data.Monoid (Monoid(..))
+#endif
 import Data.List (sortBy, genericLength)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL (fromList, toList)
+#if !MIN_VERSION_base(4, 11, 0)
+import Data.Semigroup (Semigroup(..))
+#endif
 
 import qualified Data.Scientific as Sci (base10Exponent, coefficient)
 
