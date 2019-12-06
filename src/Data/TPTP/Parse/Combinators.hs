@@ -13,7 +13,7 @@
 
 module Data.TPTP.Parse.Combinators (
   -- * Whitespace
-  whitespace,
+  skipWhitespace,
   input,
 
   -- * Names
@@ -79,33 +79,50 @@ import qualified Data.TPTP as TPTP (name)
 
 -- * Helper functions
 
--- | Consume a single line comment - characters between @%@ and newline.
-comment :: Parser ()
-comment = char '%' *> skipWhile (not . isEndOfLine)
-                   *> (endOfLine <|> endOfInput)
-                  <?> "comment"
+-- | Consume all character until the end of line.
+skipLine :: Parser ()
+skipLine = skipWhile (not . isEndOfLine)
+{-# INLINE skipLine #-}
+
+-- | Consume the first character of a single line comment - @%@ or @#@.
+-- The grammar of the TPTP language only defines @%@,
+-- but some theorem provers in addition use @#@.
+skipBeginComment :: Parser ()
+skipBeginComment = skip (\c -> c == '%' || c == '#')
+{-# INLINE skipBeginComment #-}
+
+-- | Parse the contents of a single line comment.
+commented :: Parser p -> Parser p
+commented p =  skipBeginComment *> p <* skipLine <* (endOfLine <|> endOfInput)
+           <?> "commented"
+
+-- | Consume a single line comment - characters between @%@ or @#@ and newline.
+skipComment :: Parser ()
+skipComment = commented (pure ()) <?> "comment"
+{-# INLINE skipComment #-}
 
 -- | Consume a block comment - characters between /* and */.
-blockComment :: Parser ()
-blockComment = string "/*" *> bc <?> "block comment"
+skipBlockComment :: Parser ()
+skipBlockComment = string "/*" *> bc <?> "block comment"
   where
     bc = skipWhile (/= '*') *> (string "*/" $> () <|> bc)
 
 -- | Consume white space and trailing comments.
-whitespace :: Parser ()
-whitespace =  skipSpace *> skipMany ((comment <|> blockComment) *> skipSpace)
-          <?> "whitespace"
+skipWhitespace :: Parser ()
+skipWhitespace =  skipSpace
+               *> skipMany ((skipComment <|> skipBlockComment) *> skipSpace)
+              <?> "whitespace"
 
 -- | @lexeme@ makes a given parser consume trailing whitespace. This function is
 -- needed because off-the-shelf attoparsec parsers do not do it.
 lexeme :: Parser a -> Parser a
-lexeme p = p <* whitespace
+lexeme p = p <* skipWhitespace
 {-# INLINE lexeme #-}
 
 -- | @input@ runs a given parser skipping leading whitespace. The function
 -- succeeds if the parser consumes the entire input.
 input :: Parser a -> Parser a
-input p = whitespace *> p <* endOfInput <?> "input"
+input p = skipWhitespace *> p <* endOfInput <?> "input"
 {-# INLINE input #-}
 
 -- | Parse an unsigned integer.
