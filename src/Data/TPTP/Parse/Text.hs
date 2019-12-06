@@ -61,14 +61,14 @@ parseTPTPWith m = parseWith m (input tptp)
 
 -- | Run a parser for a TSTP input on 'Text'.
 parseTSTP :: Text -> Result TSTP
-parseTSTP = parse (input tstp)
+parseTSTP = parse tstp
 
 -- | Run a parser for a TSTP input that cannot be resupplied
 -- via a 'Data.Attoparsec.Text.Partial' result.
 parseTSTPOnly :: Text -> Either String TSTP
-parseTSTPOnly = parseOnly (input tstp)
+parseTSTPOnly = parseOnly tstp
 
 -- | Run a parser for a TSTP input with an initial input string,
 -- and a monadic action that can supply more input if needed.
 parseTSTPWith :: Monad m => m Text -> Text -> m (Result TSTP)
-parseTSTPWith m = parseWith m (input tstp)
+parseTSTPWith m = parseWith m tstp

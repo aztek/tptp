@@ -35,4 +35,4 @@ parseTPTP = parse (input tptp)
 
 -- | Parse a TSTP input from 'Data.Text.Lazy.Text'.
 parseTSTP :: Text -> Result TSTP
-parseTSTP = parse (input tstp)
+parseTSTP = parse tstp

@@ -455,7 +455,7 @@ tptp = TPTP <$> manyTill unit endOfInput <?> "tptp"
 
 -- | Parse a TSTP input.
 tstp :: Parser TSTP
-tstp = TSTP <$> szs <*> manyTill unit endOfInput <?> "tstp"
+tstp = TSTP <$> szs <*> manyTill unit endOfInput <* endOfInput <?> "tstp"
 
 
 -- ** Annotations
