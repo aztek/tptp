@@ -80,6 +80,7 @@ module Data.TPTP (
   UnitName,
   Unit(..),
   TPTP(..),
+  TSTP(..),
 
   -- * Annotations
   Intro(..),

@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE CPP #-}
@@ -41,8 +42,10 @@ module Data.TPTP.Parse.Combinators (
   -- * Units
   unit,
   tptp,
+  tstp,
 
   -- * Annotations
+  szs,
   intro,
   parent,
   source,
@@ -53,10 +56,11 @@ module Data.TPTP.Parse.Combinators (
 import Prelude hiding (pure, (<$>), (<*>), (*>), (<*))
 #endif
 
-import Control.Applicative (pure, (<*>), (*>), (<*), (<|>), optional)
+import Control.Applicative (pure, (<*>), (*>), (<*), (<|>), optional, empty, many)
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Function (on)
 import Data.Functor ((<$>), ($>))
+import Data.Maybe (fromMaybe)
 import Data.List (sortBy, genericLength)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL (fromList, toList)
@@ -69,8 +73,8 @@ import qualified Data.Text as Text (pack, unpack, cons)
 import Data.Attoparsec.Text as Atto (
     Parser,
     (<?>), char, string, decimal, scientific, signed, isEndOfLine, endOfLine,
-    satisfy, option, eitherP, choice, manyTill, takeWhile, skipSpace, skipMany,
-    skipWhile, endOfInput, sepBy, sepBy1
+    satisfy, option, eitherP, choice, manyTill, takeWhile, skip, skipSpace,
+    skipMany, skipWhile, endOfInput, sepBy, sepBy1
   )
 
 import Data.TPTP hiding (name, clause)
@@ -441,10 +445,50 @@ unit = include <|> annotatedUnit <?> "unit"
 
 -- | Parse a TPTP input.
 tptp :: Parser TPTP
-tptp = TPTP <$> manyTill unit endOfInput <?> "derivation"
+tptp = TPTP <$> manyTill unit endOfInput <?> "tptp"
+
+-- | Parse a TSTP input.
+tstp :: Parser TSTP
+tstp = TSTP <$> szs <*> manyTill unit endOfInput <?> "tstp"
 
 
 -- ** Annotations
+
+instance Semigroup SZS where
+  SZS s d <> SZS s' d' = SZS (s <|> s') (d <|> d')
+
+instance Monoid SZS where
+  mempty = SZS empty empty
+
+-- | Parse the SZS ontology information of a TSTP output inside a comment.
+szs :: Parser SZS
+szs = fromMaybe mempty . mconcat <$> many szsComment
+
+szsComment :: Parser (Maybe SZS)
+szsComment =  commented (skipSpace *> optional szsAnnotation) <* skipSpace
+          <?> "szs comment"
+
+szsAnnotation :: Parser SZS
+szsAnnotation =  string "SZS" *> skipSpace *> (szsStatus <|> szsDataform)
+             <?> "szs annotation"
+
+szsStatus :: Parser SZS
+szsStatus =  string "status" *> skipSpace
+          *> (fromStatus <$> status)
+         <?> "status"
+  where
+    fromStatus s = SZS (Just s) Nothing
+    status = eitherP (unwrapSZSOntology <$> named)
+                     (unwrapSZSOntology <$> named)
+
+szsDataform :: Parser SZS
+szsDataform =  string "output" *> skipSpace
+            *> string "start"  *> skipSpace
+            *> (fromDataform <$> dataform)
+           <?> "dataform"
+  where
+    fromDataform d = SZS Nothing (Just d)
+    dataform = unwrapSZSOntology <$> named
 
 -- | Parse an introduction marking.
 intro :: Parser Intro

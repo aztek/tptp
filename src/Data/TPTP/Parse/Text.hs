@@ -16,14 +16,19 @@ module Data.TPTP.Parse.Text (
   -- * Runners of parsers for TPTP inputs
   parseTPTP,
   parseTPTPOnly,
-  parseTPTPWith
+  parseTPTPWith,
+
+  -- * Runners of parsers for TSTP inputs
+  parseTSTP,
+  parseTSTPOnly,
+  parseTSTPWith,
 ) where
 
 import Data.Attoparsec.Text (Result, parse, parseOnly, parseWith)
 import Data.Text (Text)
 
-import Data.TPTP (Unit, TPTP)
-import Data.TPTP.Parse.Combinators (input, unit, tptp)
+import Data.TPTP (Unit, TPTP, TSTP)
+import Data.TPTP.Parse.Combinators (input, unit, tptp, tstp)
 
 
 -- | Run a parser for a single TPTP unit on 'Text'.
@@ -53,3 +58,17 @@ parseTPTPOnly = parseOnly (input tptp)
 -- and a monadic action that can supply more input if needed.
 parseTPTPWith :: Monad m => m Text -> Text -> m (Result TPTP)
 parseTPTPWith m = parseWith m (input tptp)
+
+-- | Run a parser for a TSTP input on 'Text'.
+parseTSTP :: Text -> Result TSTP
+parseTSTP = parse (input tstp)
+
+-- | Run a parser for a TSTP input that cannot be resupplied
+-- via a 'Data.Attoparsec.Text.Partial' result.
+parseTSTPOnly :: Text -> Either String TSTP
+parseTSTPOnly = parseOnly (input tstp)
+
+-- | Run a parser for a TSTP input with an initial input string,
+-- and a monadic action that can supply more input if needed.
+parseTSTPWith :: Monad m => m Text -> Text -> m (Result TSTP)
+parseTSTPWith m = parseWith m (input tstp)

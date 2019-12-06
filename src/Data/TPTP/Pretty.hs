@@ -37,13 +37,16 @@ import qualified Data.Text as Text (
   )
 import Data.Text.Prettyprint.Doc (
     Doc, Pretty(..),
-    hsep, sep, (<+>), brackets, parens, punctuate, comma, space
+    hsep, sep, (<+>), brackets, parens, punctuate, comma, space, line
   )
 
 import Data.TPTP
 
 
 -- * Helper functions
+
+comment :: Doc ann -> Doc ann
+comment c = "%" <+> c <> line
 
 sepBy :: [Doc ann] -> Doc ann -> Doc ann
 sepBy as s = hsep (punctuate s as)
@@ -270,6 +273,21 @@ instance Pretty Unit where
 
 instance Pretty TPTP where
   pretty (TPTP us) = prettyList us
+
+szsComment :: [Doc ann] -> Doc ann
+szsComment = comment . hsep . ("SZS":)
+
+instance Pretty TSTP where
+  pretty (TSTP (SZS s d) us) = status <> dataform (prettyList us)
+    where
+      status = case s of
+        Nothing -> mempty
+        Just st -> szsComment ["status", pretty st]
+      dataform p = case d of
+        Nothing -> p
+        Just df -> szsComment ["output", "start", pretty df]
+                <> p
+                <> szsComment ["output", "end", pretty df]
 
 
 -- * Annotations

@@ -126,6 +126,9 @@ prop_ipp_Unit = ippModulo normalizeUnit unit
 prop_ipp_TPTP :: TPTP -> Property
 prop_ipp_TPTP = ippModulo normalizeTPTP tptp
 
+prop_ipp_TSTP :: TSTP -> Property
+prop_ipp_TSTP = ippModulo normalizeTSTP tstp
+
 
 -- ** Annotations
 

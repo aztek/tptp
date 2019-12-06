@@ -216,6 +216,11 @@ instance Arbitrary TPTP where
   arbitrary = genericArbitraryU
   shrink (TPTP us) = TPTP <$> shrinkList shrink us
 
+deriving instance Generic TSTP
+instance Arbitrary TSTP where
+  arbitrary = genericArbitraryU
+  shrink (TSTP szs us) = TSTP <$> shrink szs <*> shrinkList shrink us
+
 
 -- * Annotations
 

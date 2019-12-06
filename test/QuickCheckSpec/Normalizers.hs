@@ -17,6 +17,7 @@ module Normalizers (
   normalizeType,
   normalizeUnit,
   normalizeTPTP,
+  normalizeTSTP,
   normalizeSource,
   normalizeInfo,
   normalizeParent
@@ -72,6 +73,9 @@ normalizeUnit = \case
 
 normalizeTPTP :: TPTP -> TPTP
 normalizeTPTP (TPTP us) = TPTP (fmap normalizeUnit us)
+
+normalizeTSTP :: TSTP -> TSTP
+normalizeTSTP (TSTP szs us) = TSTP szs (fmap normalizeUnit us)
 
 
 -- * Annotations
