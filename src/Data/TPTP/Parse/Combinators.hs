@@ -465,6 +465,7 @@ instance Semigroup SZS where
 
 instance Monoid SZS where
   mempty = SZS empty empty
+  mappend = (<>)
 
 -- | Parse the SZS ontology information of a TSTP output inside a comment.
 szs :: Parser SZS
