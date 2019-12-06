@@ -31,6 +31,7 @@ extra-source-files:
   CHANGELOG.md
   test/*.hs
   test/**/*.hs
+  test-data/szs/**/*.s
   test-data/tptp/**/*.ax
   test-data/tptp/**/*.p
   test-data/tstp/**/*.s
