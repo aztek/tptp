@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE CPP #-}
@@ -83,7 +84,12 @@ module Data.TPTP (
   -- * Annotations
   Intro(..),
   Source(..),
-  Status(..),
+  Status,
+  SZS(..),
+  SZSOntology(..),
+  Success(..),
+  NoSuccess(..),
+  Dataform(..),
   Parent(..),
   Expression(..),
   Info(..),
@@ -721,6 +727,11 @@ newtype TPTP = TPTP {
   units :: [Unit]
 } deriving (Eq, Show, Ord)
 
+-- | The TSTP output - zero or more TSTP units, possibly annotated with the
+-- status of the proof search and the resulting dataform.
+data TSTP = TSTP SZS [Unit]
+  deriving (Eq, Show, Ord)
+
 
 -- * Annotations
 
@@ -753,10 +764,24 @@ data Source
   | UnknownSource
   deriving (Eq, Show, Ord)
 
--- | The status of an inference.
--- See <http://www.tptp.org/Seminars/SZSOntologies/Summary.html The SZS Ontologies>
+-- | The status values of the SZS ontologies of a TPTP text.
+data SZS = SZS (Maybe Status) (Maybe Dataform)
+  deriving (Eq, Show, Ord)
+
+-- | The auxiliary wrapper used to provide 'Named' instances with full names of
+-- SZS ontologies to 'Success', 'NoSuccess' and 'Dataform'.
+newtype SZSOntology a = SZSOntology { unwrapSZSOntology :: a }
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+-- | The status of the proof search.
+type Status = Either NoSuccess Success
+
+-- | The SZS Success ontology. Values of this ontology are used to mark
+-- the result of the proof search and also the status of an inference in
+-- a TSTP proof. See
+-- <http://www.tptp.org/Seminars/SZSOntologies/Summary.html The SZS Ontologies>
 -- for details.
-data Status
+data Success
   = SUC -- ^ Success.
   | UNP -- ^ UnsatisfiabilityPreserving.
   | SAP -- ^ SatisfiabilityPreserving.
@@ -793,7 +818,7 @@ data Status
   | NOC -- ^ NoConsequence.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
-instance Named Status where
+instance Named Success where
   name = \case
     SUC -> "suc"
     UNP -> "unp"
@@ -830,6 +855,193 @@ instance Named Status where
     UCA -> "uca"
     NOC -> "noc"
 
+instance Named (SZSOntology Success) where
+  name (SZSOntology s) = case s of
+    SUC -> "Success"
+    UNP -> "UnsatisfiabilityPreserving"
+    SAP -> "SatisfiabilityPreserving"
+    ESA -> "EquiSatisfiable"
+    SAT -> "Satisfiable"
+    FSA -> "FinitelySatisfiable"
+    THM -> "Theorem"
+    EQV -> "Equivalent"
+    TAC -> "TautologousConclusion"
+    WEC -> "WeakerConclusion"
+    ETH -> "EquivalentTheorem"
+    TAU -> "Tautology"
+    WTC -> "WeakerTautologousConclusion"
+    WTH -> "WeakerTheorem"
+    CAX -> "ContradictoryAxioms"
+    SCA -> "SatisfiableConclusionContradictoryAxioms"
+    TCA -> "TautologousConclusionContradictoryAxioms"
+    WCA -> "WeakerConclusionContradictoryAxioms"
+    CUP -> "CounterUnsatisfiabilityPreserving"
+    CSP -> "CounterSatisfiabilityPreserving"
+    ECS -> "EquiCounterSatisfiable"
+    CSA -> "CounterSatisfiable"
+    CTH -> "CounterTheorem"
+    CEQ -> "CounterEquivalent"
+    UNC -> "UnsatisfiableConclusion"
+    WCC -> "WeakerCounterConclusion"
+    ECT -> "EquivalentCounterTheorem"
+    FUN -> "FinitelyUnsatisfiable"
+    UNS -> "Unsatisfiable"
+    WUC -> "WeakerUnsatisfiableConclusion"
+    WCT -> "WeakerCounterTheorem"
+    SCC -> "SatisfiableCounterConclusionContradictoryAxioms"
+    UCA -> "UnsatisfiableConclusionContradictoryAxioms"
+    NOC -> "NoConsequence"
+
+-- | The SZS NoSuccess ontology. Values of this ontology are used to mark
+-- the result of the proof search. See
+-- <http://www.tptp.org/Seminars/SZSOntologies/Summary.html The SZS Ontologies>
+-- for details.
+data NoSuccess
+  = NOS -- ^ NoSuccess.
+  | OPN -- ^ Open.
+  | UNK -- ^ Unknown.
+  | ASS -- ^ Assumed.
+  | STP -- ^ Stopped.
+  | ERR -- ^ Error.
+  | OSE -- ^ OSError.
+  | INE -- ^ InputError.
+  | USE -- ^ UsageError.
+  | SYE -- ^ SyntaxError.
+  | SEE -- ^ SemanticError.
+  | TYE -- ^ TypeError.
+  | FOR -- ^ Forced.
+  | USR -- ^ User.
+  | RSO -- ^ ResourceOut.
+  | TMO -- ^ Timeout.
+  | MMO -- ^ MemoryOut.
+  | GUP -- ^ GaveUp.
+  | INC -- ^ Incomplete.
+  | IAP -- ^ Inappropriate.
+  | INP -- ^ InProgress.
+  | NTT -- ^ NotTried.
+  | NTY -- ^ NotTriedYet.
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named (SZSOntology NoSuccess) where
+  name (SZSOntology ns) = case ns of
+    NOS -> "NoSuccess"
+    OPN -> "Open"
+    UNK -> "Unknown"
+    ASS -> "Assumed"
+    STP -> "Stopped"
+    ERR -> "Error"
+    OSE -> "OSError"
+    INE -> "InputError"
+    USE -> "UsageError"
+    SYE -> "SyntaxError"
+    SEE -> "SemanticError"
+    TYE -> "TypeError"
+    FOR -> "Forced"
+    USR -> "User"
+    RSO -> "ResourceOut"
+    TMO -> "Timeout"
+    MMO -> "MemoryOut"
+    GUP -> "GaveUp"
+    INC -> "Incomplete"
+    IAP -> "Inappropriate"
+    INP -> "InProgress"
+    NTT -> "NotTried"
+    NTY -> "NotTriedYet"
+
+-- | The SZS Dataform ontology. Values of this ontology are used to mark
+-- the form of logical data produced during proof search. See
+-- <http://www.tptp.org/Seminars/SZSOntologies/Summary.html The SZS Ontologies>
+-- for details.
+data Dataform
+  = LDa -- ^ LogicalData.
+  | Sln -- ^ Solution.
+  | Prf -- ^ Proof.
+  | Der -- ^ Derivation.
+  | Ref -- ^ Refutation.
+  | CRf -- ^ CNFRefutation.
+  | Int_ -- ^ Interpretation.
+  | Mod -- ^ Model.
+  | Pin -- ^ PartialInterpretation.
+  | PMo -- ^ PartialModel.
+  | SIn -- ^ StrictlyPartialInterpretation.
+  | SMo -- ^ StrictlyPartialModel.
+  | DIn -- ^ DomainInterpretation.
+  | DMo -- ^ DomainModel.
+  | DPI -- ^ DomainPartialInterpretation.
+  | DPM -- ^ DomainPartialModel.
+  | DSI -- ^ DomainStrictlyPartialInterpretation.
+  | DSM -- ^ DomainStrictlyPartialModel.
+  | FIn -- ^ FiniteInterpretation.
+  | FMo -- ^ FiniteModel.
+  | FPI -- ^ FinitePartialInterpretation.
+  | FPM -- ^ FinitePartialModel.
+  | FSI -- ^ FiniteStrictlyPartialInterpretation.
+  | FSM -- ^ FiniteStrictlyPartialModel.
+  | HIn -- ^ HerbrandInterpretation.
+  | HMo -- ^ HerbrandModel.
+  | TIn -- ^ FormulaInterpretation.
+  | TMo -- ^ FormulaModel.
+  | TPI -- ^ FormulaPartialInterpretation.
+  | TSI -- ^ FormulaStrictlyPartialInterpretation.
+  | TSM -- ^ FormulaStrictlyPartialModel.
+  | Sat -- ^ Saturation.
+  | Lof -- ^ ListOfFormulae.
+  | Lth -- ^ ListOfTHF.
+  | Ltf -- ^ ListOfTFF.
+  | Lfo -- ^ ListOfFOF.
+  | Lcn -- ^ ListOfCNF.
+  | NSo -- ^ NotASolution.
+  | Ass -- ^ Assurance.
+  | IPr -- ^ IncompleteProof.
+  | IIn -- ^ IncompleteInterpretation.
+  | Non -- ^ None.
+  deriving (Eq, Show, Ord, Enum, Bounded)
+
+instance Named (SZSOntology Dataform) where
+  name (SZSOntology d) = case d of
+    LDa -> "LogicalData"
+    Sln -> "Solution"
+    Prf -> "Proof"
+    Der -> "Derivation"
+    Ref -> "Refutation"
+    CRf -> "CNFRefutation"
+    Int_ -> "Interpretation"
+    Mod -> "Model"
+    Pin -> "PartialInterpretation"
+    PMo -> "PartialModel"
+    SIn -> "StrictlyPartialInterpretation"
+    SMo -> "StrictlyPartialModel"
+    DIn -> "DomainInterpretation"
+    DMo -> "DomainModel"
+    DPI -> "DomainPartialInterpretation"
+    DPM -> "DomainPartialModel"
+    DSI -> "DomainStrictlyPartialInterpretation"
+    DSM -> "DomainStrictlyPartialModel"
+    FIn -> "FiniteInterpretation"
+    FMo -> "FiniteModel"
+    FPI -> "FinitePartialInterpretation"
+    FPM -> "FinitePartialModel"
+    FSI -> "FiniteStrictlyPartialInterpretation"
+    FSM -> "FiniteStrictlyPartialModel"
+    HIn -> "HerbrandInterpretation"
+    HMo -> "HerbrandModel"
+    TIn -> "FormulaInterpretation"
+    TMo -> "FormulaModel"
+    TPI -> "FormulaPartialInterpretation"
+    TSI -> "FormulaStrictlyPartialInterpretation"
+    TSM -> "FormulaStrictlyPartialModel"
+    Sat -> "Saturation"
+    Lof -> "ListOfFormulae"
+    Lth -> "ListOfTHF"
+    Ltf -> "ListOfTFF"
+    Lfo -> "ListOfFOF"
+    Lcn -> "ListOfCNF"
+    NSo -> "NotASolution"
+    Ass -> "Assurance"
+    IPr -> "IncompleteProof"
+    IIn -> "IncompleteInterpretation"
+    Non -> "None"
+
 -- | The parent of a formula in an inference.
 data Parent = Parent Source [Info]
   deriving (Eq, Show, Ord)
@@ -845,7 +1057,7 @@ data Expression
 data Info
   = Description Atom
   | Iquote Atom
-  | Status (Reserved Status)
+  | Status (Reserved Success)
   | Assumptions (NonEmpty UnitName)
   | NewSymbols Atom [Either Var Atom]
   | Refutation Atom

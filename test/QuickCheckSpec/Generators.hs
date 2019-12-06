@@ -223,8 +223,20 @@ deriving instance Generic Intro
 instance Arbitrary Intro where
   arbitrary = genericArbitraryU
 
-deriving instance Generic Status
-instance Arbitrary Status where
+deriving instance Generic SZS
+instance Arbitrary SZS where
+  arbitrary = genericArbitraryU
+
+deriving instance Generic Success
+instance Arbitrary Success where
+  arbitrary = genericArbitraryU
+
+deriving instance Generic NoSuccess
+instance Arbitrary NoSuccess where
+  arbitrary = genericArbitraryU
+
+deriving instance Generic Dataform
+instance Arbitrary Dataform where
   arbitrary = genericArbitraryU
 
 deriving instance Generic Info

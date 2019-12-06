@@ -277,8 +277,17 @@ instance Pretty TPTP where
 instance Pretty Intro where
   pretty = pretty . name
 
+instance Pretty Success where
+  pretty = pretty . name . SZSOntology
+
+instance Pretty NoSuccess where
+  pretty = pretty . name . SZSOntology
+
 instance Pretty Status where
-  pretty = pretty . name
+  pretty = either pretty pretty
+
+instance Pretty Dataform where
+  pretty = pretty . name . SZSOntology
 
 instance Pretty (Either Var Atom) where
   pretty = either pretty pretty
