@@ -1,4 +1,4 @@
-cabal-version: 3.0
+cabal-version: 2.4
 name: tptp
 version: 0.1.0.3
 synopsis: A parser and a pretty printer for the TPTP language
@@ -132,7 +132,7 @@ test-suite doctests
     -Wall -threaded
   if flag(Werror)
     ghc-options: -Werror
-  -- TODO: Make it work with cabal 3.0
+  -- TODO: Make it work
   buildable: False
   build-depends:
     base,

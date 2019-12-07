@@ -4,7 +4,7 @@ language: haskell
 git:
   depth: 5
 
-cabal: "3.0"
+cabal: "2.4"
 
 cache:
   directories:
@@ -23,10 +23,10 @@ matrix:
 install:
   - ghc --version
   - cabal --version
-  - cabal update
-  - cabal build -fWerror --enable-tests
+  - cabal new-update
+  - cabal new-build -fWerror --enable-tests
 
 script:
-  - cabal test
+  - cabal new-test
   - wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
   - cabal check
