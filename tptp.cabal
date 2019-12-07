@@ -43,6 +43,7 @@ source-repository head
 flag Werror
   default: False
   manual: True
+  description: Build with -Werror
 
 library
   hs-source-dirs: src
