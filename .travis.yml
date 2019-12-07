@@ -30,3 +30,6 @@ script:
   - cabal new-test
   - wget https://raw.github.com/ndmitchell/hlint/master/misc/travis.sh -O - --quiet | sh -s .
   - cabal check
+
+notifications:
+  email: false
