@@ -68,7 +68,7 @@ library
     ghc-options:
       -fwarn-incomplete-record-updates -fwarn-incomplete-uni-patterns
     build-depends:
-      semigroups  >= 0.16.1 && < 0.19
+      semigroups  >= 0.16.1 && < 1.0
   if impl(ghc >= 8)
     ghc-options:
       -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns
