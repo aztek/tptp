@@ -178,7 +178,7 @@ instance Pretty Clause where
     Clause ls -> fmap p ls `sepBy1` (space <> pretty Disjunction)
       where
         p (Positive, l) = pretty l
-        p (Negative, l) = "~" <+> parens (pretty l)
+        p (Negative, l) = "~" <+> pretty l
 
 instance Pretty Quantifier where
   pretty = pretty . name
