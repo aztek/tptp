@@ -178,6 +178,11 @@ instance Pretty Clause where
     Clause ls -> fmap p ls `sepBy1` (space <> pretty Disjunction)
       where
         p (Positive, l) = pretty l
+        -- TPTP v7.3.0.0 doesn't allow for wrapping atom in parentesis in
+        -- a negated atom in CNF formulas. I.e. for example ~ (X = Y) is
+        -- not allowed. See http://www.tptp.org/TPTP/SyntaxBNF.html#cnf_formula
+        -- TODO: implement AB-test comparing this parser against some canonical
+        -- implementation of the parser of TPTP BNF (like tptp4X).
         p (Negative, l) = "~" <+> pretty l
 
 instance Pretty Quantifier where

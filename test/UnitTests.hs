@@ -18,7 +18,7 @@ import Control.Monad.Extra (concatMapM)
 #if !MIN_VERSION_base(4, 8, 0)
 import Data.Functor ((<$>))
 #endif
-import Data.Text (Text,pack)
+import Data.Text (Text)
 import qualified Data.Text.IO as Text.IO (readFile)
 
 import System.Directory (listDirectory)
@@ -29,7 +29,6 @@ import Distribution.TestSuite (Test(..), TestInstance(..),
 
 import Data.TPTP (TPTP(..), TSTP(..), SZS(..))
 import Data.TPTP.Parse.Text (parseTPTPOnly, parseTSTPOnly)
-import Data.TPTP.Pretty
 
 
 testDataDir :: FilePath
@@ -88,28 +87,8 @@ listLangs s = fmap (s,) <$> listTestDirectory s
 listFiles :: (FilePath, FilePath) -> IO [(FilePath, FilePath, FilePath)]
 listFiles (s, l) = fmap (s, l,) <$> listTestDirectory (s </> l)
 
--- TPTP v7.3.0.0 doesn't allow for wrapping atom in parentesis in
--- a negated atom in a CNF formulas. I.e. for example ~ (X = Y) is
--- not allowed. See http://www.tptp.org/TPTP/SyntaxBNF.html#cnf_formula
-negatedAtom = "cnf(a, axiom, ~ X = Y)."
-negatedAtomResult = case parseTPTPOnly negatedAtom of
-  Left e -> Error e
-  Right (TPTP []) -> Error "empty list of parsed units"
-  Right x -> case pack (show (pretty x)) == negatedAtom of
-    True -> Pass
-    False -> Error "mismatch"
-
-negatedAtomTest = Test $ TestInstance {
-  run       = Finished <$> return negatedAtomResult,
-  name      = "negated atom",
-  tags      = [],
-  options   = [],
-  setOption = const . const $ Left "not supported"
-}
-
-
 cases :: IO [TestCase]
 cases = listSpaces >>= concatMapM listLangs >>= concatMapM listFiles
 
 tests :: IO [Test]
-tests = (negatedAtomTest:) <$> (fmap testFile <$> cases)
+tests = fmap testFile <$> cases
