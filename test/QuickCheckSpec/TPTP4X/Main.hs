@@ -36,8 +36,8 @@ runTPTP4X = readProcessWithExitCode "test-data/tptp4X" ["-q3", "-"]
 tptp4X :: Pretty e => e -> Property
 tptp4X e = ioProperty $ do
   (exitCode, stdOut, stdErr) <- runTPTP4X (show $ pretty e)
-  return . whenFail (putStrLn ("tptp4X: " <> stdOut) >>
-                     putStrLn ("tptp4X: " <> stdErr))
+  return . whenFail (putStrLn ("tptp4X: " ++ stdOut) >>
+                     putStrLn ("tptp4X: " ++ stdErr))
          $ exitCode === ExitSuccess
 
 prop_tptp4X_TPTP :: TPTP -> Property
