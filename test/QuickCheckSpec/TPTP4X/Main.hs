@@ -28,7 +28,7 @@ import Generators ()
 -- * Helper functions
 
 runTPTP4X :: String -> IO (ExitCode, String, String)
-runTPTP4X = readProcessWithExitCode "test-data/tptp4X" ["-q3", "-"]
+runTPTP4X = readProcessWithExitCode "test-data/tptp4X" ["-q3", "--"]
 
 
 -- * Properties
