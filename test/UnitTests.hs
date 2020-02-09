@@ -14,6 +14,7 @@
 
 module UnitTests (tests) where
 
+import Control.Monad (filterM)
 import Control.Monad.Extra (concatMapM)
 #if !MIN_VERSION_base(4, 8, 0)
 import Data.Functor ((<$>))
@@ -21,7 +22,7 @@ import Data.Functor ((<$>))
 import Data.Text (Text)
 import qualified Data.Text.IO as Text.IO (readFile)
 
-import System.Directory (listDirectory)
+import System.Directory (listDirectory, doesDirectoryExist)
 import System.FilePath.Posix (joinPath, (</>))
 
 import Distribution.TestSuite (Test(..), TestInstance(..),
@@ -79,10 +80,10 @@ testFile testCase@(space, lang, _) = Test $ TestInstance {
 }
 
 listSpaces :: IO [FilePath]
-listSpaces = listDirectory testDataDir
+listSpaces = listDirectory testDataDir >>= filterM doesDirectoryExist
 
 listLangs :: FilePath -> IO [(FilePath, FilePath)]
-listLangs s = fmap (s,) <$> listTestDirectory s
+listLangs s = fmap (s,) <$> (listTestDirectory s >>= filterM doesDirectoryExist)
 
 listFiles :: (FilePath, FilePath) -> IO [(FilePath, FilePath, FilePath)]
 listFiles (s, l) = fmap (s, l,) <$> listTestDirectory (s </> l)

@@ -124,6 +124,39 @@ test-suite unit-tests
     filepath  >= 1.3   && < 1.5,
     tptp
 
+test-suite tptp4x
+  type: exitcode-stdio-1.0
+  hs-source-dirs: test/QuickCheckSpec/TPTP4X test/QuickCheckSpec
+  default-language: Haskell2010
+  main-is: Main.hs
+  other-modules:
+    Generators
+  ghc-options:
+    -Wall -threaded
+  if flag(Werror)
+    ghc-options: -Werror
+  build-depends:
+    base,
+    text,
+    attoparsec,
+    scientific,
+    prettyprinter,
+    process        >= 1.6.3   && < 1.7,
+    generic-random >= 1.2.0.0 && < 1.3,
+    QuickCheck     >= 2.4     && < 3.0,
+    tptp
+  if impl(ghc < 8)
+    build-depends:
+      semigroups
+  if impl(ghc < 8.2)
+    build-depends:
+      bifunctors   >= 3.0.1   && < 6
+  -- tptp4X is a Linux binary
+  if os(linux)
+    buildable: True
+  if !os(linux)
+    buildable: False
+
 test-suite doctests
   type: exitcode-stdio-1.0
   hs-source-dirs: test/DocTests
