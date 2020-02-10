@@ -20,12 +20,15 @@ import Prelude hiding ((<*))
 #endif
 
 import Control.Applicative ((<*))
+import Control.Monad (unless)
 
 import Data.Attoparsec.Text (Parser, parseOnly, endOfInput)
 import Data.Text.Prettyprint.Doc (layoutPretty, defaultLayoutOptions)
 import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
 import Test.QuickCheck (Property, Args(..), stdArgs, (===), whenFail,
                         forAllProperties, quickCheckWithResult)
+
+import System.Exit (exitFailure)
 
 import Data.TPTP hiding (clause)
 import Data.TPTP.Parse.Combinators
@@ -146,5 +149,8 @@ prop_ipp_Info = ippModulo normalizeInfo info
 
 return []
 
-main :: IO Bool
-main = $forAllProperties $ quickCheckWithResult stdArgs{maxSuccess=1000}
+main :: IO () 
+main = do
+  success <- $forAllProperties $ quickCheckWithResult stdArgs{maxSuccess=1000}
+  unless success exitFailure
+
