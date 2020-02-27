@@ -305,7 +305,7 @@ term =  parens term
     <|> DistinctTerm     <$> distinctObject
     <?> "term"
 
--- | Parse the equality and the unequality sign.
+-- | Parse the equality and the inequality sign.
 eq :: Parser Sign
 eq = enum <?> "eq"
 {-# INLINE eq #-}
