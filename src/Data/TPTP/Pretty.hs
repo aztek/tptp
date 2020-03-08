@@ -29,8 +29,7 @@ import Data.Semigroup ((<>))
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import qualified Data.Foldable as Foldable (toList)
 import Data.List (genericReplicate)
-import Data.List.NonEmpty (NonEmpty)
-import qualified Data.List.NonEmpty as NEL (nonEmpty, toList)
+import qualified Data.List.NonEmpty as NEL (nonEmpty)
 import Data.Maybe (maybeToList)
 import Data.Text (Text)
 import qualified Data.Text as Text (
@@ -38,7 +37,7 @@ import qualified Data.Text as Text (
   )
 import Data.Text.Prettyprint.Doc (
     Doc, Pretty(..),
-    hsep, sep, (<+>), brackets, parens, punctuate, comma, space, line
+    hsep, sep, (<+>), parens, list, tupled, concatWith, space, line
   )
 
 import Data.TPTP
@@ -50,14 +49,14 @@ comment :: Doc ann -> Doc ann
 comment c = "%" <+> c <> line
 
 sepBy :: Foldable f => f (Doc ann) -> Doc ann -> Doc ann
-sepBy as s = hsep (punctuate s (Foldable.toList as))
+sepBy as s = concatWith (\a b -> a <+> s <+> b) (Foldable.toList as)
 
 application :: Pretty f => f -> [Doc ann] -> Doc ann
 application f [] = pretty f
-application f as = pretty f <> parens (as `sepBy` comma)
+application f as = pretty f <> tupled as
 
-bracketList :: (Pretty a, Functor f, Foldable f) => f a -> Doc ann
-bracketList as = brackets (fmap pretty as `sepBy` comma)
+bracketList :: (Pretty a, Foldable f) => f a -> Doc ann
+bracketList = list . fmap pretty . Foldable.toList
 
 
 -- * Names
@@ -130,7 +129,7 @@ prettyMapping as r = args <> pretty r
     args = case as of
       []  -> mempty
       [a] -> pretty a <+> ">" <> space
-      _   -> parens (fmap pretty as `sepBy` (space <> "*")) <+> ">" <> space
+      _   -> parens (fmap pretty as `sepBy` "*") <+> ">" <> space
 
 instance Pretty Type where
   pretty = \case
@@ -138,9 +137,8 @@ instance Pretty Type where
     TFF1Type vs as r -> prefix <> if null as then matrix else parens matrix
       where
         prefix = case NEL.nonEmpty vs of
-          Nothing  -> mempty
-          Just vs' -> "!>" <+> brackets (vars vs') <> ":" <> space
-        vars vs' = fmap prettyVar vs' `sepBy` comma
+          Nothing -> mempty
+          Just{}  -> "!>" <+> list (fmap prettyVar vs) <> ":" <> space
         prettyVar v = pretty v <> ":" <+> pretty tType
         matrix = prettyMapping as r
 
@@ -170,7 +168,7 @@ instance Pretty Sign where
 
 instance Pretty Clause where
   pretty = \case
-    Clause ls -> fmap p ls `sepBy` (space <> pretty Disjunction)
+    Clause ls -> fmap p ls `sepBy` pretty Disjunction
       where
         p (Positive, l) = pretty l
         -- TPTP v7.3.0.0 doesn't allow for wrapping atom in parentesis in
@@ -222,9 +220,9 @@ instance Pretty s => Pretty (FirstOrder s) where
         -- parenthesis. Otherwise, the connectives do not have precedence
         pretty'' e@(Connected _ c' _) | c' == c && isAssociative c = pretty e
         pretty'' e = pretty' e
-    Quantified q vs f -> pretty q <+> vs' <> ":" <+> pretty' f
+    Quantified q vs f -> pretty q <+> list vs' <> ":" <+> pretty' f
       where
-        vs' = brackets (fmap var vs `sepBy` comma)
+        vs' = fmap var (Foldable.toList vs)
         var (v, s) = pretty v <> pretty s
 
 
