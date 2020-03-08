@@ -27,6 +27,7 @@ import Data.Semigroup ((<>))
 #endif
 
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
+import qualified Data.Foldable as Foldable (toList)
 import Data.List (genericReplicate)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL (nonEmpty, toList)
@@ -48,21 +49,15 @@ import Data.TPTP
 comment :: Doc ann -> Doc ann
 comment c = "%" <+> c <> line
 
-sepBy :: [Doc ann] -> Doc ann -> Doc ann
-sepBy as s = hsep (punctuate s as)
-
-sepBy1 :: NonEmpty (Doc ann) -> Doc ann -> Doc ann
-sepBy1 as s = hsep (punctuate s (NEL.toList as))
+sepBy :: Foldable f => f (Doc ann) -> Doc ann -> Doc ann
+sepBy as s = hsep (punctuate s (Foldable.toList as))
 
 application :: Pretty f => f -> [Doc ann] -> Doc ann
 application f [] = pretty f
 application f as = pretty f <> parens (as `sepBy` comma)
 
-bracketList :: Pretty a => [a] -> Doc ann
+bracketList :: (Pretty a, Functor f, Foldable f) => f a -> Doc ann
 bracketList as = brackets (fmap pretty as `sepBy` comma)
-
-bracketList1 :: Pretty a => NonEmpty a -> Doc ann
-bracketList1 as = brackets (fmap pretty as `sepBy1` comma)
 
 
 -- * Names
@@ -145,7 +140,7 @@ instance Pretty Type where
         prefix = case NEL.nonEmpty vs of
           Nothing  -> mempty
           Just vs' -> "!>" <+> brackets (vars vs') <> ":" <> space
-        vars vs' = fmap prettyVar vs' `sepBy1` comma
+        vars vs' = fmap prettyVar vs' `sepBy` comma
         prettyVar v = pretty v <> ":" <+> pretty tType
         matrix = prettyMapping as r
 
@@ -175,7 +170,7 @@ instance Pretty Sign where
 
 instance Pretty Clause where
   pretty = \case
-    Clause ls -> fmap p ls `sepBy1` (space <> pretty Disjunction)
+    Clause ls -> fmap p ls `sepBy` (space <> pretty Disjunction)
       where
         p (Positive, l) = pretty l
         -- TPTP v7.3.0.0 doesn't allow for wrapping atom in parentesis in
@@ -229,7 +224,7 @@ instance Pretty s => Pretty (FirstOrder s) where
         pretty'' e = pretty' e
     Quantified q vs f -> pretty q <+> vs' <> ":" <+> pretty' f
       where
-        vs' = brackets (fmap var vs `sepBy1` comma)
+        vs' = brackets (fmap var vs `sepBy` comma)
         var (v, s) = pretty v <> pretty s
 
 
@@ -260,7 +255,7 @@ instance Pretty Unit where
   pretty = \case
     Include (Atom f) ns -> application (Atom "include") args <> "."
       where
-        args = pretty (SingleQuoted f) : maybeToList (fmap bracketList1 ns)
+        args = pretty (SingleQuoted f) : maybeToList (fmap bracketList ns)
     Unit nm decl a -> application (declarationLanguage decl) args <> "."
       where
         args = pretty nm : role : pretty decl : ann
@@ -321,7 +316,7 @@ instance Pretty Info where
     Description    a -> application (Atom "description") [pretty a]
     Iquote         a -> application (Atom "iquote")      [pretty a]
     Status         s -> application (Atom "status")      [pretty s]
-    Assumptions    u -> application (Atom "assumptions") [bracketList1 u]
+    Assumptions    u -> application (Atom "assumptions") [bracketList u]
     NewSymbols  n ss -> application (Atom "new_symbols") [pretty n, prettyList ss]
     Refutation     a -> application (Atom "refutation")  [pretty a]
     Bind         v e -> application (Atom "bind")        [pretty v, pretty e]
