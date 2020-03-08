@@ -18,6 +18,7 @@ module Data.TPTP.Pretty (
 ) where
 
 #if !MIN_VERSION_base(4, 8, 0)
+import Data.Foldable (Foldable)
 import Data.Functor ((<$>))
 import Data.Monoid (mempty)
 #endif
