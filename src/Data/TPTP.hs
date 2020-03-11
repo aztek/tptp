@@ -106,8 +106,13 @@ import qualified Data.Text as Text (all, null, head, tail)
 import Data.Text (Text)
 
 #if !MIN_VERSION_base(4, 8, 0)
+import Data.Monoid (Monoid(..))
 import Data.Foldable (Foldable)
 import Data.Traversable (Traversable, traverse)
+#endif
+
+#if !MIN_VERSION_base(4, 11, 0)
+import Data.Semigroup (Semigroup(..))
 #endif
 
 -- $setup
@@ -158,6 +163,9 @@ instance Named Language where
 newtype Atom = Atom Text
   deriving (Eq, Show, Ord, IsString)
 
+instance Semigroup Atom where
+  Atom t <> Atom s = Atom (t <> s)
+
 -- | Check whether a given character is in the ASCII range 0x20 to 0x7E.
 isAsciiPrint :: Char -> Bool
 isAsciiPrint c = isAscii c && isPrint c
@@ -183,6 +191,9 @@ isValidAtom t = not (Text.null t)
 -- expression @[A-Z][a-zA-Z0-9_]*@.
 newtype Var = Var Text
   deriving (Eq, Show, Ord, IsString)
+
+instance Semigroup Var where
+  Var v <> Var w = Var (v <> w)
 
 -- | Check whether a given character matches the regular expression
 -- @[a-zA-Z0-9_]@.
@@ -228,6 +239,13 @@ isValidVar t = not (Text.null t)
 -- /unequal, e.g.,/ @\"Apple\" != \"Microsoft\"@ /is implicit./
 newtype DistinctObject = DistinctObject Text
   deriving (Eq, Show, Ord, IsString)
+
+instance Semigroup DistinctObject where
+  DistinctObject d <> DistinctObject b = DistinctObject (d <> b)
+
+instance Monoid DistinctObject where
+  mempty = DistinctObject mempty
+  mappend = (<>)
 
 -- | Check whether a given string is a valid distinct object.
 --
@@ -523,6 +541,9 @@ data Literal
 newtype Clause = Clause (NonEmpty (Sign, Literal))
   deriving (Eq, Show, Ord)
 
+instance Semigroup Clause where
+  Clause ls <> Clause ks = Clause (ls <> ks)
+
 -- | A smart constructor for 'Clause'. 'clause' constructs a clause from a
 -- possibly empty list of signed literals. If the provided list is empty,
 -- the unit clause @$false@ is constructed instead.
@@ -727,6 +748,13 @@ data Unit
 newtype TPTP = TPTP {
   units :: [Unit]
 } deriving (Eq, Show, Ord)
+
+instance Semigroup TPTP where
+  TPTP us <> TPTP ys = TPTP (us <> ys)
+
+instance Monoid TPTP where
+  mempty = TPTP mempty
+  mappend = (<>)
 
 -- | The TSTP output - zero or more TSTP units, possibly annotated with the
 -- status of the proof search and the resulting dataform.
