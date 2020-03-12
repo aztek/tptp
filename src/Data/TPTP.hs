@@ -330,25 +330,26 @@ class Named a where
 
 -- | The standard function symbol in TPTP.
 -- Represents an operation in a first-order theory of arithmetic.
+-- See <http://www.tptp.org/TPTP/TR/TPTPTR.shtml#arithmetic> for details.
 data Function
-  = Uminus
-  | Sum
-  | Difference
-  | Product
-  | Quotient
-  | QuotientE
-  | QuotientT
-  | QuotientF
-  | RemainderE
-  | RemainderT
-  | RemainderF
-  | Floor
-  | Ceiling
-  | Truncate
-  | Round
-  | ToInt
-  | ToRat
-  | ToReal
+  = Uminus     -- ^ @$uminus@ - Unary minus of a number.
+  | Sum        -- ^ @$sum@ - Sum of two numbers.
+  | Difference -- ^ @$difference@ - Difference between two numbers.
+  | Product    -- ^ @$product@ - Product of two numbers.
+  | Quotient   -- ^ @$quotient@ - Exact quotient of two @$rat@ or @$real@ numbers.
+  | QuotientE  -- ^ @$quotient_e@ - Integral quotient of two numbers.
+  | QuotientT  -- ^ @$quotient_t@ - Integral quotient of two numbers.
+  | QuotientF  -- ^ @$quotient_f@ - Integral quotient of two numbers.
+  | RemainderE -- ^ @$remainder_e@ - Remainder after integral division of two numbers.
+  | RemainderT -- ^ @$remainder_t@ - Remainder after integral division of two numbers.
+  | RemainderF -- ^ @$remainder_f@ - Remainder after integral division of two numbers.
+  | Floor      -- ^ @$floor@ - Floor of a number.
+  | Ceiling    -- ^ @$ceiling@ - Ceiling of a number.
+  | Truncate   -- ^ @$truncate@ - Truncation of a number.
+  | Round      -- ^ @$round@ - Rounding of a number.
+  | ToInt      -- ^ @$to_int@ - Coercion of a number to @$int@.
+  | ToRat      -- ^ @$to_rat@ - Coercion of a number to @$rat@.
+  | ToReal     -- ^ @$to_real@ - Coercion of a number to @$real@.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Function where
@@ -373,16 +374,17 @@ instance Named Function where
     ToReal     -> "to_real"
 
 -- | The standard predicate symbol in TPTP.
+-- See <http://www.tptp.org/TPTP/TR/TPTPTR.shtml#arithmetic> for details.
 data Predicate
-  = Tautology
-  | Falsum
-  | Distinct
-  | Less
-  | Lesseq
-  | Greater
-  | Greatereq
-  | IsInt
-  | IsRat
+  = Tautology -- ^ @$true@ - Logical tautology.
+  | Falsum    -- ^ @$false@ - Logical falsum.
+  | Distinct  -- ^ @$distinct@ - Denotes that its arguments are unequal to each other.
+  | Less      -- ^ @$less@ - Less-than comparison of two numbers.
+  | Lesseq    -- ^ @$lesseq@ - Less-than-or-equal-to comparison of two numbers.
+  | Greater   -- ^ @$greater@ - Greater-than comparison of two numbers.
+  | Greatereq -- ^ @$greatereq@ - Greater-than-or-equal-to comparison of two numbers.
+  | IsInt     -- ^ @$is_nat@ - Test for coincidence with an integer.
+  | IsRat     -- ^ @$is_rat@ - Test for coincidence with a rational.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Predicate where
@@ -424,11 +426,11 @@ instance IsString (Name s) where
 
 -- | The standard sort in TPTP.
 data Sort
-  = I    -- ^ The sort of individuals.
-  | O    -- ^ The sort of booleans.
-  | Int  -- ^ The sort of integers.
-  | Real -- ^ The sort of real numbers.
-  | Rat  -- ^ The sort of rational numbers.
+  = I    -- ^ @$i@ - The sort of individuals.
+  | O    -- ^ @$o@ - The sort of booleans.
+  | Int  -- ^ @$int@ - The sort of integers.
+  | Real -- ^ @$real@ - The sort of real numbers.
+  | Rat  -- ^ @$rat@ - The sort of rational numbers.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 instance Named Sort where
@@ -567,14 +569,14 @@ instance Named Quantifier where
 
 -- | The connective in full first-order logic.
 data Connective
-  = Conjunction
-  | Disjunction
-  | Implication
-  | Equivalence
-  | ExclusiveOr
-  | NegatedConjunction
-  | NegatedDisjunction
-  | ReversedImplication
+  = Conjunction         -- ^ @&@.
+  | Disjunction         -- ^ @|@.
+  | Implication         -- ^ @=>@.
+  | Equivalence         -- ^ @<=>@.
+  | ExclusiveOr         -- ^ @<~>@ - XOR.
+  | NegatedConjunction  -- ^ @~&@ - NAND.
+  | NegatedDisjunction  -- ^ @~|@ - NOR.
+  | ReversedImplication -- ^ @<=@.
   deriving (Eq, Show, Ord, Enum, Bounded)
 
 -- | Check associativity of a given connective.
