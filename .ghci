@@ -1,2 +1,3 @@
 :set -isrc -itest/QuickCheckSpec
 :set -Wall
+:set -XOverloadedStrings
