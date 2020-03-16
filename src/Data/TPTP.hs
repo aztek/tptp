@@ -56,6 +56,7 @@ module Data.TPTP (
   Literal(..),
   Sign(..),
   Clause(..),
+  unitClause,
   clause,
   Quantifier(..),
   Connective(..),
@@ -546,13 +547,17 @@ newtype Clause = Clause (NonEmpty (Sign, Literal))
 instance Semigroup Clause where
   Clause ls <> Clause ks = Clause (ls <> ks)
 
+-- | Construct a unit clause from a given signed literal.
+unitClause :: (Sign, Literal) -> Clause
+unitClause l = Clause (l :| [])
+
 -- | A smart constructor for 'Clause'. 'clause' constructs a clause from a
 -- possibly empty list of signed literals. If the provided list is empty,
 -- the unit clause @$false@ is constructed instead.
 clause :: [(Sign, Literal)] -> Clause
 clause ls
   | Just ls' <- nonEmpty ls = Clause ls'
-  | otherwise = Clause ((Positive, falsum) :| [])
+  | otherwise = unitClause (Positive, falsum)
   where
     falsum = Predicate (Reserved (Standard Falsum)) []
 
