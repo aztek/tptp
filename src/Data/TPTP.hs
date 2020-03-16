@@ -480,7 +480,10 @@ data Type
 
 -- | A smart constructor of a TFF1 type. 'tff1Type' constructs a TFF0 type with
 -- its arguments, if it is possible, and otherwise constructs a TFF1 type.
-tff1Type :: [Var] -> [TFF1Sort] -> TFF1Sort -> Type
+tff1Type :: [Var]      -- ^ Quantified type variables.
+         -> [TFF1Sort] -- ^ Sort arguments.
+         -> TFF1Sort   -- ^ Return sort.
+         -> Type
 tff1Type [] ss s
   | Just ss' <- traverse monomorphizeTFF1Sort ss
   , Just s'  <- monomorphizeTFF1Sort s = Type ss' s'
