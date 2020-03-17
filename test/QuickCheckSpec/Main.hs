@@ -1,5 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE CPP #-}
 
 -- |
@@ -21,12 +24,17 @@ import Prelude hiding ((<*))
 
 import Control.Applicative ((<*))
 import Control.Monad (unless)
+import Data.Foldable (toList)
+import Data.List.NonEmpty (NonEmpty)
+import qualified Data.List.NonEmpty as NEL (cons)
+import Data.Text (Text)
 
 import Data.Attoparsec.Text (Parser, parseOnly, endOfInput)
-import Data.Text.Prettyprint.Doc (layoutPretty, defaultLayoutOptions)
+import Data.Text.Prettyprint.Doc (Doc, layoutPretty, defaultLayoutOptions)
 import Data.Text.Prettyprint.Doc.Render.Text (renderStrict)
-import Test.QuickCheck (Property, Args(..), stdArgs, (===), whenFail,
-                        forAllProperties, quickCheckWithResult)
+import Test.QuickCheck (Gen, Property, Args(..), stdArgs, (===), whenFail,
+                        forAll, forAllProperties, quickCheckWithResult)
+import Test.QuickCheck.Poly (A)
 
 import System.Exit (exitFailure)
 
@@ -34,28 +42,70 @@ import Data.TPTP hiding (clause)
 import Data.TPTP.Parse.Combinators
 import Data.TPTP.Pretty
 
+import ArbitrarilyPretty
 import Generators ()
 import Normalizers
 
+
 -- * Helper functions
 
--- | Idempotent parsing / pretty printing modulo normalization
-ippModulo :: (Show a, Eq a, Pretty a) => (a -> a) -> Parser a -> a -> Property
-ippModulo normalize p a =
-  whenFail (print t) $ case parseOnly (p <* endOfInput) t of
-    Left err -> whenFail (putStrLn $ "Parsing error: " ++ err) False
-    Right a' -> normalize a' === normalize a
-  where
-    t = renderStrict $ layoutPretty defaultLayoutOptions (pretty a)
+-- | Generalized idempotent parsing / pretty printing.
+ippWith :: (Show e, Eq e)
+        => (e -> Gen (Doc a))  -- ^ Pretty printer.
+        -> (Doc a -> Gen Text) -- ^ Renderer.
+        -> Parser e            -- ^ Parser.
+        -> (e -> e)            -- ^ Normalizer.
+        -> e -> Property
+ippWith pprint render parse normalize expr =
+  forAll (pprint expr) $ \doc  ->
+  forAll (render doc)  $ \text ->
+    case parseOnly (parse <* endOfInput) text of
+      Left err    -> whenFail (putStrLn $ "Parsing error: " ++ err) False
+      Right expr' -> normalize expr' === normalize expr
 
--- | Idempotent parsing / pretty printing
-ipp :: (Show a, Eq a, Pretty a) => Parser a -> a -> Property
-ipp = ippModulo id
+defaultRender :: Doc a -> Gen Text
+defaultRender = return . renderStrict . layoutPretty defaultLayoutOptions
+
+defaultNormalize :: e -> e
+defaultNormalize = id
+
+-- | Idempotent parsing / pretty printing modulo normalization.
+ippModulo :: (Show e, Eq e, Pretty e) => (e -> e) -> Parser e -> e -> Property
+ippModulo = flip $ ippWith (return . pretty) defaultRender
+
+-- | Idempotent parsing / pretty printing.
+ipp :: (Show e, Eq e, Pretty e) => Parser e -> e -> Property
+ipp = ippModulo defaultNormalize
+
+-- | Idempotent arbitrary parsing / pretty printing modulo normalization.
+aippModulo :: (Show e, Eq e, ArbitrarilyPretty e)
+           => (e -> e) -> Parser e -> e -> Property
+aippModulo = flip $ ippWith apretty defaultRender
+
+-- | Idempotent parsing / pretty printing.
+aipp :: (Show e, Eq e, ArbitrarilyPretty e) => Parser e -> e -> Property
+aipp = aippModulo defaultNormalize
+
+-- | Idempotent parsing / pretty printing with superfluous parenthesis
+-- modulo normalization.
+spAippModulo :: (Show e, Eq e, ArbitrarilyPretty (SuperfluousParenthesis e))
+             => (e -> e) -> Parser e -> e -> Property
+spAippModulo normalize parser expr =
+  aippModulo (fmap normalize)
+             (fmap SuperfluousParenthesis parser)
+             (SuperfluousParenthesis expr)
+
+-- | Idempotent parsing / pretty printing with superfluous parenthesis.
+spAipp :: (Show e, Eq e, ArbitrarilyPretty (SuperfluousParenthesis e))
+       => Parser e -> e -> Property
+spAipp = spAippModulo defaultNormalize
 
 
 -- * Properties
 
 -- ** Generators
+
+-- *** Well-formed names
 
 prop_validAtom :: Atom -> Bool
 prop_validAtom (Atom t) = isValidAtom t
@@ -65,6 +115,18 @@ prop_validVar (Var t) = isValidVar t
 
 prop_validDistinctObject :: DistinctObject -> Bool
 prop_validDistinctObject (DistinctObject t) = isValidDistinctObject t
+
+-- *** Auxiliary data structures
+
+prop_randomSplit :: NonEmpty A -> Property
+prop_randomSplit list = forAll (randomSplit list)
+                      $ \(prefix, suffix) -> appendr prefix suffix === list
+  where
+    appendr l nel = foldr NEL.cons nel l
+
+prop_randomTree :: NonEmpty A -> Property
+prop_randomTree list = forAll (randomTree list)
+                     $ \tree -> toList tree === toList list
 
 
 -- ** Names
@@ -145,11 +207,23 @@ prop_ipp_Info :: Info -> Property
 prop_ipp_Info = ippModulo normalizeInfo info
 
 
+-- * Superfluous parenthesis
+
+prop_ipp_sp_Term :: Term -> Property
+prop_ipp_sp_Term = spAipp term
+
+prop_ipp_sp_Literal :: Literal -> Property
+prop_ipp_sp_Literal = spAipp literal
+
+prop_ipp_sp_Clause :: Clause -> Property
+prop_ipp_sp_Clause = spAipp clause
+
+
 -- * Runner
 
 return []
 
-main :: IO () 
+main :: IO ()
 main = do
   success <- $forAllProperties $ quickCheckWithResult stdArgs{maxSuccess=1000}
   unless success exitFailure

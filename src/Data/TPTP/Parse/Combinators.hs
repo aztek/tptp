@@ -1,5 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE CPP #-}
 
@@ -68,7 +69,9 @@ import Data.List (sortBy, genericLength)
 import Data.List.NonEmpty (NonEmpty)
 import qualified Data.List.NonEmpty as NEL (fromList, toList)
 #if !MIN_VERSION_base(4, 11, 0)
-import Data.Semigroup (Semigroup(..))
+import Data.Semigroup (Semigroup(..), sconcat)
+#else
+import Data.Semigroup (sconcat)
 #endif
 
 import qualified Data.Scientific as Sci (base10Exponent, coefficient)
@@ -153,7 +156,7 @@ parens p = op '(' *> p <* op ')' <?> "parens"
 {-# INLINE parens #-}
 
 optionalParens :: Parser a -> Parser a
-optionalParens p = parens p <|> p
+optionalParens p = p <|> parens (optionalParens p)
 {-# INLINE optionalParens #-}
 
 brackets :: Parser a -> Parser a
@@ -297,9 +300,11 @@ number =  RationalConstant <$> signed integer <* char '/' <*> integer
       | otherwise = RealConstant n
 
 -- | Parse a term.
+--
+-- @term@ supports parsing superfluous parenthesis around arguments
+-- of the function application, which are not present in the TPTP grammar.
 term :: Parser Term
-term =  parens term
-    <|> uncurry Function <$> application function term
+term =  uncurry Function <$> application function (optionalParens term)
     <|> Variable         <$> var
     <|> Number           <$> number
     <|> DistinctTerm     <$> distinctObject
@@ -311,27 +316,34 @@ eq = enum <?> "eq"
 {-# INLINE eq #-}
 
 -- | Parse a literal.
+--
+-- @literal@ supports parsing superfluous parenthesis around arguments
+-- of the predicate application, which are not present in the TPTP grammar.
 literal :: Parser Literal
-literal =  parens literal
-       <|> Equality <$> term <*> eq <*> term
-       <|> uncurry Predicate <$> application predicate term
+literal =  Equality <$> optionalParens term <*> eq <*> optionalParens term
+       <|> uncurry Predicate <$> application predicate (optionalParens term)
        <?> "literal"
 
--- | Parse the negation sign.
-sign :: Parser Sign
-sign = option Positive (op '~' $> Negative)
-{-# INLINE sign #-}
-
 -- | Parse a signed literal.
+--
+-- @signedLiteral@ supports parsing superfluous parenthesis around the literal
+-- under the negation sign, which are not present in the TPTP grammar.
 signedLiteral :: Parser (Sign, Literal)
-signedLiteral = (,) <$> sign <*> literal <?> "signed literal"
+signedLiteral =  fmap (Negative,) (op '~' *> optionalParens literal)
+             <|> fmap (Positive,) literal
+             <?> "signed literal"
 {-# INLINE signedLiteral #-}
 
 -- | Parse a clause.
+--
+-- @clause@ supports parsing superfluous parenthesis around any of the
+-- subclauses of the clause, which are not present in the TPTP grammar.
 clause :: Parser Clause
-clause =  parens clause
-      <|> Clause . NEL.fromList <$> signedLiteral `sepBy1` op '|'
-      <?> "clause"
+clause = sconcat . NEL.fromList <$> subclause `sepBy1` op '|'
+  where
+    subclause =  unitClause <$> signedLiteral
+             <|> parens clause
+             <?> "subclause"
 
 -- | Parse a quantifier.
 quantifier :: Parser Quantifier
@@ -525,7 +537,7 @@ infos = bracketList info <?> "infos"
 
 -- | Parse and expression
 expr :: Parser Expression
-expr =  char '$' *> (labeled "fot" (Term <$> term)
+expr =  char '$' *> (labeled "fot" (Term <$> optionalParens term)
                 <|>  Logical <$> (language >>= parens . formula))
     <?> "expression"
 

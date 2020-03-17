@@ -80,6 +80,7 @@ test-suite quickcheck-spec
   default-language: Haskell2010
   main-is: Main.hs
   other-modules:
+    ArbitrarilyPretty
     Generators
     Normalizers
   ghc-options:
