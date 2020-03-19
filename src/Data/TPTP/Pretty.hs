@@ -206,22 +206,22 @@ unitary = \case
   Quantified{} -> True
   Connected{}  -> False
 
-pretty' :: Pretty s => FirstOrder s -> Doc ann
-pretty' f
-  | unitary f = pretty f
-  | otherwise = parens (pretty f)
+ppretty :: Pretty s => (FirstOrder s -> Bool) -> FirstOrder s -> Doc ann
+ppretty skipParens f
+  | skipParens f = pretty f
+  | otherwise    = parens (pretty f)
+
+under :: Connective -> FirstOrder s -> Bool
+under c = \case
+  Connected _ c' _ -> c' == c && isAssociative c
+  f -> unitary f
 
 instance Pretty s => Pretty (FirstOrder s) where
   pretty = \case
     Atomic l -> pretty l
-    Negated f -> "~" <+> pretty' f
-    Connected f c g -> pretty'' f <+> pretty c <+> pretty'' g
-      where
-        -- Nested applications of associative connectives do not require
-        -- parenthesis. Otherwise, the connectives do not have precedence
-        pretty'' e@(Connected _ c' _) | c' == c && isAssociative c = pretty e
-        pretty'' e = pretty' e
-    Quantified q vs f -> pretty q <+> list vs' <> ":" <+> pretty' f
+    Negated f -> "~" <+> ppretty unitary f
+    Connected f c g -> ppretty (under c) f <+> pretty c <+> ppretty (under c) g
+    Quantified q vs f -> pretty q <+> list vs' <> ":" <+> ppretty unitary f
       where
         vs' = fmap var (Foldable.toList vs)
         var (v, s) = pretty v <> pretty s
