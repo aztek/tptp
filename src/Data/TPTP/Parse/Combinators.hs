@@ -173,7 +173,7 @@ bracketList1 p =  NEL.fromList <$> brackets (p `sepBy1` op ',')
 {-# INLINE bracketList1 #-}
 
 application :: Parser f -> Parser a -> Parser (f, [a])
-application f a = (,) <$> f <*> option [] (parens (a `sepBy1` op ','))
+application f a = (,) <$> f <*> option [] (parens (optionalParens a `sepBy1` op ','))
 {-# INLINE application #-}
 
 labeled :: Text -> Parser a -> Parser a
@@ -304,7 +304,7 @@ number =  RationalConstant <$> signed integer <* char '/' <*> integer
 -- @term@ supports parsing superfluous parenthesis around arguments
 -- of the function application, which are not present in the TPTP grammar.
 term :: Parser Term
-term =  uncurry Function <$> application function (optionalParens term)
+term =  uncurry Function <$> application function term
     <|> Variable         <$> var
     <|> Number           <$> number
     <|> DistinctTerm     <$> distinctObject
@@ -321,7 +321,7 @@ eq = enum <?> "eq"
 -- of the predicate application, which are not present in the TPTP grammar.
 literal :: Parser Literal
 literal =  Equality <$> optionalParens term <*> eq <*> optionalParens term
-       <|> uncurry Predicate <$> application predicate (optionalParens term)
+       <|> uncurry Predicate <$> application predicate term
        <?> "literal"
 
 -- | Parse a signed literal.
@@ -361,10 +361,10 @@ firstOrder p = do
   f <- unitary
   option f (Connected f <$> connective <*> firstOrder p)
   where
-    unitary =  parens (firstOrder p)
-           <|> Atomic     <$> literal
-           <|> Quantified <$> quantifier <*> vs <* op ':' <*> unitary
+    unitary =  Atomic     <$> literal
            <|> Negated    <$> (op '~' *> unitary)
+           <|> Quantified <$> quantifier <*> vs <* op ':' <*> unitary
+           <|> parens (firstOrder p)
            <?> "unitary first order"
 
     vs = bracketList1 $ (,) <$> var <*> p
@@ -375,7 +375,7 @@ unsortedFirstOrder = firstOrder unsorted
   where unsorted = pure (Unsorted ()) <?> "unsorted"
 
 sorted :: Parser s -> Parser (Sorted s)
-sorted s = Sorted <$> optional (op ':' *> s) <?> "sorted"
+sorted s = Sorted <$> optional (op ':' *> optionalParens s) <?> "sorted"
 
 -- | An alias for 'monomorphicFirstOrder'.
 sortedFirstOrder :: Parser SortedFirstOrder

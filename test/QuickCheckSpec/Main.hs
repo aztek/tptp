@@ -218,6 +218,15 @@ prop_ipp_sp_Literal = spAipp literal
 prop_ipp_sp_Clause :: Clause -> Property
 prop_ipp_sp_Clause = spAipp clause
 
+prop_ipp_sp_UnsortedFO :: UnsortedFirstOrder -> Property
+prop_ipp_sp_UnsortedFO = spAippModulo reassociate unsortedFirstOrder
+
+prop_ipp_sp_MonomorphicFO :: MonomorphicFirstOrder -> Property
+prop_ipp_sp_MonomorphicFO = spAippModulo reassociate monomorphicFirstOrder
+
+prop_ipp_sp_PolymorphicFO :: PolymorphicFirstOrder -> Property
+prop_ipp_sp_PolymorphicFO = spAippModulo reassociate polymorphicFirstOrder
+
 
 -- * Runner
 

@@ -35,6 +35,8 @@ import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
 #endif
 
+import qualified Data.Foldable as F (toList)
+
 #if !MIN_VERSION_base(4, 11, 0)
 import Data.Semigroup ((<>))
 #endif
@@ -43,7 +45,9 @@ import Control.Applicative ((<$>), (<*>))
 
 import Test.QuickCheck (Gen, choose, frequency)
 
-import Data.Text.Prettyprint.Doc (Doc, (<+>), parens, tupled, surround, space)
+import Data.Text.Prettyprint.Doc (
+    Doc, (<+>), parens, tupled, list, surround, space
+  )
 
 import Data.TPTP
 import Data.TPTP.Pretty
@@ -77,6 +81,11 @@ superfluousParenthesis g = frequency [
     (2, parens <$> g),
     (1, parens . parens <$> g)
   ]
+
+instance (ArbitrarilyPretty (SuperfluousParenthesis a),
+          ArbitrarilyPretty (SuperfluousParenthesis b)) =>
+          ArbitrarilyPretty (SuperfluousParenthesis (Either a b)) where
+  apretty (SuperfluousParenthesis e) = either sppretty sppretty e
 
 -- | An auxiliary wrapper used to pretty print applications of function and
 -- predicate symbols with superfluous parenthesis.
@@ -132,9 +141,9 @@ instance ArbitrarilyPretty (SuperfluousParenthesis (Sign, Literal)) where
 
 -- | Randomply split a non-empty list into two lists.
 randomSplit :: NonEmpty a -> Gen ([a], NonEmpty a)
-randomSplit list = do
-  index <- choose (0, NEL.length list - 1)
-  let (prefix, suffix) = NEL.splitAt index list
+randomSplit lst = do
+  index <- choose (0, NEL.length lst - 1)
+  let (prefix, suffix) = NEL.splitAt index lst
   return (prefix, NEL.fromList suffix)
 
 -- | The binary tree - an auxiliary data structure used to represent a tree of
@@ -164,3 +173,56 @@ instance ArbitrarilyPretty (SuperfluousParenthesis l) =>
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Clause) where
   apretty (SuperfluousParenthesis (Clause ls)) = randomTree ls >>= sppretty
+
+data ParensUnless e = ParensUnless Bool e
+  deriving (Show, Eq, Ord)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis e) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (ParensUnless e)) where
+  apretty (SuperfluousParenthesis (ParensUnless p e)) =
+    if p then sppretty e else parens <$> sppretty e
+
+unitary :: FirstOrder s -> Bool
+unitary = \case
+  Atomic{}     -> True
+  Negated{}    -> True
+  Quantified{} -> True
+  Connected{}  -> False
+
+under :: Connective -> FirstOrder s -> Bool
+under c = \case
+  Connected _ c' _ -> c' == c && isAssociative c
+  f -> unitary f
+
+instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (FirstOrder s)) where
+  apretty (SuperfluousParenthesis f) = case f of
+    Atomic  l -> sppretty l
+    Negated g -> sppretty (Prefix '~' (ParensUnless (unitary g) g))
+    Connected g c h -> sppretty (Infix c (ParensUnless (under c g) g)
+                                         (ParensUnless (under c h) h))
+    Quantified q vs g -> do
+      let var (v, s) = (pretty v <>) <$> sppretty s
+      vs' <- mapM var (F.toList vs)
+      g' <- sppretty (Prefix ':' (ParensUnless (unitary g) g))
+      return (pretty q <+> list vs' <> g')
+
+instance ArbitrarilyPretty (SuperfluousParenthesis Unsorted) where
+  apretty (SuperfluousParenthesis u) = return (pretty u)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (Sorted s)) where
+  apretty (SuperfluousParenthesis (Sorted ms)) = case ms of
+    Nothing -> return mempty
+    Just s  -> sppretty (Prefix ':' s)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis (Name Sort)) where
+  apretty (SuperfluousParenthesis n) = return (pretty n)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis QuantifiedSort) where
+  apretty (SuperfluousParenthesis s) = return (pretty s)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis TFF1Sort) where
+  apretty (SuperfluousParenthesis s) = case s of
+    SortVariable v -> return (pretty v)
+    TFF1Sort  f ss -> sppretty (Application_ f ss)
