@@ -33,6 +33,7 @@ import Prelude hiding ((<$>), (<*>))
 #else
 import Data.Foldable (Foldable)
 import Data.Traversable (Traversable)
+import Data.Monoid (mempty)
 #endif
 
 import qualified Data.Foldable as F (toList)
