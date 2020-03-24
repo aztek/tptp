@@ -204,7 +204,7 @@ instance Arbitrary Declaration where
 
 deriving instance Generic Unit
 instance Arbitrary Unit where
-  arbitrary = genericArbitraryU
+  arbitrary = genericArbitraryRec (1 % 10 % ())
   shrink = \case
     Include f ns -> Include f <$> shrink ns
     Unit   n d a -> Unit    n <$> shrink d <*> shrinkAnnotation a
