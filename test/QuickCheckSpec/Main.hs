@@ -50,11 +50,11 @@ import Normalizers
 -- * Helper functions
 
 -- | Generalized idempotent parsing / pretty printing.
-ippWith :: (Show e, Eq e)
+ippWith :: (Show e, Show e', Eq e')
         => (e -> Gen (Doc a))  -- ^ Pretty printer.
         -> (Doc a -> Gen Text) -- ^ Renderer.
         -> Parser e            -- ^ Parser.
-        -> (e -> e)            -- ^ Normalizer.
+        -> (e -> e')           -- ^ Normalizer.
         -> e -> Property
 ippWith pprint render parse normalize expr =
   forAll (pprint expr) $ \doc  ->
@@ -78,8 +78,8 @@ ipp :: (Show e, Eq e, Pretty e) => Parser e -> e -> Property
 ipp = ippModulo defaultNormalize
 
 -- | Idempotent arbitrary parsing / pretty printing modulo normalization.
-aippModulo :: (Show e, Eq e, ArbitrarilyPretty e)
-           => (e -> e) -> Parser e -> e -> Property
+aippModulo :: (Show e, Eq e, ArbitrarilyPretty e, Show e', Eq e')
+           => (e -> e') -> Parser e -> e -> Property
 aippModulo = flip $ ippWith apretty defaultRender
 
 -- | Idempotent parsing / pretty printing.
@@ -91,7 +91,7 @@ aipp = aippModulo defaultNormalize
 spAippModulo :: (Show e, Eq e, ArbitrarilyPretty (SuperfluousParenthesis e))
              => (e -> e) -> Parser e -> e -> Property
 spAippModulo normalize parser expr =
-  aippModulo (fmap normalize)
+  aippModulo (normalize . unSuperfluousParenthesis)
              (fmap SuperfluousParenthesis parser)
              (SuperfluousParenthesis expr)
 
