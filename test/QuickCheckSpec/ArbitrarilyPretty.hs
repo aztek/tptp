@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveFunctor, DeriveTraversable, DeriveFoldable #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE CPP #-}
@@ -37,6 +38,8 @@ import Data.Monoid (mempty)
 #endif
 
 import qualified Data.Foldable as F (toList)
+import Data.List (intersperse)
+import Data.Text (Text)
 
 #if !MIN_VERSION_base(4, 11, 0)
 import Data.Semigroup ((<>))
@@ -47,7 +50,7 @@ import Control.Applicative ((<$>), (<*>))
 import Test.QuickCheck (Gen, choose, frequency)
 
 import Data.Text.Prettyprint.Doc (
-    Doc, (<+>), parens, tupled, list, surround, space
+    Doc, (<+>), parens, tupled, list, surround, sep, space
   )
 
 import Data.TPTP
@@ -227,3 +230,30 @@ instance ArbitrarilyPretty (SuperfluousParenthesis TFF1Sort) where
   apretty (SuperfluousParenthesis s) = case s of
     SortVariable v -> return (pretty v)
     TFF1Sort  f ss -> sppretty (Application_ f ss)
+
+data Mapping s = Mapping [s] s
+  deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
+
+star, arrow , tType :: Text
+star = "*"
+arrow = ">"
+tType = "$tType"
+
+instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (Mapping s)) where
+  apretty (SuperfluousParenthesis (Mapping [] s)) = sppretty s
+  apretty (SuperfluousParenthesis m) = do
+    Mapping as s <- mapM (superfluousParenthesis . sppretty) m
+    return (parens (starSeparated as) <+> pretty arrow <+> s)
+    where
+      starSeparated = sep . intersperse (pretty star)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis Type) where
+  apretty (SuperfluousParenthesis t) = case t of
+    Type        as r -> sppretty (Mapping as r)
+    TFF1Type [] as r -> sppretty (Mapping as r)
+    TFF1Type vs as r -> do
+      t' <- sppretty (Prefix ':' (ParensUnless (null as) (TFF1Type [] as r)))
+      return ("!>" <+> list (fmap prettyVar vs) <> t')
+      where
+        prettyVar v = pretty v <> pretty ':' <+> pretty tType

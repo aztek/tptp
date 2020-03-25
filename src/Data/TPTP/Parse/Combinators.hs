@@ -284,7 +284,7 @@ type_ =  uncurry . tff1Type
   where
     prefix = token "!>" *> bracketList1 sortVar <* op ':'
     sortVar = var <* op ':' <* token "$tType"
-    matrix = optionalParens (mapping tff1Sort)
+    matrix = optionalParens (mapping (optionalParens tff1Sort))
 
 
 -- ** First-order logic

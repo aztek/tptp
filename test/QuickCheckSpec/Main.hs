@@ -218,6 +218,12 @@ prop_ipp_sp_Literal = spAipp literal
 prop_ipp_sp_Clause :: Clause -> Property
 prop_ipp_sp_Clause = spAipp clause
 
+prop_ipp_sp_TFF1Sort :: TFF1Sort -> Property
+prop_ipp_sp_TFF1Sort = spAipp tff1Sort
+
+prop_ipp_sp_Type :: Type -> Property
+prop_ipp_sp_Type = spAippModulo normalizeType type_
+
 prop_ipp_sp_UnsortedFO :: UnsortedFirstOrder -> Property
 prop_ipp_sp_UnsortedFO = spAippModulo reassociate unsortedFirstOrder
 
