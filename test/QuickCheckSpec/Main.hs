@@ -233,6 +233,9 @@ prop_ipp_sp_MonomorphicFO = spAippModulo reassociate monomorphicFirstOrder
 prop_ipp_sp_PolymorphicFO :: PolymorphicFirstOrder -> Property
 prop_ipp_sp_PolymorphicFO = spAippModulo reassociate polymorphicFirstOrder
 
+prop_ipp_sp_Unit :: Unit -> Property
+prop_ipp_sp_Unit = spAippModulo normalizeUnit unit
+
 
 -- * Runner
 

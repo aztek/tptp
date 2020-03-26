@@ -426,11 +426,11 @@ declaration l =  token "type" *> comma (optionalParens typeDeclaration)
 -- | Parse a declaration with the @type@ role - either a typing relation or
 -- a sort declaration.
 typeDeclaration :: Parser Declaration
-typeDeclaration =  Sort   <$> atom <* op ':' <*> arity
-               <|> Typing <$> atom <* op ':' <*> type_
+typeDeclaration =  Sort   <$> atom <* op ':' <*> optionalParens arity
+               <|> Typing <$> atom <* op ':' <*> optionalParens type_
                <?> "type declaration"
   where
-    arity = genericLength . fst <$> mapping (token "$tType")
+    arity = genericLength . fst <$> mapping (optionalParens (token "$tType"))
 
 -- | Parse a unit name.
 unitName :: Parser (Either Atom Integer)

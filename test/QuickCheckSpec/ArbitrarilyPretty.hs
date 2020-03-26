@@ -38,7 +38,8 @@ import Data.Monoid (mempty)
 #endif
 
 import qualified Data.Foldable as F (toList)
-import Data.List (intersperse)
+import Data.List (genericReplicate, intersperse)
+import Data.Maybe (maybeToList)
 import Data.Text (Text)
 
 #if !MIN_VERSION_base(4, 11, 0)
@@ -90,6 +91,9 @@ instance (ArbitrarilyPretty (SuperfluousParenthesis a),
           ArbitrarilyPretty (SuperfluousParenthesis b)) =>
           ArbitrarilyPretty (SuperfluousParenthesis (Either a b)) where
   apretty (SuperfluousParenthesis e) = either sppretty sppretty e
+
+instance ArbitrarilyPretty (SuperfluousParenthesis Text) where
+  apretty (SuperfluousParenthesis t) = return (pretty t)
 
 -- | An auxiliary wrapper used to pretty print applications of function and
 -- predicate symbols with superfluous parenthesis.
@@ -257,3 +261,34 @@ instance ArbitrarilyPretty (SuperfluousParenthesis Type) where
       return ("!>" <+> list (fmap prettyVar vs) <> t')
       where
         prettyVar v = pretty v <> pretty ':' <+> pretty tType
+
+instance ArbitrarilyPretty (SuperfluousParenthesis Formula) where
+  apretty (SuperfluousParenthesis f) = case f of
+    CNF  c -> sppretty c
+    FOF  g -> sppretty g
+    TFF0 g -> sppretty g
+    TFF1 g -> sppretty g
+
+instance ArbitrarilyPretty (SuperfluousParenthesis Declaration) where
+  apretty (SuperfluousParenthesis d) = case d of
+    Formula _ f -> sppretty f
+    Typing  s t -> (pretty s <>) <$> sppretty (Prefix ':' t)
+    Sort    s n -> (pretty s <>) <$> sppretty (Prefix ':' (Mapping tTypes tType))
+      where tTypes = genericReplicate n tType
+
+instance ArbitrarilyPretty (SuperfluousParenthesis Unit) where
+  apretty (SuperfluousParenthesis u) = case u of
+    Include{} -> return (pretty u)
+    Unit nm decl a -> do
+      decl' <- superfluousParenthesis (sppretty decl)
+      let args = pretty nm : prettyRole decl : decl' : ann
+      return (application (declarationLanguage decl) args <> ".")
+      where
+        prettyRole = \case
+          Sort{}      -> "type"
+          Typing{}    -> "type"
+          Formula r _ -> pretty (name r)
+
+        ann = case a of
+          Just (s, i) -> pretty s : maybeToList (fmap prettyList i)
+          Nothing -> []
