@@ -283,7 +283,7 @@ type_ =  uncurry . tff1Type
      <?> "type"
   where
     prefix = token "!>" *> bracketList1 sortVar <* op ':'
-    sortVar = var <* op ':' <* token "$tType"
+    sortVar = var <* op ':' <* optionalParens (token "$tType")
     matrix = optionalParens (mapping (optionalParens tff1Sort))
 
 
@@ -538,7 +538,7 @@ infos = bracketList info <?> "infos"
 -- | Parse and expression
 expr :: Parser Expression
 expr =  char '$' *> (labeled "fot" (Term <$> optionalParens term)
-                <|>  Logical <$> (language >>= parens . formula))
+                <|>  Logical <$> (language >>= parens . optionalParens . formula))
     <?> "expression"
 
 -- | Parse a parent.
