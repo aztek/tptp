@@ -29,7 +29,7 @@ import Data.Semigroup ((<>))
 
 import Data.Char (isAsciiLower, isAsciiUpper, isDigit)
 import qualified Data.Foldable as Foldable (toList)
-import Data.List (genericReplicate)
+import Data.List (genericReplicate, intersperse)
 import qualified Data.List.NonEmpty as NEL (nonEmpty)
 import Data.Maybe (maybeToList)
 import Data.Text (Text)
@@ -38,7 +38,7 @@ import qualified Data.Text as Text (
   )
 import Data.Text.Prettyprint.Doc (
     Doc, Pretty(..),
-    hsep, sep, (<+>), parens, list, tupled, concatWith, space, line
+    hsep, sep, (<+>), parens, list, tupled, space, line
   )
 
 import Data.TPTP
@@ -50,7 +50,7 @@ comment :: Doc ann -> Doc ann
 comment c = "%" <+> c <> line
 
 sepBy :: Foldable f => f (Doc ann) -> Doc ann -> Doc ann
-sepBy as s = concatWith (\a b -> a <+> s <+> b) (Foldable.toList as)
+sepBy as s = sep (intersperse s (Foldable.toList as))
 
 application :: Pretty f => f -> [Doc ann] -> Doc ann
 application f [] = pretty f
