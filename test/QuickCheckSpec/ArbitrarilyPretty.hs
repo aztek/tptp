@@ -252,15 +252,22 @@ instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
     where
       starSeparated = sep . intersperse (pretty star)
 
+data Typing a t = Typing_ a t
+  deriving (Eq, Show, Ord)
+
+instance (ArbitrarilyPretty (SuperfluousParenthesis t), Pretty a) =>
+          ArbitrarilyPretty (SuperfluousParenthesis (Typing a t)) where
+  apretty (SuperfluousParenthesis (Typing_ a t)) =
+    (pretty a <>) <$> sppretty (Prefix ':' t)
+
 instance ArbitrarilyPretty (SuperfluousParenthesis Type) where
   apretty (SuperfluousParenthesis t) = case t of
     Type        as r -> sppretty (Mapping as r)
     TFF1Type [] as r -> sppretty (Mapping as r)
     TFF1Type vs as r -> do
+      vs' <- mapM sppretty (fmap (flip Typing_ tType) vs)
       t' <- sppretty (Prefix ':' (ParensUnless (null as) (TFF1Type [] as r)))
-      return ("!>" <+> list (fmap prettyVar vs) <> t')
-      where
-        prettyVar v = pretty v <> pretty ':' <+> pretty tType
+      return ("!>" <+> list vs' <> t')
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Formula) where
   apretty (SuperfluousParenthesis f) = case f of
@@ -272,9 +279,8 @@ instance ArbitrarilyPretty (SuperfluousParenthesis Formula) where
 instance ArbitrarilyPretty (SuperfluousParenthesis Declaration) where
   apretty (SuperfluousParenthesis d) = case d of
     Formula _ f -> sppretty f
-    Typing  s t -> (pretty s <>) <$> sppretty (Prefix ':' t)
-    Sort    s n -> (pretty s <>) <$> sppretty (Prefix ':' (Mapping tTypes tType))
-      where tTypes = genericReplicate n tType
+    Typing  s t -> sppretty (Typing_ s t)
+    Sort    s n -> sppretty (Typing_ s (Mapping (genericReplicate n tType) tType))
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Unit) where
   apretty (SuperfluousParenthesis u) = case u of
