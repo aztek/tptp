@@ -155,8 +155,14 @@ prop_ipp_Sort = ipp sort
 prop_ipp_TFF1Sort :: TFF1Sort -> Property
 prop_ipp_TFF1Sort = ipp tff1Sort
 
+prop_ipp_sp_TFF1Sort :: TFF1Sort -> Property
+prop_ipp_sp_TFF1Sort = spAipp tff1Sort
+
 prop_ipp_Type :: Type -> Property
 prop_ipp_Type = ippModulo normalizeType type_
+
+prop_ipp_sp_Type :: Type -> Property
+prop_ipp_sp_Type = spAippModulo normalizeType type_
 
 
 -- ** First-order logic
@@ -167,26 +173,47 @@ prop_ipp_Number = ipp number
 prop_ipp_Term :: Term -> Property
 prop_ipp_Term = ipp term
 
+prop_ipp_sp_Term :: Term -> Property
+prop_ipp_sp_Term = spAipp term
+
 prop_ipp_Literal :: Literal -> Property
 prop_ipp_Literal = ipp literal
+
+prop_ipp_sp_Literal :: Literal -> Property
+prop_ipp_sp_Literal = spAipp literal
 
 prop_ipp_Clause :: Clause -> Property
 prop_ipp_Clause = ipp clause
 
+prop_ipp_sp_Clause :: Clause -> Property
+prop_ipp_sp_Clause = spAipp clause
+
 prop_ipp_UnsortedFO :: UnsortedFirstOrder -> Property
 prop_ipp_UnsortedFO = ippModulo reassociate unsortedFirstOrder
+
+prop_ipp_sp_UnsortedFO :: UnsortedFirstOrder -> Property
+prop_ipp_sp_UnsortedFO = spAippModulo reassociate unsortedFirstOrder
 
 prop_ipp_MonomorphicFO :: MonomorphicFirstOrder -> Property
 prop_ipp_MonomorphicFO = ippModulo reassociate monomorphicFirstOrder
 
+prop_ipp_sp_MonomorphicFO :: MonomorphicFirstOrder -> Property
+prop_ipp_sp_MonomorphicFO = spAippModulo reassociate monomorphicFirstOrder
+
 prop_ipp_PolymorphicFO :: PolymorphicFirstOrder -> Property
 prop_ipp_PolymorphicFO = ippModulo reassociate polymorphicFirstOrder
+
+prop_ipp_sp_PolymorphicFO :: PolymorphicFirstOrder -> Property
+prop_ipp_sp_PolymorphicFO = spAippModulo reassociate polymorphicFirstOrder
 
 
 -- ** Units
 
 prop_ipp_Unit :: Unit -> Property
 prop_ipp_Unit = ippModulo normalizeUnit unit
+
+prop_ipp_sp_Unit :: Unit -> Property
+prop_ipp_sp_Unit = spAippModulo normalizeUnit unit
 
 prop_ipp_TPTP :: TPTP -> Property
 prop_ipp_TPTP = ippModulo normalizeTPTP tptp
@@ -205,36 +232,6 @@ prop_ipp_Source = ippModulo normalizeSource source
 
 prop_ipp_Info :: Info -> Property
 prop_ipp_Info = ippModulo normalizeInfo info
-
-
--- * Superfluous parenthesis
-
-prop_ipp_sp_Term :: Term -> Property
-prop_ipp_sp_Term = spAipp term
-
-prop_ipp_sp_Literal :: Literal -> Property
-prop_ipp_sp_Literal = spAipp literal
-
-prop_ipp_sp_Clause :: Clause -> Property
-prop_ipp_sp_Clause = spAipp clause
-
-prop_ipp_sp_TFF1Sort :: TFF1Sort -> Property
-prop_ipp_sp_TFF1Sort = spAipp tff1Sort
-
-prop_ipp_sp_Type :: Type -> Property
-prop_ipp_sp_Type = spAippModulo normalizeType type_
-
-prop_ipp_sp_UnsortedFO :: UnsortedFirstOrder -> Property
-prop_ipp_sp_UnsortedFO = spAippModulo reassociate unsortedFirstOrder
-
-prop_ipp_sp_MonomorphicFO :: MonomorphicFirstOrder -> Property
-prop_ipp_sp_MonomorphicFO = spAippModulo reassociate monomorphicFirstOrder
-
-prop_ipp_sp_PolymorphicFO :: PolymorphicFirstOrder -> Property
-prop_ipp_sp_PolymorphicFO = spAippModulo reassociate polymorphicFirstOrder
-
-prop_ipp_sp_Unit :: Unit -> Property
-prop_ipp_sp_Unit = spAippModulo normalizeUnit unit
 
 
 -- * Runner

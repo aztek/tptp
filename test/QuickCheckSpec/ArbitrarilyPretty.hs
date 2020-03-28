@@ -64,7 +64,36 @@ class ArbitrarilyPretty e where
   apretty :: forall a. e -> Gen (Doc a)
 
 
--- ** Superfluous parenthesis
+-- * Helpers
+
+-- | Randomply split a non-empty list into two lists.
+randomSplit :: NonEmpty a -> Gen ([a], NonEmpty a)
+randomSplit lst = do
+  index <- choose (0, NEL.length lst - 1)
+  let (prefix, suffix) = NEL.splitAt index lst
+  return (prefix, NEL.fromList suffix)
+
+-- | Randomly split a non-empty list into a binary tree such that collecting
+-- the leafs of that tree from left to right results in the original list.
+--
+-- This splitting is used to generate randomly nested disjunctions with
+-- superfluous parenthesis compared to an equivalent clause.
+randomTree :: NonEmpty a -> Gen (BinTree a)
+randomTree = \case
+  a :| [] -> return (Leaf a)
+  a :| a' : as -> do
+    (prefix, suffix) <- randomSplit (a' :| as)
+    Fork <$> randomTree (a :| prefix) <*> randomTree suffix
+
+star, arrow, tType, colon, negation :: Text
+star = "*"
+arrow = ">"
+tType = "$tType"
+colon = ":"
+negation = "~"
+
+
+-- * Superfluous parenthesis
 
 -- | An auxiliary wrapper used to generate pretty printed TPTP expressions
 -- with superfluous parenthesis.
@@ -87,6 +116,9 @@ superfluousParenthesis g = frequency [
     (1, parens . parens <$> g)
   ]
 
+
+-- ** SuperfluousParenthesis instances for common types
+
 instance (ArbitrarilyPretty (SuperfluousParenthesis a),
           ArbitrarilyPretty (SuperfluousParenthesis b)) =>
           ArbitrarilyPretty (SuperfluousParenthesis (Either a b)) where
@@ -94,6 +126,9 @@ instance (ArbitrarilyPretty (SuperfluousParenthesis a),
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Text) where
   apretty (SuperfluousParenthesis t) = return (pretty t)
+
+
+-- ** Auxiliary data types and their SuperfluousParenthesis instances
 
 -- | An auxiliary wrapper used to pretty print applications of function and
 -- predicate symbols with superfluous parenthesis.
@@ -122,6 +157,8 @@ instance (ArbitrarilyPretty (SuperfluousParenthesis e), Pretty o) =>
     <$> superfluousParenthesis (sppretty a)
     <*> superfluousParenthesis (sppretty b)
 
+-- | An auxiliary wrapper used to pretty print applications of prefix operators
+-- with superfluous parenthesis.
 data Prefix e o = Prefix o e
   deriving (Eq, Ord, Show)
 
@@ -129,6 +166,55 @@ instance (ArbitrarilyPretty (SuperfluousParenthesis e), Pretty o) =>
           ArbitrarilyPretty (SuperfluousParenthesis (Prefix e o)) where
   apretty (SuperfluousParenthesis (Prefix o e)) =
     (pretty o <+>) <$> superfluousParenthesis (sppretty e)
+
+-- | An auxiliary wrapper used to pretty print expressions with superfluous
+-- parenthesis with a condition that mandates at least one pair of parenthesis.
+data ParensUnless e = ParensUnless Bool e
+  deriving (Show, Eq, Ord)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis e) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (ParensUnless e)) where
+  apretty (SuperfluousParenthesis (ParensUnless p e)) =
+    if p then sppretty e else parens <$> sppretty e
+
+-- | An auxiliary data structure used to pretty print a binary tree of disjunctions.
+data BinTree t
+  = Leaf t
+  | Fork (BinTree t) (BinTree t)
+  deriving (Eq, Ord, Show, Functor, Traversable, Foldable)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis l) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (BinTree l)) where
+  apretty (SuperfluousParenthesis t) = case t of
+    Leaf   l -> sppretty l
+    Fork a b -> sppretty (Infix Disjunction a b)
+
+-- | An auxiliary wrapper used to pretty print a typing of a symbol or a variable
+-- with superfluous parenthesis around the type.
+data Typing a t = Typing_ a t
+  deriving (Eq, Show, Ord)
+
+instance (ArbitrarilyPretty (SuperfluousParenthesis t), Pretty a) =>
+          ArbitrarilyPretty (SuperfluousParenthesis (Typing a t)) where
+  apretty (SuperfluousParenthesis (Typing_ a t)) =
+    (pretty a <>) <$> sppretty (Prefix colon t)
+
+-- | An auxiliary wrapper used to pretty print a mapping type with superfluous
+-- parenthesis around the argument type and the return type.
+data Mapping s = Mapping [s] s
+  deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
+
+instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
+         ArbitrarilyPretty (SuperfluousParenthesis (Mapping s)) where
+  apretty (SuperfluousParenthesis (Mapping [] s)) = sppretty s
+  apretty (SuperfluousParenthesis m) = do
+    Mapping as s <- mapM (superfluousParenthesis . sppretty) m
+    return (parens (starSeparated as) <+> pretty arrow <+> s)
+    where
+      starSeparated = sep . intersperse (pretty star)
+
+
+-- ** First-order logic
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Term) where
   apretty (SuperfluousParenthesis t) = case t of
@@ -145,50 +231,10 @@ instance ArbitrarilyPretty (SuperfluousParenthesis Literal) where
 instance ArbitrarilyPretty (SuperfluousParenthesis (Sign, Literal)) where
   apretty (SuperfluousParenthesis (s, l)) = case s of
     Positive -> sppretty l
-    Negative -> sppretty (Prefix '~' l)
-
--- | Randomply split a non-empty list into two lists.
-randomSplit :: NonEmpty a -> Gen ([a], NonEmpty a)
-randomSplit lst = do
-  index <- choose (0, NEL.length lst - 1)
-  let (prefix, suffix) = NEL.splitAt index lst
-  return (prefix, NEL.fromList suffix)
-
--- | The binary tree - an auxiliary data structure used to represent a tree of
--- of disjunctions.
-data BinTree t
-  = Leaf t
-  | Fork (BinTree t) (BinTree t)
-  deriving (Eq, Ord, Show, Functor, Traversable, Foldable)
-
--- | Randomly split a non-empty list into a binary tree such that collecting
--- the leafs of that tree from left to right results in the original list.
---
--- This splitting is used to generate randomly nested disjunctions with
--- superfluous parenthesis compared to an equivalent clause.
-randomTree :: NonEmpty a -> Gen (BinTree a)
-randomTree = \case
-  a :| [] -> return (Leaf a)
-  a :| a' : as -> do
-    (prefix, suffix) <- randomSplit (a' :| as)
-    Fork <$> randomTree (a :| prefix) <*> randomTree suffix
-
-instance ArbitrarilyPretty (SuperfluousParenthesis l) =>
-         ArbitrarilyPretty (SuperfluousParenthesis (BinTree l)) where
-  apretty (SuperfluousParenthesis t) = case t of
-    Leaf   l -> sppretty l
-    Fork a b -> sppretty (Infix Disjunction a b)
+    Negative -> sppretty (Prefix negation l)
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Clause) where
   apretty (SuperfluousParenthesis (Clause ls)) = randomTree ls >>= sppretty
-
-data ParensUnless e = ParensUnless Bool e
-  deriving (Show, Eq, Ord)
-
-instance ArbitrarilyPretty (SuperfluousParenthesis e) =>
-         ArbitrarilyPretty (SuperfluousParenthesis (ParensUnless e)) where
-  apretty (SuperfluousParenthesis (ParensUnless p e)) =
-    if p then sppretty e else parens <$> sppretty e
 
 unitary :: FirstOrder s -> Bool
 unitary = \case
@@ -206,14 +252,17 @@ instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
          ArbitrarilyPretty (SuperfluousParenthesis (FirstOrder s)) where
   apretty (SuperfluousParenthesis f) = case f of
     Atomic  l -> sppretty l
-    Negated g -> sppretty (Prefix '~' (ParensUnless (unitary g) g))
+    Negated g -> sppretty (Prefix negation (ParensUnless (unitary g) g))
     Connected g c h -> sppretty (Infix c (ParensUnless (under c g) g)
                                          (ParensUnless (under c h) h))
     Quantified q vs g -> do
       let var (v, s) = (pretty v <>) <$> sppretty s
       vs' <- mapM var (F.toList vs)
-      g' <- sppretty (Prefix ':' (ParensUnless (unitary g) g))
+      g' <- sppretty (Prefix colon (ParensUnless (unitary g) g))
       return (pretty q <+> list vs' <> g')
+
+
+-- ** Sorts and types
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Unsorted) where
   apretty (SuperfluousParenthesis u) = return (pretty u)
@@ -222,7 +271,7 @@ instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
          ArbitrarilyPretty (SuperfluousParenthesis (Sorted s)) where
   apretty (SuperfluousParenthesis (Sorted ms)) = case ms of
     Nothing -> return mempty
-    Just s  -> sppretty (Prefix ':' s)
+    Just s  -> sppretty (Prefix colon s)
 
 instance ArbitrarilyPretty (SuperfluousParenthesis (Name Sort)) where
   apretty (SuperfluousParenthesis n) = return (pretty n)
@@ -235,39 +284,17 @@ instance ArbitrarilyPretty (SuperfluousParenthesis TFF1Sort) where
     SortVariable v -> return (pretty v)
     TFF1Sort  f ss -> sppretty (Application_ f ss)
 
-data Mapping s = Mapping [s] s
-  deriving (Eq, Show, Ord, Functor, Traversable, Foldable)
-
-star, arrow , tType :: Text
-star = "*"
-arrow = ">"
-tType = "$tType"
-
-instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
-         ArbitrarilyPretty (SuperfluousParenthesis (Mapping s)) where
-  apretty (SuperfluousParenthesis (Mapping [] s)) = sppretty s
-  apretty (SuperfluousParenthesis m) = do
-    Mapping as s <- mapM (superfluousParenthesis . sppretty) m
-    return (parens (starSeparated as) <+> pretty arrow <+> s)
-    where
-      starSeparated = sep . intersperse (pretty star)
-
-data Typing a t = Typing_ a t
-  deriving (Eq, Show, Ord)
-
-instance (ArbitrarilyPretty (SuperfluousParenthesis t), Pretty a) =>
-          ArbitrarilyPretty (SuperfluousParenthesis (Typing a t)) where
-  apretty (SuperfluousParenthesis (Typing_ a t)) =
-    (pretty a <>) <$> sppretty (Prefix ':' t)
-
 instance ArbitrarilyPretty (SuperfluousParenthesis Type) where
   apretty (SuperfluousParenthesis t) = case t of
     Type        as r -> sppretty (Mapping as r)
     TFF1Type [] as r -> sppretty (Mapping as r)
     TFF1Type vs as r -> do
       vs' <- mapM sppretty (fmap (flip Typing_ tType) vs)
-      t' <- sppretty (Prefix ':' (ParensUnless (null as) (TFF1Type [] as r)))
+      t' <- sppretty (Prefix colon (ParensUnless (null as) (TFF1Type [] as r)))
       return ("!>" <+> list vs' <> t')
+
+
+-- ** Units
 
 instance ArbitrarilyPretty (SuperfluousParenthesis Formula) where
   apretty (SuperfluousParenthesis f) = case f of
