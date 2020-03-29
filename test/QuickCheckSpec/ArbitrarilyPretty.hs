@@ -32,8 +32,9 @@ import qualified Data.List.NonEmpty as NEL (splitAt, fromList, length)
 #if MIN_VERSION_base(4, 8, 0)
 import Prelude hiding ((<$>), (<*>))
 #else
+import Prelude hiding (mapM)
 import Data.Foldable (Foldable)
-import Data.Traversable (Traversable)
+import Data.Traversable (Traversable, mapM)
 import Data.Monoid (mempty)
 #endif
 
