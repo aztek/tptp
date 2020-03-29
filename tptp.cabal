@@ -1,7 +1,7 @@
 cabal-version: 2.4
 name: tptp
 version: 0.1.1.0
-synopsis: A parser and a pretty printer for the TPTP language
+synopsis: Parser and pretty printer for the TPTP language
 description:
   <http://www.tptp.org TPTP> (Thousands of Problems for Theorem Provers)
   is the standard language of problems, proofs, and models, used by automated
@@ -10,7 +10,7 @@ description:
   This library provides definitions of data types, a
   <https://hackage.haskell.org/package/prettyprinter pretty printer> and an
   <https://hackage.haskell.org/package/attoparsec attoparsec> parser for the
-  CNF, FOF, TFF0 and TFF1 subsets of the TPTP language.
+  CNF, FOF, TFF0 and TFF1 subsets of TPTP.
 homepage: https://github.com/aztek/tptp
 bug-reports: https://github.com/aztek/tptp/issues
 license: GPL-3.0-only
