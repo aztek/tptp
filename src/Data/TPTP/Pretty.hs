@@ -38,7 +38,7 @@ import qualified Data.Text as Text (
   )
 import Data.Text.Prettyprint.Doc (
     Doc, Pretty(..),
-    hsep, sep, (<+>), parens, list, tupled, space, line
+    hsep, sep, (<+>), parens, brackets, punctuate, space, comma, line
   )
 
 import Data.TPTP
@@ -50,14 +50,17 @@ comment :: Doc ann -> Doc ann
 comment c = "%" <+> c <> line
 
 sepBy :: Foldable f => f (Doc ann) -> Doc ann -> Doc ann
-sepBy as s = sep (intersperse s (Foldable.toList as))
+sepBy as s = hsep (intersperse s (Foldable.toList as))
 
 application :: Pretty f => f -> [Doc ann] -> Doc ann
 application f [] = pretty f
-application f as = pretty f <> tupled as
+application f as = pretty f <> parens (hsep (punctuate comma as))
 
-bracketList :: (Pretty a, Foldable f) => f a -> Doc ann
-bracketList = list . fmap pretty . Foldable.toList
+list :: Foldable f => f (Doc ann) -> Doc ann
+list = brackets . hsep . punctuate comma . Foldable.toList
+
+bracketList :: (Pretty a, Functor f, Foldable f) => f a -> Doc ann
+bracketList = list . fmap pretty
 
 
 -- * Names
@@ -285,7 +288,7 @@ instance Pretty TSTP where
       dataform p = case d of
         Nothing -> p
         Just df -> szsComment ["output", "start", pretty df]
-                <> p
+                <> p <> line
                 <> szsComment ["output", "end", pretty df]
 
 

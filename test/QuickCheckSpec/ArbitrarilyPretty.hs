@@ -52,7 +52,7 @@ import Control.Applicative ((<$>), (<*>))
 import Test.QuickCheck (Gen, choose, frequency)
 
 import Data.Text.Prettyprint.Doc (
-    Doc, (<+>), parens, tupled, list, surround, sep, space
+    Doc, (<+>), parens, brackets, punctuate, surround, hsep, space, comma
   )
 
 import Data.TPTP
@@ -142,7 +142,7 @@ data Application s e = Application_ s [e]
 -- | Pretty print an application of a symbol to a list of arguments.
 application :: Pretty f => f -> [Doc a] -> Doc a
 application f [] = pretty f
-application f as = pretty f <> tupled as
+application f as = pretty f <> parens (hsep (punctuate comma as))
 
 instance (ArbitrarilyPretty (SuperfluousParenthesis e), Pretty s) =>
           ArbitrarilyPretty (SuperfluousParenthesis (Application s e)) where
@@ -215,7 +215,7 @@ instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
     Mapping [] s -> sppretty s
     m -> do
       Mapping as s <- mapM (superfluousParenthesis . sppretty) m
-      let starSeparated = sep . intersperse (pretty star)
+      let starSeparated = hsep . intersperse (pretty star)
       return (parens (starSeparated as) <+> pretty arrow <+> s)
 
 
@@ -265,7 +265,7 @@ instance ArbitrarilyPretty (SuperfluousParenthesis s) =>
       let var (v, s) = (pretty v <>) <$> sppretty s
       vs' <- mapM var (F.toList vs)
       g' <- sppretty (Prefix colon (ParensUnless (unitary g) g))
-      return (pretty q <+> list vs' <> g')
+      return (pretty q <+> brackets (hsep (punctuate comma vs')) <> g')
 
 
 -- ** Sorts and types
@@ -297,7 +297,7 @@ instance ArbitrarilyPretty (SuperfluousParenthesis Type) where
     TFF1Type vs as r -> do
       vs' <- mapM sppretty (fmap (flip Typing_ tType) vs)
       t' <- sppretty (Prefix colon (ParensUnless (null as) (TFF1Type [] as r)))
-      return ("!>" <+> list vs' <> t')
+      return ("!>" <+> brackets (hsep (punctuate comma vs')) <> t')
 
 
 -- ** Units
