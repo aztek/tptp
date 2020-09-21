@@ -298,7 +298,7 @@ instance ArbitrarilyPretty (SuperfluousParenthesis Type) where
     Type        as r -> sppretty (Mapping as r)
     TFF1Type [] as r -> sppretty (Mapping as r)
     TFF1Type vs as r -> do
-      vs' <- mapM sppretty (fmap (flip Typing_ tType) vs)
+      vs' <- mapM sppretty (fmap (`Typing_` tType) vs)
       t' <- sppretty (Prefix colon (ParensUnless (null as) (TFF1Type [] as r)))
       return ("!>" <+> brackets (hsep (punctuate comma vs')) <> t')
 
