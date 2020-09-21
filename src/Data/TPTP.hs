@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ < 710
+#if __GLASGOW_HASKELL__ == 708
 {-# LANGUAGE DeriveFunctor, DeriveFoldable #-}
 #endif
 {-# LANGUAGE DeriveTraversable #-}
