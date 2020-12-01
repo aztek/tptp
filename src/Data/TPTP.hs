@@ -72,9 +72,9 @@ module Data.TPTP (
   UnsortedFirstOrder,
   SortedFirstOrder,
   MonomorphicFirstOrder,
-  PolymorphicFirstOrder,
   sortFirstOrder,
   unsortFirstOrder,
+  PolymorphicFirstOrder,
   polymorphizeFirstOrder,
   monomorphizeFirstOrder,
 
