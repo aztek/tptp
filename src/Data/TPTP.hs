@@ -73,6 +73,9 @@ module Data.TPTP (
   SortedFirstOrder,
   MonomorphicFirstOrder,
   PolymorphicFirstOrder,
+  sortFirstOrder,
+  unsortFirstOrder,
+  polymorphizeFirstOrder,
   monomorphizeFirstOrder,
 
   -- * Units
@@ -658,6 +661,20 @@ type SortedFirstOrder = MonomorphicFirstOrder
 -- | The formula in sorted monomorphic first-order logic.
 type MonomorphicFirstOrder = FirstOrder (Sorted (Name Sort))
 
+-- | Convert a formula in unsorted first-order logic to a formula in sorted
+-- monomorphic first-order logic trivially by omitting the sort annotations
+-- in all of its quantifiers. This function always succeeds.
+sortFirstOrder :: UnsortedFirstOrder -> SortedFirstOrder
+sortFirstOrder = fmap omit where omit _ = Sorted Nothing
+
+-- | Attempt to erase the sort annotations in a sorted monomorphic first-order
+-- formula. This function succeeds iff each of the quantifiers omits the sorts
+-- of its variables.
+unsortFirstOrder :: MonomorphicFirstOrder -> Maybe UnsortedFirstOrder
+unsortFirstOrder = traverse $ \case
+  Sorted Nothing -> Just (Unsorted ())
+  Sorted Just{}  -> Nothing
+
 -- | The marker of quantified sort.
 newtype QuantifiedSort = QuantifiedSort ()
   deriving (Eq, Show, Ord)
@@ -665,12 +682,18 @@ newtype QuantifiedSort = QuantifiedSort ()
 -- | The formula in sorted polymorphic first-order logic.
 type PolymorphicFirstOrder = FirstOrder (Sorted (Either QuantifiedSort TFF1Sort))
 
+-- | Polymorphize a sorted monomorphic first-order formula.
+-- This function always succeeds.
+polymorphizeFirstOrder :: MonomorphicFirstOrder -> PolymorphicFirstOrder
+polymorphizeFirstOrder = fmap (fmap polymorphize)
+  where polymorphize s = Right (TFF1Sort s [])
+
 -- | Attempt to monomorphize a polymorphic sorted first-order formula.
 -- This function succeeds iff each of the quantifiers only uses sort
--- constructors with zero arity.
+-- constructors with zero arity and there are no quantified sorts.
 monomorphizeFirstOrder :: PolymorphicFirstOrder -> Maybe MonomorphicFirstOrder
-monomorphizeFirstOrder = traverse . traverse
-                       $ either (const Nothing) monomorphizeTFF1Sort
+monomorphizeFirstOrder = traverse (traverse monomorphize)
+  where monomorphize = either (const Nothing) monomorphizeTFF1Sort
 
 
 -- * Units

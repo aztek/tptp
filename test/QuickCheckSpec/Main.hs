@@ -100,6 +100,10 @@ spAipp :: (Show e, Eq e, ArbitrarilyPretty (SuperfluousParenthesis e))
        => Parser e -> e -> Property
 spAipp = spAippModulo defaultNormalize
 
+-- | Idempotent encoding / decoding.
+(~=) :: (Eq a, Show a) => (a -> b) -> (b -> Maybe a) -> a -> Property
+(~=) to from a = Just a === from (to a)
+
 
 -- * Properties
 
@@ -232,6 +236,15 @@ prop_ipp_Source = ippModulo normalizeSource source
 
 prop_ipp_Info :: Info -> Property
 prop_ipp_Info = ippModulo normalizeInfo info
+
+
+-- ** Conversions
+
+prop_unsortFirstOrder :: UnsortedFirstOrder -> Property
+prop_unsortFirstOrder = sortFirstOrder ~= unsortFirstOrder
+
+prop_monomorphizeFirstOrder :: MonomorphicFirstOrder -> Property
+prop_monomorphizeFirstOrder = polymorphizeFirstOrder ~= monomorphizeFirstOrder
 
 
 -- * Runner
