@@ -485,7 +485,10 @@ szs :: Parser SZS
 szs = fromMaybe mempty . mconcat <$> many szsComment
 
 szsComment :: Parser (Maybe SZS)
-szsComment =  commented (skipSpace *> optional szsAnnotation) <* skipSpace
+szsComment =  commented (skipSpace *>
+                         optional (skipBeginComment *> skipSpace) *>
+                         optional szsAnnotation)
+          <*  skipSpace
           <?> "szs comment"
 
 szsAnnotation :: Parser SZS
@@ -535,7 +538,7 @@ infos :: Parser [Info]
 infos = bracketList info <?> "infos"
 {-# INLINE infos #-}
 
--- | Parse and expression
+-- | Parse an expression.
 expr :: Parser Expression
 expr =  char '$' *> (labeled "fot" (Term <$> optionalParens term)
                 <|>  Logical <$> (language >>= parens . optionalParens . formula))
