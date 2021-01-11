@@ -1,5 +1,13 @@
 # Revision history for tptp
 
+## 0.1.3.0 -- 2021-01-11
+
+* Parse SZS comment annotations more liberally.
+
+* Add functions 'sortFirstOrder', 'unsortFirstOrder', and 'polymorphizeFirstOrder'.
+
+* Support compilation with GHC 8.8.4 and 8.10.3.
+
 ## 0.1.2.0 -- 2020-04-03
 
 * Consume leading whitespace in the TSTP parser.
