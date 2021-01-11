@@ -17,8 +17,9 @@
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
 --
+-- The syntax of the TPTP language.
 -- See [the BNF grammar](http://tptp.cs.miami.edu/TPTP/SyntaxBNF.html)
--- definition of the TPTP language for details.
+-- definition of TPTP for details.
 --
 
 module Data.TPTP (
