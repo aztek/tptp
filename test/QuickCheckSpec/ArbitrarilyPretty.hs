@@ -12,7 +12,7 @@
 -- |
 -- Module       : ArbitrarilyPretty
 -- Description  : Generators for randomized pretty outputs of TPTP expressions.
--- Copyright    : (c) Evgenii Kotelnikov, 2020
+-- Copyright    : (c) Evgenii Kotelnikov, 2019-2021
 -- License      : GPL-3
 -- Maintainer   : evgeny.kotelnikov@gmail.com
 -- Stability    : experimental
