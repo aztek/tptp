@@ -49,7 +49,7 @@ import Normalizers
 
 -- * Helper functions
 
--- | Generalized idempotent parsing / pretty printing.
+-- | Generalized invertible parsing / pretty printing.
 ippWith :: (Show e, Show e', Eq e')
         => (e -> Gen (Doc a))  -- ^ Pretty printer.
         -> (Doc a -> Gen Text) -- ^ Renderer.
@@ -69,24 +69,24 @@ defaultRender = return . renderStrict . layoutPretty defaultLayoutOptions
 defaultNormalize :: e -> e
 defaultNormalize = id
 
--- | Idempotent parsing / pretty printing modulo normalization.
+-- | Invertible parsing / pretty printing modulo normalization.
 ippModulo :: (Show e, Eq e, Pretty e) => (e -> e) -> Parser e -> e -> Property
 ippModulo = flip $ ippWith (return . pretty) defaultRender
 
--- | Idempotent parsing / pretty printing.
+-- | Invertible parsing / pretty printing.
 ipp :: (Show e, Eq e, Pretty e) => Parser e -> e -> Property
 ipp = ippModulo defaultNormalize
 
--- | Idempotent arbitrary parsing / pretty printing modulo normalization.
+-- | Invertible arbitrary parsing / pretty printing modulo normalization.
 aippModulo :: (Show e, Eq e, ArbitrarilyPretty e, Show e', Eq e')
            => (e -> e') -> Parser e -> e -> Property
 aippModulo = flip $ ippWith apretty defaultRender
 
--- | Idempotent parsing / pretty printing.
+-- | Invertible parsing / pretty printing.
 aipp :: (Show e, Eq e, ArbitrarilyPretty e) => Parser e -> e -> Property
 aipp = aippModulo defaultNormalize
 
--- | Idempotent parsing / pretty printing with superfluous parenthesis
+-- | Invertible parsing / pretty printing with superfluous parenthesis
 -- modulo normalization.
 spAippModulo :: (Show e, Eq e, ArbitrarilyPretty (SuperfluousParenthesis e))
              => (e -> e) -> Parser e -> e -> Property
@@ -95,12 +95,12 @@ spAippModulo normalize parser expr =
              (fmap SuperfluousParenthesis parser)
              (SuperfluousParenthesis expr)
 
--- | Idempotent parsing / pretty printing with superfluous parenthesis.
+-- | Invertible parsing / pretty printing with superfluous parenthesis.
 spAipp :: (Show e, Eq e, ArbitrarilyPretty (SuperfluousParenthesis e))
        => Parser e -> e -> Property
 spAipp = spAippModulo defaultNormalize
 
--- | Idempotent encoding / decoding.
+-- | Invertible encoding / decoding.
 (~=) :: (Eq a, Show a) => (a -> b) -> (b -> Maybe a) -> a -> Property
 (~=) to from a = Just a === from (to a)
 
