@@ -61,7 +61,7 @@ import Control.Applicative (pure, (<*>), (*>), (<*), (<|>), optional, empty, man
 import Data.Char (isAscii, isAsciiLower, isAsciiUpper, isDigit, isPrint)
 import Data.Function (on)
 import Data.Functor ((<$>), ($>))
-import Data.Maybe (fromMaybe)
+import Data.Maybe (catMaybes)
 #if !MIN_VERSION_base(4, 8, 0)
 import Data.Monoid (Monoid(..))
 #endif
@@ -482,7 +482,7 @@ instance Monoid SZS where
 
 -- | Parse the SZS ontology information of a TSTP output inside a comment.
 szs :: Parser SZS
-szs = fromMaybe mempty . mconcat <$> many szsComment
+szs = mconcat . catMaybes <$> many szsComment
 
 szsComment :: Parser (Maybe SZS)
 szsComment =  commented (skipSpace *>
